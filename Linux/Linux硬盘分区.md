@@ -1,10 +1,19 @@
-# Linux 硬盘分区挂载
+# Linux 硬盘与分区
 
-- 查看硬盘 `lsblk`
+> 分区是物理硬盘的逻辑处理，可以将一块硬盘分割位多个分区。也可以将多个硬盘合并为单个分区。
 
-- 查看卷组 `vgdisplay`
+- `lsblk -l` 查看分区情况
 
-## 挂载新硬盘
+- `fdisk -l` 
+
+- `parted -l`
+
+
+## 一个硬盘拆分多个逻辑分区
+
+...
+
+## 合并多个硬盘到一个逻辑分区
 
 > 目标 将新增的三块硬盘`/dev/nvme0n1`,`/dev/nvme1n1`,`/dev/nvme2n1` 每块8T的硬盘 组合一块挂载到home
 
@@ -44,5 +53,8 @@ mkfs.xfs /dev/vg_home/lv_date
 mount /dev/vg_home/lv_date /home
 
 vi /etc/fstab
+
+/dev/sda
+
 /dev/vg_home/lv_date  /home  ext4  defaults  0  2
 ```
