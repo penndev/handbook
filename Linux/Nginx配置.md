@@ -1,4 +1,17 @@
 
+ ## 证书ssl配置
+
+```
+    #SSL
+    ssl_certificate ssl/$ssl_server_name.crt;
+    ssl_certificate_key ssl/$ssl_server_name.key;
+    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    #SSL-END
+```
 
 ## 缓存相关配置
 
@@ -12,30 +25,38 @@
 proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
 ```
 
-## 内部location
+## 反向代理
 
-`internal;` 关键字
+```
+    proxy_pass $backend_url;
+    proxy_set_header HOST $backend_host;
 
-X-Accel-Redirect
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Client-Scheme $scheme;
+    proxy_set_header X-Forward-For $remote_addr ;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header REMOTE-HOST $remote_addr;
+```
+
+
+## 静态文件服务器
+
+- `alias` 静态文件路径，剔除location的文件路径。
+
+- `root` 静态文件路径，未剔除location的文件路径。
+
+
+## internal
+
+> 当location包含 `internal;` 则表示本location只能nginx内部进行访问，如果通过uri访问则会返回404.
+
+可通过 `error_page`、 `index`、 `internal_redirect`、 `random_index`和 `try_files`指令;和`rewrite`重定向、来自上游服务器的`X-Accel-Redirect`响应头字段重定向的请求。
+
+
+
 
 
 ## openrestry 安装配置
 
 > https://openresty.org/cn/linux-packages.html 官方预编译包
 
-
- 
-
- ## 证书 ssl 配置
-
-```
-    #SSL
-    ssl_certificate ssl/$ssl_server_name.crt;
-    ssl_certificate_key ssl/$ssl_server_name.key;
-    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    #SSL-END
-```
