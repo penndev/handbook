@@ -53,10 +53,7 @@ proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
 可通过 `error_page`、 `index`、 `internal_redirect`、 `random_index`和 `try_files`指令;和`rewrite`重定向、来自上游服务器的`X-Accel-Redirect`响应头字段重定向的请求。
 
 
-
-
-
-## openrestry 安装配置
+## openrestry 
 
 > https://openresty.org/cn/linux-packages.html 官方预编译包
 
