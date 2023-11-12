@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>ffmpeg · penndev/handbook</title>
+        <title>文件系统fs · penndev/handbook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.1">
@@ -56,8 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
+    <link rel="next" href="../音视频/ffmpeg.html" />
     
-    <link rel="prev" href="../Linux/文件系统.html" />
+    
+    <link rel="prev" href="../" />
     
 
     </head>
@@ -106,9 +108,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Linux/文件系统.html">
+        <li class="chapter active" data-level="2.1" data-path="文件系统.html">
             
-                <a href="../Linux/文件系统.html">
+                <a href="文件系统.html">
             
                     
                     文件系统fs
@@ -126,9 +128,9 @@
         
         
     
-        <li class="chapter active" data-level="3.1" data-path="ffmpeg.html">
+        <li class="chapter " data-level="3.1" data-path="../音视频/ffmpeg.html">
             
-                <a href="ffmpeg.html">
+                <a href="../音视频/ffmpeg.html">
             
                     
                     ffmpeg
@@ -169,7 +171,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >ffmpeg</a>
+        <a href=".." >文件系统fs</a>
     </h1>
 </div>
 
@@ -184,18 +186,86 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="ffmpeg">ffmpeg</h2>
-<h3 id="简单转换单个文件格式">简单转换单个文件格式</h3>
-<pre><code>&gt; ffmpeg -i input.mp4 -vcodec libx264 -acodec aac output.mp4
-</code></pre><ul>
-<li><code>-vcodec (-c:v)</code> 指定视频编码器(-c:v)简写</li>
-<li><code>-acodec (-c:a)</code> 指定视频编码器(-c:a)简写</li>
+                                <h1 id="文件系统">文件系统</h1>
+<blockquote>
+<p>文件系统是操作系统与硬盘设备的交互桥梁。我们抽象理解整个文件系统，我们的文件和文件夹都存储在各种文件系统①之上, 文件系统来与各种各样的硬盘②来进行打交道，文件系统建立在分区③之上。</p>
+</blockquote>
+<ol>
+<li>windows默认的文件系统为NTFS，Linux默认的文件系统为EXT4，个人常用的XFS，等等...</li>
+<li>目前硬盘的种类分为两大类 机械硬盘（电磁原理持久数据），固态硬盘（mos管持久数据）</li>
+<li>分区分为物理分区与 逻辑分区（lvm 是通过程序来将硬盘进行虚拟化来更方便的对硬盘进行管理）</li>
+</ol>
+<hr>
+<ul>
+<li><code>mkfs.* /dev/sda</code> 制作文件系统</li>
 </ul>
-<h3 id="分割文件">分割文件</h3>
-<pre><code>ffmpeg -i input.mp4 -c copy -segment_time 15        -f segment output_%03d.mp4
-ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
-</code></pre><h3 id="已经编译后的静态文件">已经编译后的静态文件</h3>
-<p><a href="https://johnvansickle.com/ffmpeg/" target="_blank">https://johnvansickle.com/ffmpeg/</a></p>
+<p><strong> 文件系统挂载 </strong></p>
+<ul>
+<li><code>mount /dev/sda /home</code> 挂载做好文件系统的硬盘到目录  </li>
+<li><code>umount /home</code>   取消挂载</li>
+<li><code>vim /etc/fstab</code> 编辑fstab使文件系统开机就挂载。</li>
+<li><code>mount -a</code>       进行fstab修改生效，可检查配置状态。</li>
+<li><code>df -h</code> 展示所有的分区挂载情况</li>
+</ul>
+<p><strong> 硬盘分区 </strong> </p>
+<ul>
+<li><code>lsblk</code> 查看设备与分区情况。</li>
+<li><code>fdisk</code> 查看硬盘设备</li>
+<li><code>parted</code> 分区操作</li>
+</ul>
+<p><strong> 硬盘逻辑分区LVM </strong> </p>
+<blockquote>
+<p>LVM（Logical Volume Manager，逻辑卷管理器）是一种用于在Linux系统中管理磁盘存储空间的软件工具。</p>
+</blockquote>
+<ol>
+<li><p><code>pvcreate /dev/sda /dev/sdb</code> 制作lvm物理卷</p>
+</li>
+<li><p><code>vgcreate vg_home /dev/sda /dev/sdb</code> 制作lvm物理卷组</p>
+</li>
+<li><p><code>vgdisplay</code> 查看卷组信息</p>
+</li>
+<li><p><code>lvcreate,lvremove,lvextend</code> (创建删除拓展某个逻辑分区)</p>
+</li>
+</ol>
+<hr>
+<h5 id="示例-合并多个硬盘到一个逻辑分区">示例 合并多个硬盘到一个逻辑分区</h5>
+<blockquote>
+<p>目标 将新增的三块硬盘<code>/dev/nvme0n1</code>,<code>/dev/nvme1n1</code>,<code>/dev/nvme2n1</code> 每块8T的硬盘 组合一块挂载到home</p>
+</blockquote>
+<ol>
+<li>初始化物理卷 </li>
+</ol>
+<pre><code class="lang-bash">pvcreate /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+pvcreate /dev/nvme0n1 
+pvcreate /dev/nvme1n1 
+pvcreate /dev/nvme2n1
+</code></pre>
+<ol>
+<li>创建新卷组</li>
+</ol>
+<pre><code class="lang-bash">vgcreate vg_home /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+vgcreate vg_home /dev/nvme0n1 
+vgextend vg_home /dev/nvme1n1 
+vgextend vg_home /dev/nvme2n1
+</code></pre>
+<ol>
+<li>创建逻辑卷</li>
+</ol>
+<pre><code class="lang-bash">lvcreate -l 100%FREE -n lv_date vg_home
+
+mkfs.xfs /dev/vg_home/lv_date
+</code></pre>
+<ol>
+<li>挂载文件系统</li>
+</ol>
+<pre><code class="lang-bash">mount /dev/vg_home/lv_date /home
+
+vi /etc/fstab
+
+/dev/vg_home/lv_date  /home  ext4  defaults  0  2
+</code></pre>
 
                                 
                                 </section>
@@ -223,10 +293,14 @@ ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
 
             
                 
-                <a href="../Linux/文件系统.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: 文件系统fs">
+                <a href="../" class="navigation navigation-prev " aria-label="Previous page: 介绍">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
+                
+                <a href="../音视频/ffmpeg.html" class="navigation navigation-next " aria-label="Next page: ffmpeg">
+                    <i class="fa fa-angle-right"></i>
+                </a>
                 
             
         
@@ -235,7 +309,7 @@ ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"ffmpeg","level":"3.1","depth":1,"previous":{"title":"文件系统fs","level":"2.1","depth":1,"path":"Linux/文件系统.md","ref":"Linux/文件系统.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"音视频/ffmpeg.md","mtime":"2023-11-12T05:04:24.715Z","type":"markdown"},"gitbook":{"version":"5.1.1","time":"2023-11-12T05:04:36.526Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"文件系统fs","level":"2.1","depth":1,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"介绍","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/文件系统.md","mtime":"2023-11-12T05:04:24.711Z","type":"markdown"},"gitbook":{"version":"5.1.1","time":"2023-11-12T05:04:36.526Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
