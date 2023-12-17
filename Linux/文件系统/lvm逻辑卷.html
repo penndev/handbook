@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>介绍 · penndev/handbook</title>
+        <title>lvm使用实例 · penndev/handbook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.1">
@@ -11,20 +11,20 @@
         
         
     
-    <link rel="stylesheet" href="gitbook/style.css">
+    <link rel="stylesheet" href="../../gitbook/style.css">
 
     
             
                 
-                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
+                <link rel="stylesheet" href="../../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
                 
-                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
                 
             
                 
-                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
                 
             
         
@@ -52,12 +52,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
-    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Linux/文件系统/文件系统.html" />
+    <link rel="next" href="../../音视频/ffmpeg.html" />
     
+    
+    <link rel="prev" href="文件系统.html" />
     
 
     </head>
@@ -86,9 +88,9 @@
         
         
     
-        <li class="chapter active" data-level="1.1" data-path="./">
+        <li class="chapter " data-level="1.1" data-path="../../">
             
-                <a href="./">
+                <a href="../../">
             
                     
                     介绍
@@ -113,9 +115,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="Linux/文件系统/文件系统.html">
+        <li class="chapter " data-level="3.1" data-path="文件系统.html">
             
-                <a href="Linux/文件系统/文件系统.html">
+                <a href="文件系统.html">
             
                     
                     简介
@@ -126,9 +128,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.2" data-path="Linux/文件系统/lvm逻辑卷.html">
+        <li class="chapter active" data-level="3.2" data-path="lvm逻辑卷.html">
             
-                <a href="Linux/文件系统/lvm逻辑卷.html">
+                <a href="lvm逻辑卷.html">
             
                     
                     lvm使用实例
@@ -146,9 +148,9 @@
         
         
     
-        <li class="chapter " data-level="4.1" data-path="音视频/ffmpeg.html">
+        <li class="chapter " data-level="4.1" data-path="../../音视频/ffmpeg.html">
             
-                <a href="音视频/ffmpeg.html">
+                <a href="../../音视频/ffmpeg.html">
             
                     
                     ffmpeg
@@ -189,7 +191,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >介绍</a>
+        <a href="../.." >lvm使用实例</a>
     </h1>
 </div>
 
@@ -204,8 +206,63 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="handbook">handbook</h1>
-<p>整理开发过程中的笔记。</p>
+                                <h1 id="lvm逻辑卷">LVM逻辑卷</h1>
+<p>LVM（Logical Volume Manager，逻辑卷管理器）是一种用于在Linux系统中管理磁盘存储空间的软件工具。</p>
+<ul>
+<li><p>制作lvm卷</p>
+<p>  <code>pvcreate /dev/sda</code> 将sda初始化为逻辑卷  </p>
+</li>
+<li><p>制作lvm卷组</p>
+<p>  <code>vgcreate vg_home /dev/sda /dev/sdb</code> 将sda,sdb制作为卷组 vg_home</p>
+</li>
+<li><p><code>vgdisplay</code> 查看卷组信息</p>
+</li>
+<li><p>创建lvm分区</p>
+<p>  <code>lvcreate</code></p>
+</li>
+<li><p>移除lvm分区</p>
+<p>  <code>lvremove /dev/vg_name/home</code> </p>
+</li>
+<li><p>拓展lvm分区</p>
+<p>  <code>lvextend</code> 拓展分区后需要<strong>调整文件系统的大小</strong>。必须调整后才能被使用。</p>
+</li>
+</ul>
+<h2 id="合并多个硬盘到一个逻辑分区">合并多个硬盘到一个逻辑分区</h2>
+<p>目标 将新增的三块硬盘<code>/dev/nvme0n1</code>,<code>/dev/nvme1n1</code>,<code>/dev/nvme2n1</code> 每块8T的硬盘 组合一块挂载到home</p>
+<ol>
+<li>初始化物理卷 </li>
+</ol>
+<pre><code class="lang-bash">pvcreate /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+pvcreate /dev/nvme0n1 
+pvcreate /dev/nvme1n1 
+pvcreate /dev/nvme2n1
+</code></pre>
+<ol>
+<li>创建新卷组</li>
+</ol>
+<pre><code class="lang-bash">vgcreate vg_home /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+vgcreate vg_home /dev/nvme0n1 
+vgextend vg_home /dev/nvme1n1 
+vgextend vg_home /dev/nvme2n1
+</code></pre>
+<ol>
+<li>创建逻辑卷</li>
+</ol>
+<pre><code class="lang-bash">lvcreate -l 100%FREE -n lv_date vg_home
+
+mkfs.xfs /dev/vg_home/lv_date
+</code></pre>
+<ol>
+<li>挂载文件系统</li>
+</ol>
+<pre><code class="lang-bash">mount /dev/vg_home/lv_date /home
+
+vi /etc/fstab
+
+/dev/vg_home/lv_date  /home  ext4  defaults  0  2
+</code></pre>
 
                                 
                                 </section>
@@ -233,8 +290,12 @@
 
             
                 
+                <a href="文件系统.html" class="navigation navigation-prev " aria-label="Previous page: 简介">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 
-                <a href="Linux/文件系统/文件系统.html" class="navigation navigation-next navigation-unique" aria-label="Next page: 简介">
+                
+                <a href="../../音视频/ffmpeg.html" class="navigation navigation-next " aria-label="Next page: ffmpeg">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -245,7 +306,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"介绍","level":"1.1","depth":1,"next":{"title":"简介","level":"3.1","depth":1,"path":"Linux/文件系统/文件系统.md","ref":"Linux/文件系统/文件系统.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"README.md","mtime":"2023-12-17T02:14:10.420Z","type":"markdown"},"gitbook":{"version":"5.1.1","time":"2023-12-17T02:14:19.885Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"lvm使用实例","level":"3.2","depth":1,"next":{"title":"ffmpeg","level":"4.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"简介","level":"3.1","depth":1,"path":"Linux/文件系统/文件系统.md","ref":"Linux/文件系统/文件系统.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/文件系统/lvm逻辑卷.md","mtime":"2023-12-17T02:14:10.420Z","type":"markdown"},"gitbook":{"version":"5.1.1","time":"2023-12-17T02:14:19.885Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
@@ -295,27 +356,27 @@
             book.classList.remove("honkit-cloak");
         }
     </script>
-    <script src="gitbook/gitbook.js"></script>
-    <script src="gitbook/theme.js"></script>
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
     
         
-        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
-        
-    
-        
-        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
         
     
         
-        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
         
     
         
-        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
         
     
         
-        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
         
     
 
