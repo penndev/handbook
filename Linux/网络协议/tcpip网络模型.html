@@ -269,13 +269,11 @@
 </table>
 <h2 id="1物理层">1.物理层</h2>
 <blockquote>
-<p>进行物理信号接收0-1信号。</p>
+<p>物理层主要解决在连接各种计算机的传输媒体(电缆，光缆，蜂窝网络)上传输数据比特流。通过制定标准来进行统一这些设备的生产和制造。</p>
 </blockquote>
+<p>所以设备厂商都要遵循物理层的标准来生产设备。</p>
 <h2 id="2-链路层">2. 链路层</h2>
-<blockquote>
-<p>在计算机物理网络中由于各种干扰的存在，物理链路是不可靠的。因此，这一层的主要功能是在物理层提供的比特流的基础上，通过差错控制、流量控制方法，使有差错的物理线路变为无差错的数据链路，即提供可靠的通过物理介质传输数据的方法。数据链路层的具体工作是接收来自物理层的位流形式的数据，并封装成帧，传送到上一层；同样，也将来自上层的数据帧，拆装为位流形式的数据转发到物理层；并且，还负责处理接收端发回的确认帧的信息。</p>
-</blockquote>
-<h3 id="mac">MAC</h3>
+<h3 id="封装成帧">封装成帧</h3>
 <p>数据链路层的协议数据单元。帧头,数据，帧尾。</p>
 <h4 id="逻辑链路控制（llc）">逻辑链路控制（LLC）</h4>
 <blockquote>
@@ -329,7 +327,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"tcpip网络模型","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"tcpip网络模型","level":"2.2.1","depth":2,"path":"Linux/网络协议/tcpip网络模型.md","ref":"Linux/网络协议/tcpip网络模型.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/tcpip网络模型.md","mtime":"2023-12-28T15:17:37.956Z","type":"markdown"},"gitbook":{"version":"5.1.3","time":"2023-12-28T15:17:45.533Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"tcpip网络模型","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"tcpip网络模型","level":"2.2.1","depth":2,"path":"Linux/网络协议/tcpip网络模型.md","ref":"Linux/网络协议/tcpip网络模型.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/tcpip网络模型.md","mtime":"2023-12-29T15:30:17.403Z","type":"markdown"},"gitbook":{"version":"5.1.3","time":"2023-12-29T15:30:28.138Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
