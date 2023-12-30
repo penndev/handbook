@@ -269,21 +269,156 @@
 </table>
 <h2 id="1物理层">1.物理层</h2>
 <blockquote>
-<p>物理层主要解决在连接各种计算机的传输媒体(电缆，光缆，蜂窝网络)上传输数据比特流。通过制定标准来进行统一这些设备的生产和制造。</p>
+<p>进行设备间“点对点”的连接。</p>
 </blockquote>
-<p>所以设备厂商都要遵循物理层的标准来生产设备。</p>
+<p>物理层主要解决在各种设备间互相传输比特流的。为了解决这个问题，进行了一大堆的标准来进行规范。</p>
+<p>Q1. 如何进行双全工数据传输的。</p>
 <h2 id="2-链路层">2. 链路层</h2>
+<blockquote>
+<p>对物理层传输的比特数据进行逻辑处理。 </p>
+</blockquote>
+<p>Q1. 传输如何开始和结束</p>
+<blockquote>
+<p>通过封装为帧的概念来处理信号的开始和结束。</p>
+</blockquote>
+<p>Q2. 传输给谁</p>
+<blockquote>
+<p>通过mac地址与连接其他设备的 “接口” 进行数据传输。明白数据应该传输给谁。</p>
+</blockquote>
+<p><strong>以太网帧</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">帧头 SOH</th>
+<th style="text-align:center">帧数据</th>
+<th style="text-align:right">帧尾EOT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">--&gt;</td>
+<td style="text-align:center">数据长度限制为 ≤ MTU</td>
+<td style="text-align:right">&lt;--</td>
+</tr>
+</tbody>
+</table>
+<p><strong>帧数据 MAC层</strong></p>
+<table>
+<thead>
+<tr>
+<th>Dst MAC</th>
+<th>Src MAC</th>
+<th>Type</th>
+<th>Data</th>
+<th>FCS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6Byte 目的串口</td>
+<td>6Byte 发送串口</td>
+<td>2Byte 数据类型</td>
+<td>数据</td>
+<td>4Byte 校验</td>
+</tr>
+</tbody>
+</table>
 <h3 id="封装成帧">封装成帧</h3>
-<p>数据链路层的协议数据单元。帧头,数据，帧尾。</p>
-<h4 id="逻辑链路控制（llc）">逻辑链路控制（LLC）</h4>
+<p>数据链路层的协议数据单元。帧头，数据，帧尾。这时候接收端收到帧头就知道有数据传输过来了，如果读取到帧尾就知道数据传输结束了。</p>
+<h3 id="透明传输">透明传输</h3>
+<p>透明传输的意思为帧数据中如果出现了与EOT相同的字节怎么办，这时候就需要用到转义符。与编程概念类似。</p>
+<h3 id="差错检测">差错检测</h3>
+<p>使用crc进行数据校验来保证传输的数据正确。</p>
+<h2 id="3-网络层">3. 网络层</h2>
 <blockquote>
-<p>LLC子层的主要任务是建立和维护网络连接，执行差错校验、流量控制和链路控制</p>
+<p>对数据进行转发，不仅仅进行相邻设备进行数据传送。</p>
 </blockquote>
-<h3 id="3-网络层">3. 网络层</h3>
-<blockquote>
-<p>网络层 负责网络管理和路由。它的主要作用是在网络中传输数据包并确定最佳路径。网络层主要使用的协议是<br>    <strong>Internet Control Message Protocol(ICMP)</strong> 
-    <strong>Internet Protocol (IP)</strong><br>    <strong>子网</strong><br>    <strong>路由</strong><br>    <strong>网关</strong><br>    <strong>掩码</strong>  </p>
-</blockquote>
+<p><strong>IP数据</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>版本 (Version)</td>
+<td>4位</td>
+<td>指定IP协议的版本，IPv4为4。</td>
+</tr>
+<tr>
+<td>头部长度 (Header Length)</td>
+<td>4位</td>
+<td>指示IP头部的长度，以32位字为单位。通常为5。</td>
+</tr>
+<tr>
+<td>服务类型 (Type of Service)</td>
+<td>8位</td>
+<td>指定数据包的服务质量，如优先级、延迟等。</td>
+</tr>
+<tr>
+<td>总长度 (Total Length)</td>
+<td>16位</td>
+<td>整个IP数据报的长度，包括头部和数据部分。</td>
+</tr>
+<tr>
+<td>标识 (Identification)</td>
+<td>16位</td>
+<td>用于标识数据报的唯一性，进行重新组装。</td>
+</tr>
+<tr>
+<td>标志 (Flags)</td>
+<td>3位</td>
+<td>分片相关的标志，如禁止分片、更多分片等。</td>
+</tr>
+<tr>
+<td>片偏移 (Fragment Offset)</td>
+<td>13位</td>
+<td>分片相对于原始数据报的偏移量。</td>
+</tr>
+<tr>
+<td>生存时间 (Time to Live, TTL)</td>
+<td>8位</td>
+<td>数据报在网络中的最大寿命。每经过路由器，TTL减1，TTL为0时数据报被丢弃。</td>
+</tr>
+<tr>
+<td>协议 (Protocol)</td>
+<td>8位</td>
+<td>指示数据报的上层协议，如TCP、UDP、ICMP等。</td>
+</tr>
+<tr>
+<td>头部校验和 (Header Checksum)</td>
+<td>16位</td>
+<td>用于检测IP头部的错误，提高数据传输的可靠性。</td>
+</tr>
+<tr>
+<td>源IP地址 (Source IP Address)</td>
+<td>32位</td>
+<td>数据报的发送者的IP地址。</td>
+</tr>
+<tr>
+<td>目标IP地址 (Destination IP Address)</td>
+<td>32位</td>
+<td>数据报的接收者的IP地址。</td>
+</tr>
+<tr>
+<td>选项 (Options)</td>
+<td>可变</td>
+<td>包含一些可选字段，如记录路由、时间戳等。</td>
+</tr>
+<tr>
+<td>数据 (Data)</td>
+<td>可变</td>
+<td>实际的数据部分，长度可变。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ip寻址">IP寻址</h3>
+<h3 id="ipv4地址分类">IPv4地址分类</h3>
+<h3 id="ip子网">IP子网</h3>
+<h3 id="nat网络转换">NAT网络转换</h3>
 
                                 
                                 </section>
@@ -327,7 +462,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"tcpip网络模型","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"tcpip网络模型","level":"2.2.1","depth":2,"path":"Linux/网络协议/tcpip网络模型.md","ref":"Linux/网络协议/tcpip网络模型.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/tcpip网络模型.md","mtime":"2023-12-29T15:30:17.403Z","type":"markdown"},"gitbook":{"version":"5.1.3","time":"2023-12-29T15:30:28.138Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"tcpip网络模型","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"tcpip网络模型","level":"2.2.1","depth":2,"path":"Linux/网络协议/tcpip网络模型.md","ref":"Linux/网络协议/tcpip网络模型.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/tcpip网络模型.md","mtime":"2023-12-30T15:18:04.266Z","type":"markdown"},"gitbook":{"version":"5.1.3","time":"2023-12-30T15:18:12.279Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
