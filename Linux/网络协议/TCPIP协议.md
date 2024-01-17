@@ -16,7 +16,25 @@
 
 ![OSI对比TCP/IP参考图](./asset/tcp-header.png)
 
- 
+- 序号seq：当flag为SYN时，seq为初始x,如果已经存在x则为x+1
+
+- 确认号ack：当flag为ACK是表示期望收到的序列号，为对端的x+1
+
+- 数据偏移(4bit)：tcp头长度，也表示数据开始位置，结果需要乘4，则最小为固定长度|0101|\*4=20，最大表示为|1111|\*4=60.
+- Flags：对应位为1则表示当前flag
+    - ns （Explicit Congestion Notification）显式拥塞通知
+    - cwr (Congestion Window Reduced) 拥塞窗口减少
+    - ece ECN-Echo
+    - urg 高优先级数据包
+    - ACK 确认序号
+    - psh PUSH标志的数据
+    - rst 出现严重差错
+    - SYN 表示连接请求或连接接受报文，syn会告诉对方自己的窗口大小，
+    - fin 要求释放连接
+- 窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。
+- 校验和：
+- 紧急指针：
+
 
 
 ### UDP
