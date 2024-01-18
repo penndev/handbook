@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>ffmpeg · penndev/handbook</title>
+        <title>TCP协议 · penndev/handbook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -11,20 +11,20 @@
         
         
     
-    <link rel="stylesheet" href="../gitbook/style.css">
+    <link rel="stylesheet" href="../../gitbook/style.css">
 
     
             
                 
-                <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
+                <link rel="stylesheet" href="../../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
                 
-                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
                 
             
                 
-                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
                 
             
         
@@ -52,12 +52,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
-    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
 
     
+    <link rel="next" href="../../音视频/ffmpeg.html" />
     
-    <link rel="prev" href="../Linux/网络协议/TCP.html" />
+    
+    <link rel="prev" href="网络协议.html" />
     
 
     </head>
@@ -86,9 +88,9 @@
         
         
     
-        <li class="chapter " data-level="1.1" data-path="../">
+        <li class="chapter " data-level="1.1" data-path="../../">
             
-                <a href="../">
+                <a href="../../">
             
                     
                     介绍
@@ -106,9 +108,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Linux/文件系统/文件系统.html">
+        <li class="chapter " data-level="2.1" data-path="../文件系统/文件系统.html">
             
-                <a href="../Linux/文件系统/文件系统.html">
+                <a href="../文件系统/文件系统.html">
             
                     
                     文件系统fs
@@ -120,9 +122,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.1.1" data-path="../Linux/文件系统/lvm逻辑卷.html">
+        <li class="chapter " data-level="2.1.1" data-path="../文件系统/lvm逻辑卷.html">
             
-                <a href="../Linux/文件系统/lvm逻辑卷.html">
+                <a href="../文件系统/lvm逻辑卷.html">
             
                     
                     lvm使用实例
@@ -138,9 +140,9 @@
             
         </li>
     
-        <li class="chapter " data-level="2.2" data-path="../Linux/网络协议/网络协议.html">
+        <li class="chapter " data-level="2.2" data-path="网络协议.html">
             
-                <a href="../Linux/网络协议/网络协议.html">
+                <a href="网络协议.html">
             
                     
                     网络协议
@@ -152,9 +154,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.2.1" data-path="../Linux/网络协议/TCP.html">
+        <li class="chapter active" data-level="2.2.1" data-path="TCP.html">
             
-                <a href="../Linux/网络协议/TCP.html">
+                <a href="TCP.html">
             
                     
                     TCP协议
@@ -177,9 +179,9 @@
         
         
     
-        <li class="chapter active" data-level="3.1" data-path="ffmpeg.html">
+        <li class="chapter " data-level="3.1" data-path="../../音视频/ffmpeg.html">
             
-                <a href="ffmpeg.html">
+                <a href="../../音视频/ffmpeg.html">
             
                     
                     ffmpeg
@@ -220,7 +222,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >ffmpeg</a>
+        <a href="../.." >TCP协议</a>
     </h1>
 </div>
 
@@ -235,21 +237,44 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="ffmpeg">ffmpeg</h2>
-<h3 id="简单转换单个文件格式">简单转换单个文件格式</h3>
-<pre><code>&gt; ffmpeg -i input.mp4 -vcodec libx264 -acodec aac output.mp4
-</code></pre><ul>
-<li><code>-vcodec (-c:v)</code> 指定视频编码器(-c:v)简写</li>
-<li><code>-acodec (-c:a)</code> 指定视频编码器(-c:a)简写</li>
+                                <h2 id="tcp">TCP</h2>
+<h3 id="报文头">报文头</h3>
+<p><img src="asset/tcp-header.png" alt="TCP头部报文段"></p>
+<ul>
+<li><p>序号seq：</p>
+<ul>
+<li>SYN: seq为初始x,如果已经存在x则为x+1</li>
+<li>PSH: seq为发送报文的首字节的序列号</li>
 </ul>
-<h3 id="分割文件">分割文件</h3>
-<pre><code>ffmpeg -i input.mp4 -c copy -segment_time 15        -f segment output_%03d.mp4
-ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
-</code></pre><h3 id="mp4转m3u8">MP4转M3U8</h3>
-<pre><code class="lang-bash">ffmpeg -i in.mp4 -vcodec libx264 -acodec aac -hls_list_size 0 -hls_time 30 -hls_enc 1 -hls_enc_key 0123456789abcdef out.m3u8
-</code></pre>
-<h3 id="已经编译后的静态文件">已经编译后的静态文件</h3>
-<p><a href="https://johnvansickle.com/ffmpeg/" target="_blank">https://johnvansickle.com/ffmpeg/</a></p>
+</li>
+<li><p>确认号ack：仅ACK的flag为1确认号有效。 确认号为期望对端的序号内容。</p>
+</li>
+<li><p>数据偏移(4bit)：tcp头长度，也表示数据开始位置，结果需要乘4，则最小为固定长度|0101|*4=20，最大表示为|1111|*4=60.</p>
+</li>
+<li>Flags：对应位为1则表示当前flag<ul>
+<li>ns （Explicit Congestion Notification）显式拥塞通知</li>
+<li>cwr (Congestion Window Reduced) 拥塞窗口减少</li>
+<li>ece ECN-Echo</li>
+<li>urg 高优先级数据包</li>
+<li>ACK 确认序号</li>
+<li>PSH 传输数据</li>
+<li>rst 出现严重差错</li>
+<li>SYN 表示连接请求或连接接受报文，syn会告诉对方自己的窗口大小，</li>
+<li>fin 要求释放连接</li>
+</ul>
+</li>
+<li>窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。</li>
+<li>校验和：</li>
+<li>紧急指针：</li>
+</ul>
+<h3 id="握手">握手</h3>
+<p><img src="asset/tcp-handshake.png" alt="TCP握手"></p>
+<ol>
+<li><p>首先客户端发送握手请求（一个SYN包）到服务器。其中SYN包携带了初始的seq序号（通常为0）。和窗口（接收缓冲区）大小。</p>
+</li>
+<li><p>服务器收到SYN包后会创建缓冲并将客户端发送SYN和ACK</p>
+</li>
+</ol>
 
                                 
                                 </section>
@@ -277,10 +302,14 @@ ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
 
             
                 
-                <a href="../Linux/网络协议/TCP.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: TCP协议">
+                <a href="网络协议.html" class="navigation navigation-prev " aria-label="Previous page: 网络协议">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
+                
+                <a href="../../音视频/ffmpeg.html" class="navigation navigation-next " aria-label="Next page: ffmpeg">
+                    <i class="fa fa-angle-right"></i>
+                </a>
                 
             
         
@@ -289,7 +318,7 @@ ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"ffmpeg","level":"3.1","depth":1,"previous":{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"音视频/ffmpeg.md","mtime":"2024-01-18T15:27:25.504Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-18T15:27:32.096Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"TCP协议","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/TCP.md","mtime":"2024-01-18T15:27:25.504Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-18T15:27:32.096Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
@@ -339,27 +368,27 @@ ffmpeg -i input.mp4 -c copy -map 0 -segment_time 10 -f segment output_%03d.mp4
             book.classList.remove("honkit-cloak");
         }
     </script>
-    <script src="../gitbook/gitbook.js"></script>
-    <script src="../gitbook/theme.js"></script>
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
     
         
-        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
-        
-    
-        
-        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
         
     
         
-        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
         
     
         
-        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
         
     
         
-        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
         
     
 
