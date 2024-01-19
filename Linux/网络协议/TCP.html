@@ -239,17 +239,32 @@
                                 
                                 <h2 id="tcp">TCP</h2>
 <h3 id="报文头">报文头</h3>
-<p><img src="asset/tcp-header.png" alt="TCP头部报文段"></p>
+<p><img src="asset/tcp.png" alt="TCP头部报文段"></p>
 <ul>
-<li><p>序号seq：</p>
-<ul>
-<li>SYN: seq为初始x,如果已经存在x则为x+1</li>
-<li>PSH: seq为发送报文的首字节的序列号</li>
+<li>源端口：<ul>
+<li>长度：16bit</li>
+<li>作用：用来确定是那个进程使用的tcp包，可以根据端口来确定发送进程。</li>
 </ul>
 </li>
-<li><p>确认号ack：仅ACK的flag为1确认号有效。 确认号为期望对端的序号内容。</p>
+<li>目标端口：目标端口与源端口功能类似，用来表示对端。</li>
+<li>序号：<ul>
+<li>长度：32bit</li>
+<li>作用：在不通的阶段有不通的作用<ul>
+<li>SYN握手阶段：初始化一个数字（通常为0）发送给对端，并逐次+=1</li>
+<li>PSH传输阶段：本包第一字节在所有数据中的序号。</li>
+</ul>
 </li>
-<li><p>数据偏移(4bit)：tcp头长度，也表示数据开始位置，结果需要乘4，则最小为固定长度|0101|*4=20，最大表示为|1111|*4=60.</p>
+</ul>
+</li>
+<li>确认号：<ul>
+<li>长度：32bit</li>
+<li>作用：仅ACK的标志位为1的时候确认号才有效。确认号为期望对端的发送的手字节序号。</li>
+</ul>
+</li>
+<li>数据偏移：tcp头长度，也表示数据开始位置<ul>
+<li>长度：4bit</li>
+<li>作用：结果需要乘4，则最小为固定长度20（tcp头固定长度），最大表示为|1111|*4=60(所以tcp头长度不能超过60)</li>
+</ul>
 </li>
 <li>Flags：对应位为1则表示当前flag<ul>
 <li>ns （Explicit Congestion Notification）显式拥塞通知</li>
@@ -258,23 +273,48 @@
 <li>urg 高优先级数据包</li>
 <li>ACK 确认序号</li>
 <li>PSH 传输数据</li>
-<li>rst 出现严重差错</li>
-<li>SYN 表示连接请求或连接接受报文，syn会告诉对方自己的窗口大小，</li>
+<li>RST 出现严重差错，要求断开或重连</li>
+<li>SYN 表示连接请求或连接接受报文</li>
 <li>fin 要求释放连接</li>
 </ul>
 </li>
 <li>窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。</li>
 <li>校验和：</li>
 <li>紧急指针：</li>
+<li>可选项：一组和多组kind类数据<ul>
+<li>长度：数据偏移-20固定字节</li>
+<li>Kind<ul>
+<li>0x00: 结束选项列表</li>
+<li>0x01: 无操作</li>
+<li>0x02: Maximum segment size (最大分段大小)</li>
+<li>0x03: 窗口扩大因子</li>
+<li>0x04: 选择性确认(SACK)</li>
+<li>0x05: 时间戳</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <h3 id="握手">握手</h3>
 <p><img src="asset/tcp-handshake.png" alt="TCP握手"></p>
 <ol>
-<li><p>首先客户端发送握手请求（一个SYN包）到服务器。其中SYN包携带了初始的seq序号（通常为0）。和窗口（接收缓冲区）大小。</p>
+<li>首先客户端发送握手请求（一个SYN包）到服务器。</li>
+<li>服务器收到SYN包后会创建缓冲并将客户端发送SYN和ACK标志位的包表示同意连接。</li>
+<li>客户端则再次回复ACK包通知服务器，至此tcp握手完成。</li>
+</ol>
+<p>Q:</p>
+<ol>
+<li>如果客户端发送SYN 服务器除了应答还会怎么处理呢？<ul>
+<li>不应答 会触发连接超时 开启防火墙通常就是不应答。</li>
+<li>拒绝 直接回复RST包，直接进行拒绝 端口为监听。</li>
+</ul>
 </li>
-<li><p>服务器收到SYN包后会创建缓冲并将客户端发送SYN和ACK</p>
+<li>如果客户端收到服务器的同意请求 如果不回复会怎么样？<ul>
+<li>这样会造成资源浪费，服务器会在回复同意后创建接收缓存。批量操作会造成 SYN泛洪攻击。</li>
+</ul>
 </li>
 </ol>
+<h3 id="传输阶段">传输阶段</h3>
 
                                 
                                 </section>
@@ -318,7 +358,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"TCP协议","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/TCP.md","mtime":"2024-01-18T15:27:25.504Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-18T15:27:32.096Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"TCP协议","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/TCP.md","mtime":"2024-01-19T15:28:44.451Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-19T15:28:53.293Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
