@@ -104,7 +104,7 @@
 
     
         
-        <li class="divider"></li>
+        <li class="header">Linux</li>
         
         
     
@@ -313,8 +313,28 @@
 <li>这样会造成资源浪费，服务器会在回复同意后创建接收缓存。批量操作会造成 SYN泛洪攻击。</li>
 </ul>
 </li>
+<li>三次握手主要做了什么?<ul>
+<li>确定双全工通道通路正确，窗口初始化，MSS初始化。</li>
+</ul>
+</li>
 </ol>
 <h3 id="传输阶段">传输阶段</h3>
+<p><img src="asset/tcp-transport.png" alt="TCP数据传输"></p>
+<ol>
+<li>发送方发送PSH+ACK的Payload包发送到接收端。</li>
+<li>接受方收到后会回复一个ACK的包给发送方，告知已接收到数据。</li>
+<li>发送方收到确认，再次发送下一包数据。</li>
+</ol>
+<p><strong>窗口确认</strong>  每次发送端的消息都有标注发送大小 <strong>序号</strong> ，接收端收到后会回复 <strong>确认号</strong> 来确认收到。 </p>
+<p><strong>重传策略</strong> 如果迟迟收不到接收端回复<strong>确认号</strong>，则会再次发送消息，来避免在复杂的环境丢包。</p>
+<h3 id="连接断开">连接断开</h3>
+<p><img src="asset/tcp-close.png" alt="TCP关闭传输"></p>
+<ol>
+<li>关闭端发FIN包给接收端。</li>
+<li>接收端回复应答FIN包。</li>
+<li>应答端处理完成发送FIN包。</li>
+<li>关闭端回复应答FIN包。</li>
+</ol>
 
                                 
                                 </section>
@@ -358,7 +378,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"TCP协议","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/TCP.md","mtime":"2024-01-19T15:28:44.451Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-19T15:28:53.293Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"TCP协议","level":"2.2.1","depth":2,"next":{"title":"ffmpeg","level":"3.1","depth":1,"path":"音视频/ffmpeg.md","ref":"音视频/ffmpeg.md","articles":[]},"previous":{"title":"网络协议","level":"2.2","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"TCP协议","level":"2.2.1","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/TCP.md","mtime":"2024-01-20T13:44:57.979Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-01-20T13:45:05.833Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
