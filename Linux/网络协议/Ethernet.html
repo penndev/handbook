@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>网络协议 · penndev/handbook</title>
+        <title>以太网 · penndev/handbook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Ethernet.html" />
+    <link rel="next" href="IP.html" />
     
     
-    <link rel="prev" href="../文件系统/lvm逻辑卷.html" />
+    <link rel="prev" href="网络协议.html" />
     
 
     </head>
@@ -133,7 +133,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="网络协议.html">
+        <li class="chapter " data-level="1.3" data-path="网络协议.html">
             
                 <a href="网络协议.html">
             
@@ -147,7 +147,7 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.3.1" data-path="Ethernet.html">
+        <li class="chapter active" data-level="1.3.1" data-path="Ethernet.html">
             
                 <a href="Ethernet.html">
             
@@ -241,7 +241,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="../.." >网络协议</a>
+        <a href="../.." >以太网</a>
     </h1>
 </div>
 
@@ -256,91 +256,7 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="linux-网络学习笔记">Linux 网络学习笔记</h1>
-<h2 id="网络模型">网络模型</h2>
-<blockquote>
-<p>TCP/IP协议簇将网络模型划分为4层，但是OSI模型分为7层。OSI模型为概念模型，通常用于教育与理论研究。实际开发中通常使用TCP/IP 4层概念进行。详情请对比下图。</p>
-</blockquote>
-<p><img src="asset/osi-tcpip.png" alt="OSI对比TCP/IP参考图"></p>
-<h2 id="1物理层">1.物理层</h2>
-<blockquote>
-<p>通信基础，进行数据的bit流数据。</p>
-</blockquote>
-<h2 id="2-链路层">2. 链路层</h2>
-<blockquote>
-<p>对物理层传输的比特数据进行逻辑处理。 </p>
-</blockquote>
-<p>Q1. 传输如何开始和结束</p>
-<blockquote>
-<p>通过封装为帧的概念来处理信号的开始和结束。</p>
-</blockquote>
-<p>Q2. 传输给谁</p>
-<blockquote>
-<p>通过mac地址与连接其他设备的 “接口” 进行数据传输。明白数据应该传输给谁。</p>
-</blockquote>
-<h2 id="工作原理">工作原理</h2>
-<h2 id="名词">名词</h2>
-<ul>
-<li>WAN 广域网</li>
-<li>LAN 局域网</li>
-<li>Byte 字节单位 1byte=8bit</li>
-<li>BPS  每秒传输单位 1bit/s</li>
-<li>信道<ul>
-<li>单工</li>
-<li>半双工</li>
-<li>全双工</li>
-</ul>
-</li>
-</ul>
-<h4 id="nat">NAT</h4>
-<blockquote>
-<p>网络地址转换(Network Address Translation) 是一种网络地址转换技术，它可以将内部网络的 IP 地址转换为公共 IP 地址。  </p>
-</blockquote>
-<h5 id="地址转换-address-translation">地址转换 (Address Translation)</h5>
-<p>地址转换是指将内部网络的 IP 地址转换为公共 IP 地址。在这种方式下，内部网络的设备都共享一个公共 IP 地址，发送到外部网络的数据包会被路由器转换为公共 IP 地址发送出去。</p>
-<h5 id="隧道tunneling">隧道(Tunneling)</h5>
-<p>隧道是指将整个 IP 数据报封装在另一个 IP 数据报中，并将其发送到目的地。在这种方式下，内部网络的设备都有自己的公共 IP 地址，发送到外部网络的数据包会被封装在另一个 IP 数据报中发送出去。</p>
-<h2 id="网络设备">网络设备</h2>
-<h3 id="物理网卡">物理网卡</h3>
-<p>...</p>
-<p><strong>以太网虚拟网卡设备,虚拟网卡上网需要将Linux设置为“路由器模式”启用IP转发并配置NAT规则，才能通过物理网口进行出网。</strong></p>
-<h3 id="tap虚拟设备">tap虚拟设备</h3>
-<p>tap设备位于OSI模型的第二层。</p>
-<h3 id="tun虚拟设备">tun虚拟设备</h3>
-<blockquote>
-<p>tun设备位于OSI模型的第三层。
-```bash</p>
-<h1 id="查看网络设备">查看网络设备</h1>
-<p>ip link show</p>
-</blockquote>
-<h1 id="增加tun设备">增加tun设备</h1>
-<p>ip tuntap add dev tun0 mode tun</p>
-<h1 id="删除tun设备">删除tun设备</h1>
-<p>ip link del tun0</p>
-<h1 id="启用tun设备">启用TUN设备</h1>
-<p>ip link set dev tun0 up</p>
-<h1 id="关闭设备">关闭设备</h1>
-<p>ip link set tun0 down</p>
-<h1 id="分配ip">分配IP</h1>
-<p>ip addr add 10.0.0.1/24 dev tun0</p>
-<h1 id="设置路由">设置路由</h1>
-<p>ip route add 10.0.0.0/24 dev tun0</p>
-<pre><code>
-## iptables
-&gt; iptables 是 Linux 内核中的一个防火墙管理工具。它可以用来控制网络数据包的流动，并对数据包进行过滤、转发、转换等操作。其他的Linux防火墙工具都是基于iptables之上的封装。
-
-### 查看放开的端口
-```shell
-iptables -L -n
-</code></pre><h3 id="放行与删除端口">放行与删除端口</h3>
-<blockquote>
-<p>放行后需要进行保存，不然重启后会丢失操作
-```shell
-iptables -A INPUT -p <protocol> --dport <port> -j ACCEPT</port></protocol></p>
-</blockquote>
-<p>iptables -D INPUT -p <protocol> --dport <port> -j ACCEPT
-```</port></protocol></p>
-
+                                
                                 
                                 </section>
                             
@@ -367,12 +283,12 @@ iptables -A INPUT -p <protocol> --dport <port> -j ACCEPT</port></protocol></p>
 
             
                 
-                <a href="../文件系统/lvm逻辑卷.html" class="navigation navigation-prev " aria-label="Previous page: lvm使用实例">
+                <a href="网络协议.html" class="navigation navigation-prev " aria-label="Previous page: 网络协议">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="Ethernet.html" class="navigation navigation-next " aria-label="Next page: 以太网">
+                <a href="IP.html" class="navigation navigation-next " aria-label="Next page: IP协议">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -383,7 +299,7 @@ iptables -A INPUT -p <protocol> --dport <port> -j ACCEPT</port></protocol></p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"网络协议","level":"1.3","depth":1,"next":{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},"previous":{"title":"lvm使用实例","level":"1.2.1","depth":2,"path":"Linux/文件系统/lvm逻辑卷.md","ref":"Linux/文件系统/lvm逻辑卷.md","articles":[]},"articles":[{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},{"title":"TCP协议","level":"1.3.3","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}],"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/网络协议.md","mtime":"2024-02-25T14:16:31.373Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-25T14:16:41.575Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"以太网","level":"1.3.1","depth":2,"next":{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},"previous":{"title":"网络协议","level":"1.3","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},{"title":"TCP协议","level":"1.3.3","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"neutral"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/Ethernet.md","mtime":"2024-02-25T14:16:31.373Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-25T14:16:41.575Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>

@@ -59,7 +59,7 @@
     <link rel="next" href="TCP.html" />
     
     
-    <link rel="prev" href="网络协议.html" />
+    <link rel="prev" href="Ethernet.html" />
     
 
     </head>
@@ -147,7 +147,20 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="1.3.1" data-path="IP.html">
+        <li class="chapter " data-level="1.3.1" data-path="Ethernet.html">
+            
+                <a href="Ethernet.html">
+            
+                    
+                    以太网
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.3.2" data-path="IP.html">
             
                 <a href="IP.html">
             
@@ -160,7 +173,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.3.2" data-path="TCP.html">
+        <li class="chapter " data-level="1.3.3" data-path="TCP.html">
             
                 <a href="TCP.html">
             
@@ -243,10 +256,11 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="ipv4">IPv4</h2>
+                                <h1 id="ip">IP</h1>
 <blockquote>
-<p>Internet Protocol(互联网)，IP协议通过IP地址来进行全球的数据通讯。<a href="https://datatracker.ietf.org/doc/html/rfc791" target="_blank">https://datatracker.ietf.org/doc/html/rfc791</a></p>
+<p>IP: Internet Protocol，互联网（因特网）协议的目的是对接入互联网的设备进行地址编码。<a href="https://datatracker.ietf.org/doc/html/rfc791" target="_blank">https://datatracker.ietf.org/doc/html/rfc791</a></p>
 </blockquote>
+<h2 id="ipv4">IPv4</h2>
 <h3 id="ip数据格式">IP数据格式</h3>
 <p><img src="asset/ip.png" alt="IP报文段"></p>
 <table>
@@ -332,6 +346,72 @@
 </table>
 <h3 id="ip地址">IP地址</h3>
 <p>IP地址共有4字节所有可用的IP总数为255⁴ （0.0.0.0）- （255.255.255.255） 其中还有很多（<a href="https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml" target="_blank">特殊IP标注</a>）。互联网的高速发展造成IP消耗较严重，目前分别有两个方法来缓解，NET转发，IPv6等。</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>前缀码</th>
+<th>开始地址</th>
+<th>结束地址</th>
+<th>对应CIDR修饰</th>
+<th>默认子网掩码</th>
+<th>公网地址范围</th>
+<th>私有地址范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A类地址</td>
+<td>0</td>
+<td>0.0.0.0</td>
+<td>127.255.255.255</td>
+<td>/8</td>
+<td>255.0.0.0</td>
+<td>1.0.0.0 - 126.0.0.0</td>
+<td>10.0.0.0 - 10.255.255.255</td>
+</tr>
+<tr>
+<td>B类地址</td>
+<td>10</td>
+<td>128.0.0.0</td>
+<td>191.255.255.255</td>
+<td>/16</td>
+<td>255.255.0.0</td>
+<td>128.1.0.0 - 191.254.0.0</td>
+<td>172.16.0.0 - 172.31.255.255</td>
+</tr>
+<tr>
+<td>C类地址</td>
+<td>110</td>
+<td>192.0.0.0</td>
+<td>223.255.255.255</td>
+<td>/24</td>
+<td>255.255.255.0</td>
+<td>192.0.1.0 - 223.255.254.0</td>
+<td>192.168.0.0 - 192.168.255.255</td>
+</tr>
+<tr>
+<td>D类地址 （群播）</td>
+<td>1110</td>
+<td>224.0.0.0</td>
+<td>239.255.255.255</td>
+<td>/4</td>
+<td>未定义</td>
+<td>224.0.0.0 - 239.255.255.255</td>
+<td>无</td>
+</tr>
+<tr>
+<td>E类地址 （保留）</td>
+<td>1111</td>
+<td>240.0.0.0</td>
+<td>255.255.255.255</td>
+<td>/4</td>
+<td>未定义</td>
+<td>240.0.0.0 - 255.255.255.254</td>
+<td>无</td>
+</tr>
+</tbody>
+</table>
 <h3 id="ip寻址">IP寻址</h3>
 <p>Q:</p>
 <ol>
@@ -343,7 +423,7 @@
 </ol>
 <h3 id="nat转换">NAT转换</h3>
 <blockquote>
-<p>通过程序来解析包中的内部IP替换为公网IP来完成nat转换。</p>
+<p>通过程序来解析包中的源IP和目标IP替换为公网IP来完成NAT转换来共用公网IP。 <a href="https://datatracker.ietf.org/doc/html/rfc1631" target="_blank">https://datatracker.ietf.org/doc/html/rfc1631</a></p>
 </blockquote>
 <h4 id="nat">NAT</h4>
 <table>
@@ -418,7 +498,7 @@
 
             
                 
-                <a href="网络协议.html" class="navigation navigation-prev " aria-label="Previous page: 网络协议">
+                <a href="Ethernet.html" class="navigation navigation-prev " aria-label="Previous page: 以太网">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
@@ -434,7 +514,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"IP协议","level":"1.3.1","depth":2,"next":{"title":"TCP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]},"previous":{"title":"网络协议","level":"1.3","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"IP协议","level":"1.3.1","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},{"title":"TCP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/IP.md","mtime":"2024-02-23T04:40:45.093Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-23T04:40:51.877Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"IP协议","level":"1.3.2","depth":2,"next":{"title":"TCP协议","level":"1.3.3","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]},"previous":{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/IP.md","mtime":"2024-02-25T14:16:31.373Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-25T14:16:41.575Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
