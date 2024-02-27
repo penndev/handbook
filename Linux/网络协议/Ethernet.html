@@ -257,24 +257,8 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="以太网">以太网</h1>
-<p><strong>以太网帧</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">帧头 SOH</th>
-<th style="text-align:center">帧数据</th>
-<th style="text-align:right">帧尾EOT</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">--&gt;</td>
-<td style="text-align:center">数据长度限制为 ≤ MTU</td>
-<td style="text-align:right">&lt;--</td>
-</tr>
-</tbody>
-</table>
-<p><strong>帧数据 MAC层</strong></p>
+<p>Ethernet 是一种逻辑总线型拓扑使用CSMA/CD的总线技术的星型结构。 标准为<a href="https://ieeexplore.ieee.org/servlet/opac?punumber=9844414" target="_blank">IEEE 802.3</a></p>
+<p><strong>MAC层</strong></p>
 <table>
 <thead>
 <tr>
@@ -290,7 +274,7 @@
 <td>6Byte 目的串口</td>
 <td>6Byte 发送串口</td>
 <td>2Byte 数据类型</td>
-<td>数据</td>
+<td>网络层数据</td>
 <td>4Byte 校验</td>
 </tr>
 </tbody>
@@ -344,7 +328,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"以太网","level":"1.3.1","depth":2,"next":{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},"previous":{"title":"网络协议","level":"1.3","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},{"title":"TCP协议","level":"1.3.3","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/Ethernet.md","mtime":"2024-02-26T02:12:09.299Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-26T02:12:19.317Z"},"basePath":"../..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"以太网","level":"1.3.1","depth":2,"next":{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},"previous":{"title":"网络协议","level":"1.3","depth":1,"path":"Linux/网络协议/网络协议.md","ref":"Linux/网络协议/网络协议.md","articles":[{"title":"以太网","level":"1.3.1","depth":2,"path":"Linux/网络协议/Ethernet.md","ref":"Linux/网络协议/Ethernet.md","articles":[]},{"title":"IP协议","level":"1.3.2","depth":2,"path":"Linux/网络协议/IP.md","ref":"Linux/网络协议/IP.md","articles":[]},{"title":"TCP协议","level":"1.3.3","depth":2,"path":"Linux/网络协议/TCP.md","ref":"Linux/网络协议/TCP.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"penndev/handbook","gitbook":"*"},"file":{"path":"Linux/网络协议/Ethernet.md","mtime":"2024-02-27T15:01:22.261Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-02-27T15:01:30.182Z"},"basePath":"../..","book":{"language":""}});
         });
     </script>
 </div>
