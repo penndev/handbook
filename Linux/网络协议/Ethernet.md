@@ -1,17 +1,13 @@
 # 以太网
 
+Ethernet 是一种逻辑总线型拓扑使用CSMA/CD的总线技术的星型结构。 标准为[IEEE 802.3](https://ieeexplore.ieee.org/servlet/opac?punumber=9844414)
 
-**以太网帧**
 
-| 帧头 SOH | 帧数据 | 帧尾EOT |
-| :-- | :--: | --: |
-| --> | 数据长度限制为 ≤ MTU  | <-- |
-
-**帧数据 MAC层**
+**MAC层**
 
 | Dst MAC | Src MAC | Type  | Data |  FCS |
 | -- | -- | --  | -- | -- |
-| 6Byte 目的串口 | 6Byte 发送串口 | 2Byte 数据类型  | 数据 | 4Byte 校验 |
+| 6Byte 目的串口 | 6Byte 发送串口 | 2Byte 数据类型  | 网络层数据 | 4Byte 校验 |
 
 ### 封装成帧
 
