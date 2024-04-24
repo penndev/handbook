@@ -1,0 +1,406 @@
+
+<!DOCTYPE HTML>
+<html lang="zh-hans" >
+    <head>
+        <meta charset="UTF-8">
+        <title>文件系统操作 · 随记手册</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="HonKit 5.1.4">
+        <meta name="author" content="Penn">
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="SystemProcess.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book honkit-cloak">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="输入并搜索" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Linux
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" data-path="SystemProcess.html">
+            
+                <a href="SystemProcess.html">
+            
+                    
+                    系统进程注解
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.2" data-path="FileSystem.html">
+            
+                <a href="FileSystem.html">
+            
+                    
+                    文件系统操作
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
+            本书使用 HonKit 发布
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >文件系统操作</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <ul>
+<li><a href="FileSystem.html#show">查看概况</a></li>
+<li><a href="FileSystem.html#mount">分区挂载</a></li>
+<li><em>LVM</em><ul>
+<li><a href="FileSystem.html#lvm_merge">LVM合并硬盘并分区</a></li>
+<li><a href="FileSystem.html#lvm_remove">LVM移除分区</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="show">概况查看 </h2>
+<p><strong> 查看已经挂载的文件系统 </strong></p>
+<pre><code class="lang-bash"><span class="hljs-built_in">df</span> -hT
+</code></pre>
+<ul>
+<li><code>h</code> --human-readable</li>
+<li><code>T</code> --print-type</li>
+</ul>
+<p><strong> 查看全部设备的文件系统 </strong> </p>
+<pre><code class="lang-bash">lsblk
+lsblk -afp
+</code></pre>
+<ul>
+<li><code>a</code> --all</li>
+<li><code>f</code> --fs</li>
+<li><code>p</code> --paths
+<strong> 查看分区表 </strong> </li>
+<li><code>fdisk -l</code> 查看分区表</li>
+<li><code>parted -l</code> 查看分区表</li>
+</ul>
+<h2 id="mount">分区挂载 </h2>
+<ul>
+<li><code>mount /dev/sda /home</code> 挂载做好文件系统的硬盘到目录  </li>
+<li><code>umount /home</code>   取消挂载</li>
+<li><code>vim /etc/fstab</code> 编辑fstab使文件系统开机就挂载。</li>
+<li><code>mount -a</code>       进行fstab修改生效，可检查配置状态。</li>
+<li><code>df -hT</code> 查看挂在的情况</li>
+</ul>
+<h2 id="lvm逻辑卷">LVM逻辑卷</h2>
+<blockquote>
+<p>LVM（Logical Volume Manager，逻辑卷管理器）是一种用于在Linux系统中管理磁盘存储空间的软件工具。</p>
+</blockquote>
+<h3 id="lvm_merge">LVM合并硬盘并分区 </h3>
+<blockquote>
+<p>目标 将新增的三块硬盘<code>/dev/nvme0n1</code>,<code>/dev/nvme1n1</code>,<code>/dev/nvme2n1</code> 每块8T的硬盘 组合一块挂载到<code>/home</code></p>
+</blockquote>
+<ol>
+<li>初始化物理卷 <pre><code class="lang-bash">pvcreate /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+pvcreate /dev/nvme0n1 
+pvcreate /dev/nvme1n1 
+pvcreate /dev/nvme2n1
+</code></pre>
+</li>
+<li>创建新卷组<pre><code class="lang-bash">vgcreate vg_home /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
+或
+vgcreate vg_home /dev/nvme0n1 
+vgextend vg_home /dev/nvme1n1 
+vgextend vg_home /dev/nvme2n1
+</code></pre>
+</li>
+<li><p>制作文件系统</p>
+<pre><code class="lang-bash"> lvcreate -l 100%FREE -n lv_date vg_home
+
+ mkfs.xfs /dev/vg_home/lv_date
+</code></pre>
+</li>
+<li><p>挂载文件系统</p>
+<pre><code class="lang-bash"> mount /dev/vg_home/lv_date /home
+
+ vi /etc/fstab
+
+ /dev/vg_home/lv_date  /home  xfs  defaults  0  2
+
+ mount -a
+</code></pre>
+</li>
+</ol>
+<h3 id="lvm_remove">LVM移除分区 </h3>
+<blockquote>
+<p>如下，目标移除系统的lvm /dev/mapper/centos-root /home 分区</p>
+</blockquote>
+<pre><code class="lang-bash">[root@localhost ~]<span class="hljs-comment"># df -h /home</span>
+文件系统                 容量  已用  可用 已用% 挂载点
+/dev/mapper/centos-root   50G   21G   30G   41% /
+</code></pre>
+<ol>
+<li>首先移除挂在分区 <code>umount /home</code>, <code>vi /etc/fstab</code> 中的分区信息</li>
+<li><code>lvremove /dev/mapper/centos-home</code> 删除分区</li>
+</ol>
+<h3 id="lvm_remove">LVM拓展分区 </h3>
+<ol>
+<li><code>lvextend -l +100%FREE /dev/mapper/centos-root</code> 将所有的剩余空间全部分配给指定的分区</li>
+<li>调整文件系统大小<ul>
+<li><code>xfs_growfs /{DIR}</code> xfs文件系统</li>
+<li><code>resize2fs {DEV}</code> ext文件系统 </li>
+</ul>
+</li>
+</ol>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="SystemProcess.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: 系统进程注解">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"文件系统操作","level":"1.2.2","depth":2,"previous":{"title":"系统进程注解","level":"1.2.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/FileSystem.md","mtime":"2024-04-24T15:54:12.841Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-04-24T15:54:23.254Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <noscript>
+        <style>
+            .honkit-cloak {
+                display: block !important;
+            }
+        </style>
+    </noscript>
+    <script>
+        // Restore sidebar state as critical path for prevent layout shift
+        function __init__getSidebarState(defaultValue){
+            var baseKey = "";
+            var key = baseKey + ":sidebar";
+            try {
+                var value = localStorage[key];
+                if (value === undefined) {
+                    return defaultValue;
+                }
+                var parsed = JSON.parse(value);
+                return parsed == null ? defaultValue : parsed;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        function __init__restoreLastSidebarState() {
+            var isMobile = window.matchMedia("(max-width: 600px)").matches;
+            if (isMobile) {
+                // Init last state if not mobile
+                return;
+            }
+            var sidebarState = __init__getSidebarState(true);
+            var book = document.querySelector(".book");
+            // Show sidebar if it enabled
+            if (sidebarState && book) {
+                book.classList.add("without-animation", "with-summary");
+            }
+        }
+
+        try {
+            __init__restoreLastSidebarState();
+        } finally {
+            var book = document.querySelector(".book");
+            book.classList.remove("honkit-cloak");
+        }
+    </script>
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

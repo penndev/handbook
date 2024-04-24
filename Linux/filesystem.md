@@ -1,8 +1,8 @@
-- [查看概况](./filesystem.md#show)
-- [分区挂载](./filesystem.md#mount)
+- [查看概况](./FileSystem.md#show)
+- [分区挂载](./FileSystem.md#mount)
 - *LVM*
-  - [LVM合并硬盘并分区](./filesystem.md#lvm_merge)
-  - [LVM移除分区](./filesystem.md#lvm_remove)
+  - [LVM合并硬盘并分区](./FileSystem.md#lvm_merge)
+  - [LVM移除分区](./FileSystem.md#lvm_remove)
 
 ---
 

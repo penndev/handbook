@@ -1,21 +1,26 @@
-- [查看概况](./systemprocess.md#show)
-
+- [查看概况](./SystemProcess.md#show)
+- 守护进程
+  - [systemd](./SystemProcess.md#systemd)
+  - [supervisor](./SystemProcess.md#supervisor)
 ---
 
 ## 概况查看 {#show}
 
 **进程运行时**
 
-```bash
-/proc/pid/
-```
+`/proc/{pid}`
+
+- 查看进程的执行文件
+  ```bash
+  ls -al /proc/pid/exe
+  ```
 
 
 ## 守护进程
 
-### 使用systemd
+### systemd {#systemd}
 
-/usr/lib/systemd/system/wafcdn.service
+`vim /usr/lib/systemd/system/wafcdn.service` 配置文件
 
 ```bash
 [Unit]
@@ -24,95 +29,69 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/wafcdn/wafcdn
-WorkingDirectory=/home/wafcdn
+ExecStart=/usr/local/wafcdn/wafcdn
+WorkingDirectory=/usr/local/wafcdn/wafcdn
 
 [Install]
 WantedBy=multi-user.target
 
 ```
-- systemctl disable wafcdn
 
-- systemctl enable wafcdn
+- `systemctl disable|enable|status|start|stop|restart wafcdn`
 
-- systemctl start wafcdn
+### Supervisor {#supervisor}
 
-- systemctl stop wafcdn
+**安装Supervisor**
 
-- systemctl restart wafcdn
+1. 安装 `pip install supervisor`
+2. 生成配置文件 `echo_supervisord_conf > /etc/supervisord.conf`
+3. 添加supervisor到守护进程 `vim /usr/lib/systemd/system/supervisord.service`
+  ```bash
+  #supervisord.service
 
-- systemctl status wafcdn
+  [Unit] 
+  Description=Supervisor daemon
 
+  [Service] 
+  Type=forking 
+  ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
+  ExecStop=/usr/local/bin/supervisorctl shutdown 
+  ExecReload=/usr/local/bin/supervisorctl reload 
+  KillMode=process 
+  Restart=on-failure 
+  RestartSec=42s
 
-### Supervisor
-
-
-#### Install
-
-`pip install supervisor`
-
-#### 生成配置文件
-
-`echo_supervisord_conf > /etc/supervisord.conf`
-
-#### 添加supervisor到守护进程
-
-`vim /usr/lib/systemd/system/supervisord.service`
-
-```bash
-#supervisord.service
-
-[Unit] 
-Description=Supervisor daemon
-
-[Service] 
-Type=forking 
-ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
-ExecStop=/usr/local/bin/supervisorctl shutdown 
-ExecReload=/usr/local/bin/supervisorctl reload 
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
-
-[Install] 
-WantedBy=multi-user.target
-
-
-```
-`systemctl enable supervisord`
-
-`systemctl start supervisord`
-
-`systemctl status supervisord`
-
-#### 添加程序
-
-> 修改文件配置文件
-
-`vim /etc/supervisord.conf`
-
+  [Install] 
+  WantedBy=multi-user.target
+  ```
+4. 设置守护进程启动
+  ```bash
+  systemctl enable supervisord
+  systemctl start supervisord
+  systemctl status supervisord
+  ```
+5. 确定supervisor配置文件 `/etc/supervisord.conf` 
 ```bash
 [include] 
 files = /etc/supervisord.d/*.ini
 ```
 
 
+**配置supervisor启动程序**
 
-`vim /etc/supervisord.d/cdnload.ini`
+  `vim /etc/supervisord.d/cdnload.ini`
 
-```bash
-[program:cdn]
-command=/www/wwwroot/cdnload
-directory=/www/wwwroot
-autorestart=true
-stdout_logfile=/www/wwwlogs/cdnload.out.log
-stderr_logfile=/www/wwwlogs/cdnload.err.log
-user=root
-```
+  ```bash
+  [program:cdn]
+  command=/www/wwwroot/cdnload
+  directory=/www/wwwroot
+  autorestart=true
+  stdout_logfile=/www/wwwlogs/cdnload.out.log
+  stderr_logfile=/www/wwwlogs/cdnload.err.log
+  user=root
+  ```
 
-#### 常用命令
-
-`supervisorctl status`
-
-`supervisorctl reload`
+ `supervisorctl status|update|reload`
+ 
+ `supervisorctl start|stop|restart|clear {program:name}`
 
