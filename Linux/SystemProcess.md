@@ -12,7 +12,7 @@
 
 - 查看进程的执行文件
   ```bash
-  ls -al /proc/pid/exe
+  ls -al /proc/{pid}/exe
   ```
 
 
