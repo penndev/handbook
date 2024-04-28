@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>Linux · 随记手册</title>
+        <title>NGINX · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,8 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="SystemProcess.html" />
+    <link rel="next" href="MySQL.html" />
     
-    
-    <link rel="prev" href="../Tools/MySQL.html" />
     
 
     </head>
@@ -115,9 +113,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.2.1" data-path="../Tools/NGINX.html">
+        <li class="chapter active" data-level="1.2.1" data-path="NGINX.html">
             
-                <a href="../Tools/NGINX.html">
+                <a href="NGINX.html">
             
                     
                     NGINX
@@ -128,9 +126,9 @@
             
         </li>
     
-        <li class="chapter " data-level="1.2.2" data-path="../Tools/MySQL.html">
+        <li class="chapter " data-level="1.2.2" data-path="MySQL.html">
             
-                <a href="../Tools/MySQL.html">
+                <a href="MySQL.html">
             
                     
                     MySQL
@@ -146,9 +144,9 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="./">
+        <li class="chapter " data-level="1.3" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -160,9 +158,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.3.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="1.3.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     系统进程注解
@@ -173,9 +171,9 @@
             
         </li>
     
-        <li class="chapter " data-level="1.3.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="1.3.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统操作
@@ -221,7 +219,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >Linux</a>
+        <a href=".." >NGINX</a>
     </h1>
 </div>
 
@@ -236,30 +234,51 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="linux">Linux</h1>
-<blockquote>
-<p><a href="https://www.kernel.org/" target="_blank">https://www.kernel.org/</a></p>
-</blockquote>
-<h2 id="文件限制">文件限制</h2>
-<pre><code>vim /etc/security/limits.conf
-
-* hard nofile 102400
-* soft nofile 102400
-
-# 需要重启进程后生效
-</code></pre><h2 id="网络优化">网络优化</h2>
-<pre><code>vim /etc/sysctl.conf
-sysctl -p
-
-# 重用回收 time_wait 连接
-net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_tw_recycle = 1
-
-net.ipv4.tcp_syncookies = 1 
-net.ipv4.tcp_fin_timeout = 30
-# 防止连接被丢弃
-net.netfilter.nf_conntrack_max = 262144
+                                <h2 id="证书ssl配置">证书ssl配置</h2>
+<pre><code>    #SSL
+    ssl_certificate ssl/$ssl_server_name.crt;
+    ssl_certificate_key ssl/$ssl_server_name.key;
+    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    #SSL-END
+</code></pre><h2 id="缓存相关配置">缓存相关配置</h2>
+<pre><code class="lang-bash"><span class="hljs-comment"># proxy_cache_path $cachedir levels=1:2 keys_zone=rootcache:100m max_size=10g </span>
+<span class="hljs-comment"># ----</span>
+<span class="hljs-comment"># proxy_cache_path 配置缓存文件路径 </span>
+<span class="hljs-comment"># levels=${前缀名称长度}:${前缀名称长度} 缓存文件路径层级</span>
+<span class="hljs-comment"># keys_zone=${名称}:${初始内存} max_size=${最大限制} 配置缓存key配置内存大小和名称,</span>
+<span class="hljs-comment"># inactive=${有效时间}</span>
+proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
 </code></pre>
+<h2 id="反向代理">反向代理</h2>
+<pre><code>    proxy_pass $backend_url;
+    proxy_set_header HOST $backend_host;
+
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Client-Scheme $scheme;
+    proxy_set_header X-Forward-For $remote_addr ;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header REMOTE-HOST $remote_addr;
+</code></pre><h2 id="静态文件服务器">静态文件服务器</h2>
+<ul>
+<li><p><code>alias</code> 静态文件路径，剔除location的文件路径。</p>
+</li>
+<li><p><code>root</code> 静态文件路径，未剔除location的文件路径。</p>
+</li>
+</ul>
+<h2 id="internal">internal</h2>
+<blockquote>
+<p>当location包含 <code>internal;</code> 则表示本location只能nginx内部进行访问，如果通过uri访问则会返回404.</p>
+</blockquote>
+<p>可通过 <code>error_page</code>、 <code>index</code>、 <code>internal_redirect</code>、 <code>random_index</code>和 <code>try_files</code>指令;和<code>rewrite</code>重定向、来自上游服务器的<code>X-Accel-Redirect</code>响应头字段重定向的请求。</p>
+<h2 id="openrestry">openrestry</h2>
+<blockquote>
+<p><a href="https://openresty.org/cn/linux-packages.html" target="_blank">https://openresty.org/cn/linux-packages.html</a> 官方预编译包</p>
+</blockquote>
+
                                 
                                 </section>
                             
@@ -286,12 +305,8 @@ net.netfilter.nf_conntrack_max = 262144
 
             
                 
-                <a href="../Tools/MySQL.html" class="navigation navigation-prev " aria-label="Previous page: MySQL">
-                    <i class="fa fa-angle-left"></i>
-                </a>
                 
-                
-                <a href="SystemProcess.html" class="navigation navigation-next " aria-label="Next page: 系统进程注解">
+                <a href="MySQL.html" class="navigation navigation-next navigation-unique" aria-label="Next page: MySQL">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -302,7 +317,7 @@ net.netfilter.nf_conntrack_max = 262144
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Linux","level":"1.3","depth":1,"next":{"title":"系统进程注解","level":"1.3.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"previous":{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]},"articles":[{"title":"系统进程注解","level":"1.3.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"1.3.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]}],"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/README.md","mtime":"2024-04-28T09:17:01.436Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-04-28T09:17:14.655Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"NGINX","level":"1.2.1","depth":2,"next":{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]},"previous":{"title":"Tools","level":"1.2","depth":1,"ref":"","articles":[{"title":"NGINX","level":"1.2.1","depth":2,"path":"Tools/NGINX.md","ref":"Tools/NGINX.md","articles":[]},{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/NGINX.md","mtime":"2024-04-28T09:17:01.436Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-04-28T09:17:14.655Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
