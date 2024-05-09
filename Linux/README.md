@@ -27,3 +27,7 @@ net.ipv4.tcp_fin_timeout = 30
 # 防止连接被丢弃
 net.netfilter.nf_conntrack_max = 262144 
 ```
+
+## 安全设置
+
+fail2ban 防爆破工具
