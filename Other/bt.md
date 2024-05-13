@@ -1,20 +1,12 @@
 # 宝塔使用技巧
 
 
-## 常用安全配置
-
-密码防爆破
-
-- 安装ssh防护fail2ban工具
-- 修改ssh默认端口不为`22`
-- 修改某些版本的宝塔8888默认端口
-- 安全中关闭不用的端口
-
-IP地址白名单
-
-
-
-
+** 清空宝塔登录日志 **
+```
+echo > /var/log/auth.log
+echo > /www/server/panel/data/ssh_cache.json
+rm -rf /var/log/secure*
+```
 
 
 ** 调整自定义报警通知 webhook**
