@@ -15,6 +15,9 @@
   ls -al /proc/{pid}/exe
   ```
 
+- kill -hup 更新进程
+
+
 
 ## 守护进程
 
