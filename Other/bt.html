@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>MySQL · 随记手册</title>
+        <title>宝塔操作 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,6 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="../Linux/" />
-    
-    
-    <link rel="prev" href="NGINX.html" />
     
 
     </head>
@@ -115,9 +111,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.2.1" data-path="NGINX.html">
+        <li class="chapter " data-level="1.2.1" data-path="../Tools/NGINX.html">
             
-                <a href="NGINX.html">
+                <a href="../Tools/NGINX.html">
             
                     
                     NGINX
@@ -128,9 +124,9 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.2.2" data-path="MySQL.html">
+        <li class="chapter " data-level="1.2.2" data-path="../Tools/MySQL.html">
             
-                <a href="MySQL.html">
+                <a href="../Tools/MySQL.html">
             
                     
                     MySQL
@@ -212,9 +208,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.1.1" data-path="../Other/bt.html">
+        <li class="chapter active" data-level="2.1.1" data-path="bt.html">
             
-                <a href="../Other/bt.html">
+                <a href="bt.html">
             
                     
                     宝塔操作
@@ -260,7 +256,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >MySQL</a>
+        <a href=".." >宝塔操作</a>
     </h1>
 </div>
 
@@ -275,119 +271,18 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <ul>
-<li><a href="Mysql.md#slave">主从配置</a></li>
-</ul>
-<hr>
-<h2 id="索引">索引</h2>
-<ul>
-<li><code>OPTIMIZE TABLE &lt;tablename&gt;</code> 优化表索引  清空被删除的记录，收回被浪费的空间，并重建表的索引等</li>
-<li><code>EXPLAN &lt;sql&gt;</code> 分析SQL <strong>分析的sql最好从慢日志里面取</strong></li>
-<li><a href="https://mariadb.com/kb/en/slow-query-log-overview/" target="_blank">慢日志文档</a><pre><code>[mariadb] 
-... 
-Slow_query_log
-// Slow_query_log_file=mariadb-slow.log
-log_output=FILE 
-long_query_time=5.0
-</code></pre></li>
-</ul>
-<h2 id="事务">事务</h2>
-<blockquote>
-<p>主要处理并发安全</p>
-</blockquote>
-<pre><code>[mariadb]
-... 
-transaction-isolation = REPEATABLE-READ
-
-
-START TRANSACTION
-COMMIT
-ROLLBACK
-</code></pre><p><strong>锁</strong></p>
-<ul>
-<li>级别 表，行</li>
-<li>类型 读锁（共享），写锁（独占，互斥，排他锁）</li>
-</ul>
-<p><strong>隔离级别</strong></p>
-<pre><code>SELECT @@GLOBAL.transaction_isolation, @@transaction_isolation;
-SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-</code></pre><ul>
-<li><code>READ_UNCOMMITTED</code> <strong>读未提交</strong> <em>脏读：事务没有提交的数据也会被读取，如果回滚则会造成脏数据。</em></li>
-<li><code>READ-COMMITTED</code> <strong>读已提交</strong> <em>幻读 其他事务修改后，本次事务读取效果立即生效</em></li>
-<li><code>REPEATABLE-READ</code> <strong>重复读</strong> <em>幻读 事务开始后已读取数据将被缓存，再次读取效果一致，其他事务修改无效</em></li>
-<li><code>SERIALIZABLE</code> <strong>串行化</strong> <em>独占锁 并发性能低</em></li>
-</ul>
-<h2 id="slave">主从复制 </h2>
-<blockquote>
-<p>前置条件 保证主从机器互通。从库业务账号最好使用只读账号。</p>
-</blockquote>
-<ol>
-<li><p>设置主库 </p>
-<ul>
-<li><p>修改配置<code>/etc/mysql/my.cnf</code></p>
-<pre><code class="lang-bash">server-id=1
-log-bin=mysql-bin
-
-<span class="hljs-comment"># 重启Mysql让配置生效</span>
+                                <h1 id="宝塔使用技巧">宝塔使用技巧</h1>
+<p><strong> 清空宝塔登录日志 </strong></p>
+<pre><code>echo &gt; /var/log/auth.log
+echo &gt; /www/server/panel/data/ssh_cache.json
+rm -rf /var/log/secure*
+</code></pre><p><strong> 调整自定义报警通知 webhook</strong></p>
+<p><code>/www/server/panel/class/msg/web_hook_msg.py:200</code></p>
+<pre><code>        markdown_text = &quot;&quot;
+        for key, value in real_data.items():
+            markdown_text += f&quot;`{key.capitalize()}:`  {value}  \n&quot;
+        the_url = parse_url(the_url.url.replace(&quot;$text&quot;, markdown_text))
 </code></pre>
-</li>
-<li><p>锁定表并创建从库账户</p>
-<pre><code class="lang-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">USER</span> <span class="hljs-string">&apos;slave&apos;</span>@<span class="hljs-string">&apos;%&apos;</span> IDENTIFIED <span class="hljs-keyword">BY</span> <span class="hljs-string">&apos;123456&apos;</span>;
-<span class="hljs-keyword">GRANT</span> REPLICATION SLAVE <span class="hljs-keyword">ON</span> <span class="hljs-operator">*</span>.<span class="hljs-operator">*</span> <span class="hljs-keyword">TO</span> <span class="hljs-string">&apos;slave&apos;</span>@<span class="hljs-string">&apos;%&apos;</span>;
-FLUSH PRIVILEGES;
-
-# 锁定所有表，以避免操作过程中数据未对齐
-FLUSH TABLES <span class="hljs-keyword">WITH</span> READ LOCK;
-</code></pre>
-</li>
-<li><p>导出数据</p>
-<pre><code class="lang-bash">mysqldump -u root -p {database} &gt; backup.sql
-</code></pre>
-</li>
-<li><p><code>SHOW MASTER STATUS;</code> 查看主库进度</p>
-</li>
-</ul>
-</li>
-<li><p>设置从库</p>
-<ul>
-<li><p>修改配置<code>/etc/mysql/my.cnf</code></p>
-<pre><code class="lang-bash">server-id=2
-log-bin=mysql-bin
-
-<span class="hljs-comment"># 重启Mysql让配置生效</span>
-</code></pre>
-</li>
-<li><p>导入数据</p>
-<pre><code class="lang-bash"><span class="hljs-comment"># 直接导入</span>
-mysql -u root -p {database} &lt; backup.sql
-
-<span class="hljs-comment"># 登录后导入</span>
-&gt; use {database};
-&gt; <span class="hljs-built_in">source</span> backup.sql
-</code></pre>
-</li>
-<li><p>运行从库设置</p>
-<pre><code class="lang-sql">CHANGE MASTER <span class="hljs-keyword">TO</span>
-  MASTER_HOST<span class="hljs-operator">=</span><span class="hljs-string">&apos;192.168.1.1&apos;</span>,
-  MASTER_USER<span class="hljs-operator">=</span><span class="hljs-string">&apos;slave&apos;</span>,
-  MASTER_PASSWORD<span class="hljs-operator">=</span><span class="hljs-string">&apos;123456&apos;</span>,
-  MASTER_LOG_FILE<span class="hljs-operator">=</span><span class="hljs-string">&apos;mysql-bin.000001&apos;</span>,
-  MASTER_LOG_POS<span class="hljs-operator">=</span><span class="hljs-number">1</span>;
-
-# master 信息从 主库的最后一步确认
-</code></pre>
-</li>
-<li><p>查看从库状态</p>
-<pre><code class="lang-sql"><span class="hljs-keyword">SHOW</span> SLAVE STATUS; #查看从库状态
-<span class="hljs-keyword">START</span> SLAVE; #启动从库复制
-STOP SLAVE; #停止复制
-RESET SLAVE; #重置
-</code></pre>
-</li>
-</ul>
-</li>
-</ol>
-
                                 
                                 </section>
                             
@@ -414,14 +309,6 @@ RESET SLAVE; #重置
 
             
                 
-                <a href="NGINX.html" class="navigation navigation-prev " aria-label="Previous page: NGINX">
-                    <i class="fa fa-angle-left"></i>
-                </a>
-                
-                
-                <a href="../Linux/" class="navigation navigation-next " aria-label="Next page: Linux">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -430,7 +317,7 @@ RESET SLAVE; #重置
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"MySQL","level":"1.2.2","depth":2,"next":{"title":"Linux","level":"1.3","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"1.3.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"1.3.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]}]},"previous":{"title":"NGINX","level":"1.2.1","depth":2,"path":"Tools/NGINX.md","ref":"Tools/NGINX.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/MySQL.md","mtime":"2024-05-19T15:53:11.260Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-05-19T15:53:17.833Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"宝塔操作","level":"2.1.1","depth":2,"previous":{"title":"杂项","level":"2.1","depth":1,"ref":"","articles":[{"title":"宝塔操作","level":"2.1.1","depth":2,"path":"Other/bt.md","ref":"Other/bt.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Other/bt.md","mtime":"2024-05-19T15:53:11.260Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-05-19T15:53:17.833Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
