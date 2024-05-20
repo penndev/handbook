@@ -274,15 +274,18 @@
                                 <h1 id="宝塔使用技巧">宝塔使用技巧</h1>
 <p><strong> 清空宝塔登录日志 </strong></p>
 <pre><code>echo &gt; /var/log/auth.log
-echo &gt; /www/server/panel/data/ssh_cache.json
+rm -rf /www/server/panel/data/ssh_cache.json
 rm -rf /var/log/secure*
 </code></pre><p><strong> 调整自定义报警通知 webhook</strong></p>
 <p><code>/www/server/panel/class/msg/web_hook_msg.py:200</code></p>
+<blockquote>
+<p>将报错内容通过<code>GET</code> 中 $text 内容进行报错内容替换</p>
 <pre><code>        markdown_text = &quot;&quot;
         for key, value in real_data.items():
             markdown_text += f&quot;`{key.capitalize()}:`  {value}  \n&quot;
         the_url = parse_url(the_url.url.replace(&quot;$text&quot;, markdown_text))
-</code></pre>
+</code></pre></blockquote>
+
                                 
                                 </section>
                             
@@ -317,7 +320,7 @@ rm -rf /var/log/secure*
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"宝塔操作","level":"2.1.1","depth":2,"previous":{"title":"杂项","level":"2.1","depth":1,"ref":"","articles":[{"title":"宝塔操作","level":"2.1.1","depth":2,"path":"Other/bt.md","ref":"Other/bt.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Other/bt.md","mtime":"2024-05-19T15:53:11.260Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-05-19T15:53:17.833Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"宝塔操作","level":"2.1.1","depth":2,"previous":{"title":"杂项","level":"2.1","depth":1,"ref":"","articles":[{"title":"宝塔操作","level":"2.1.1","depth":2,"path":"Other/bt.md","ref":"Other/bt.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Other/bt.md","mtime":"2024-05-20T13:02:59.574Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-05-20T13:03:06.005Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
