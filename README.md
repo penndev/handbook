@@ -8,6 +8,10 @@
 [ ![](https://img.shields.io/static/v1?label=Mail&message=pennilessfor@gmail.com&color=blue&logo=gmail) ](mailto:pennilessfor@gmail.com?subject=handbook "mail")
 
 
+**运行命令**
+
 - start: `honkit serve`
 
-*power by* **honkit**
+- build: `honkit build`
+
+*power by **[honkit](https://github.com/honkit/honkit)*** 
