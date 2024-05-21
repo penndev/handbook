@@ -17,5 +17,5 @@ rm -rf /var/log/secure*
         markdown_text = ""
         for key, value in real_data.items():
             markdown_text += f"`{key.capitalize()}:`  {value}  \n"
-        the_url = parse_url(the_url.url.replace("$text", markdown_text))
+        the_url = parse_url(the_url.url.replace("$text", markdown_text.strip().replace("<br>", "\n").replace("#", "")))
 ```
