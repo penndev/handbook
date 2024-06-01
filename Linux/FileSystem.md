@@ -57,17 +57,17 @@ vgextend vg_home /dev/nvme2n1
 ```
 3. 制作文件系统
     ```bash
-    lvcreate -l 100%FREE -n lv_date vg_home
+    lvcreate -l 100%FREE -n lv_data vg_home
 
-    mkfs.xfs /dev/vg_home/lv_date
+    mkfs.xfs /dev/vg_home/lv_data
     ```
 4. 挂载文件系统
     ```bash
-    mount /dev/vg_home/lv_date /home
+    mount /dev/vg_home/lv_data /home
 
     vi /etc/fstab
 
-    /dev/vg_home/lv_date  /home  xfs  defaults  0  2
+    /dev/vg_home/lv_data  /home  xfs  defaults  0  2
 
     mount -a
     ```
@@ -87,5 +87,7 @@ vgextend vg_home /dev/nvme2n1
 
 1. `lvextend -l +100%FREE /dev/mapper/centos-root` 将所有的剩余空间全部分配给指定的分区
 2. 调整文件系统大小
-  - `xfs_growfs /{DIR}` xfs文件系统
-  - `resize2fs {DEV}` ext文件系统 
+  ```
+    - `xfs_growfs /{DIR}` xfs文件系统
+    - `resize2fs {DEV}` ext文件系统 
+  ```
