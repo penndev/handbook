@@ -22,4 +22,5 @@ rm -rf /var/log/secure*
             value = value.strip().replace("<br>", "\n").replace("#", "")
             markdown_text += f"`{key.capitalize()}:`  {value}  \n"
         the_url = parse_url(the_url.url.replace("$text", markdown_text))
+        ssl_verify=False
 ```
