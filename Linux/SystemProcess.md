@@ -15,8 +15,13 @@
   ls -al /proc/{pid}/exe
   ```
 
-- kill -hup 更新进程
 
+**发送信号到进程**
+
+```
+ kill 9 1000 1001 1002
+ pkill nginx
+```
 
 
 ## 守护进程
@@ -45,6 +50,10 @@ WantedBy=multi-user.target
 ### Supervisor {#supervisor}
 
 **安装Supervisor**
+
+_`/tmp`文件会在空闲时间被清理_
+
+_系统open file limit 设置_
 
 1. 安装 `pip install supervisor`
 2. 生成配置文件 `echo_supervisord_conf > /etc/supervisord.conf`
@@ -94,7 +103,17 @@ files = /etc/supervisord.d/*.ini
   user=root
   ```
 
- `supervisorctl status|update|reload`
+  
+
+ **管理supervisor**
  
- `supervisorctl start|stop|restart|clear {program:name}`
+ ```bash
+ supervisorctl status|update|reload
+ ```
+ 
+ **管理supervisor进程**
+ 
+ ```bash
+ supervisorctl start|stop|restart|clear {program:name}
+ ```
 
