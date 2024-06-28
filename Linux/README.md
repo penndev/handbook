@@ -18,14 +18,21 @@ vim /etc/security/limits.conf
 vim /etc/sysctl.conf
 sysctl -p
 
-# 重用回收 time_wait 连接
+# TCP参数调优
 net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_tw_recycle = 1
-
 net.ipv4.tcp_syncookies = 1 
 net.ipv4.tcp_fin_timeout = 30
-# 防止连接被丢弃
-net.netfilter.nf_conntrack_max = 262144 
+net.ipv4.tcp_max_syn_backlog = 16384
+
+# 防止连接被丢弃 常用连接队列参数
+net.netfilter.nf_conntrack_max = 524288 
+net.netfilter.nf_conntrack_tcp_timeout_max_retrans  = 30
+net.core.somaxconn = 16384
+net.core.netdev_max_backlog = 5000
+
+
+
+
 ```
 
 ## 安全设置
