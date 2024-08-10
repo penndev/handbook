@@ -14,7 +14,7 @@
 - utf8mb4_bin 二进制排序
 - utf8mb4_unicode_ci 不区分大小写排序等
 
-## 索引
+## 索引    
 
 - `OPTIMIZE TABLE <tablename>` 优化表索引  清空被删除的记录，收回被浪费的空间，并重建表的索引等
 - `EXPLAN <sql>` 分析SQL **分析的sql最好从慢日志里面取**
