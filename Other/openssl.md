@@ -1,4 +1,0 @@
-# openssl 
-
-openssl aes-128-cbc -e -in <Decrypt.txt> -out <Encrypt.txt> -K <HEX([16]byte)> -iv <HEX([16]byte)>
-openssl aes-128-cbc -d -in <Encrypt.txt> -out <Decrypt.txt> -K <HEX([16]byte)> -iv <HEX([16]byte)>

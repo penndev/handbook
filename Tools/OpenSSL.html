@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>NGINX · 随记手册</title>
+        <title>OpenSSL · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,8 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="MySQL.html" />
+    <link rel="next" href="../Linux/" />
     
+    
+    <link rel="prev" href="MySQL.html" />
     
 
     </head>
@@ -99,26 +101,26 @@
             
         </li>
     
-        <li class="chapter " data-level="1.2" >
+        <li class="chapter " data-level="1.2" data-path="README.md">
             
                 <span>
             
                     
-                    Tools
+                    工具
             
-                </span>
+                </a>
             
 
             
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="1.2.1" data-path="NGINX.html">
+        <li class="chapter " data-level="1.2.1" data-path="Nginx.md">
             
-                <a href="NGINX.html">
+                <span>
             
                     
-                    NGINX
+                    Nginx
             
                 </a>
             
@@ -139,44 +141,12 @@
             
         </li>
     
-
-            </ul>
+        <li class="chapter active" data-level="1.2.3" data-path="OpenSSL.html">
             
-        </li>
-    
-        <li class="chapter " data-level="1.3" data-path="../Linux/">
-            
-                <a href="../Linux/">
+                <a href="OpenSSL.html">
             
                     
-                    Linux
-            
-                </a>
-            
-
-            
-            <ul class="articles">
-                
-    
-        <li class="chapter " data-level="1.3.1" data-path="../Linux/SystemProcess.html">
-            
-                <a href="../Linux/SystemProcess.html">
-            
-                    
-                    系统进程注解
-            
-                </a>
-            
-
-            
-        </li>
-    
-        <li class="chapter " data-level="1.3.2" data-path="../Linux/FileSystem.html">
-            
-                <a href="../Linux/FileSystem.html">
-            
-                    
-                    文件系统操作
+                    OpenSSL
             
                 </a>
             
@@ -196,26 +166,52 @@
         
         
     
-        <li class="chapter " data-level="2.1" >
+        <li class="chapter " data-level="2.1" data-path="../Linux/">
             
-                <span>
+                <a href="../Linux/">
             
                     
-                    杂项
+                    Linux
             
-                </span>
+                </a>
             
 
             
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.1.1" data-path="../Other/bt.html">
+        <li class="chapter " data-level="2.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="../Other/bt.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
-                    宝塔操作
+                    系统进程注解
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.2" data-path="../Linux/FileSystem.html">
+            
+                <a href="../Linux/FileSystem.html">
+            
+                    
+                    文件系统操作
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.3" data-path="../Linux/DNS.html">
+            
+                <a href="../Linux/DNS.html">
+            
+                    
+                    DNS协议
             
                 </a>
             
@@ -258,7 +254,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >NGINX</a>
+        <a href=".." >OpenSSL</a>
     </h1>
 </div>
 
@@ -273,50 +269,12 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="证书ssl配置">证书ssl配置</h2>
-<pre><code>    #SSL
-    ssl_certificate ssl/$ssl_server_name.crt;
-    ssl_certificate_key ssl/$ssl_server_name.key;
-    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    #SSL-END
-</code></pre><h2 id="缓存相关配置">缓存相关配置</h2>
-<pre><code class="lang-bash"><span class="hljs-comment"># proxy_cache_path $cachedir levels=1:2 keys_zone=rootcache:100m max_size=10g </span>
-<span class="hljs-comment"># ----</span>
-<span class="hljs-comment"># proxy_cache_path 配置缓存文件路径 </span>
-<span class="hljs-comment"># levels=${前缀名称长度}:${前缀名称长度} 缓存文件路径层级</span>
-<span class="hljs-comment"># keys_zone=${名称}:${初始内存} max_size=${最大限制} 配置缓存key配置内存大小和名称,</span>
-<span class="hljs-comment"># inactive=${有效时间}</span>
-proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
+                                <h2 id="加解密">加解密</h2>
+<pre><code class="lang-bash">openssl aes-128-cbc -e -<span class="hljs-keyword">in</span> &lt;Decrypt.txt&gt; -out &lt;Encrypt.txt&gt; -K &lt;HEX([16]byte)&gt; -iv &lt;HEX([16]byte)&gt;
+openssl aes-128-cbc -d -<span class="hljs-keyword">in</span> &lt;Encrypt.txt&gt; -out &lt;Decrypt.txt&gt; -K &lt;HEX([16]byte)&gt; -iv &lt;HEX([16]byte)&gt;
 </code></pre>
-<h2 id="反向代理">反向代理</h2>
-<pre><code>    proxy_pass $backend_url;
-    proxy_set_header HOST $backend_host;
-
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Client-Scheme $scheme;
-    proxy_set_header X-Forward-For $remote_addr ;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header REMOTE-HOST $remote_addr;
-</code></pre><h2 id="静态文件服务器">静态文件服务器</h2>
-<ul>
-<li><p><code>alias</code> 静态文件路径，剔除location的文件路径。</p>
-</li>
-<li><p><code>root</code> 静态文件路径，未剔除location的文件路径。</p>
-</li>
-</ul>
-<h2 id="internal">internal</h2>
-<blockquote>
-<p>当location包含 <code>internal;</code> 则表示本location只能nginx内部进行访问，如果通过uri访问则会返回404.</p>
-</blockquote>
-<p>可通过 <code>error_page</code>、 <code>index</code>、 <code>internal_redirect</code>、 <code>random_index</code>和 <code>try_files</code>指令;和<code>rewrite</code>重定向、来自上游服务器的<code>X-Accel-Redirect</code>响应头字段重定向的请求。</p>
-<h2 id="openrestry">openrestry</h2>
-<blockquote>
-<p><a href="https://openresty.org/cn/linux-packages.html" target="_blank">https://openresty.org/cn/linux-packages.html</a> 官方预编译包</p>
-</blockquote>
+<h2 id="生成证书">生成证书</h2>
+<h2 id="分析证书">分析证书</h2>
 
                                 
                                 </section>
@@ -344,8 +302,12 @@ proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
 
             
                 
+                <a href="MySQL.html" class="navigation navigation-prev " aria-label="Previous page: MySQL">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 
-                <a href="MySQL.html" class="navigation navigation-next navigation-unique" aria-label="Next page: MySQL">
+                
+                <a href="../Linux/" class="navigation navigation-next " aria-label="Next page: Linux">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -356,7 +318,7 @@ proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"NGINX","level":"1.2.1","depth":2,"next":{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]},"previous":{"title":"Tools","level":"1.2","depth":1,"ref":"","articles":[{"title":"NGINX","level":"1.2.1","depth":2,"path":"Tools/NGINX.md","ref":"Tools/NGINX.md","articles":[]},{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/NGINX.md","mtime":"2024-07-19T15:14:06.502Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-07-19T15:14:13.635Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"OpenSSL","level":"1.2.3","depth":2,"next":{"title":"Linux","level":"2.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"2.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"2.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"DNS协议","level":"2.1.3","depth":2,"path":"Linux/DNS.md","ref":"Linux/DNS.md","articles":[]}]},"previous":{"title":"MySQL","level":"1.2.2","depth":2,"path":"Tools/MySQL.md","ref":"Tools/MySQL.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/OpenSSL.md","mtime":"2024-08-21T15:38:47.062Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-08-21T15:38:59.312Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

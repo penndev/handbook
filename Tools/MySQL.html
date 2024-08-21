@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="../Linux/" />
+    <link rel="next" href="OpenSSL.html" />
     
     
-    <link rel="prev" href="NGINX.html" />
+    <link rel="prev" href="Nginx.md" />
     
 
     </head>
@@ -101,26 +101,26 @@
             
         </li>
     
-        <li class="chapter " data-level="1.2" >
+        <li class="chapter " data-level="1.2" data-path="README.md">
             
                 <span>
             
                     
-                    Tools
+                    工具
             
-                </span>
+                </a>
             
 
             
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.2.1" data-path="NGINX.html">
+        <li class="chapter " data-level="1.2.1" data-path="Nginx.md">
             
-                <a href="NGINX.html">
+                <span>
             
                     
-                    NGINX
+                    Nginx
             
                 </a>
             
@@ -141,44 +141,12 @@
             
         </li>
     
-
-            </ul>
+        <li class="chapter " data-level="1.2.3" data-path="OpenSSL.html">
             
-        </li>
-    
-        <li class="chapter " data-level="1.3" data-path="../Linux/">
-            
-                <a href="../Linux/">
+                <a href="OpenSSL.html">
             
                     
-                    Linux
-            
-                </a>
-            
-
-            
-            <ul class="articles">
-                
-    
-        <li class="chapter " data-level="1.3.1" data-path="../Linux/SystemProcess.html">
-            
-                <a href="../Linux/SystemProcess.html">
-            
-                    
-                    系统进程注解
-            
-                </a>
-            
-
-            
-        </li>
-    
-        <li class="chapter " data-level="1.3.2" data-path="../Linux/FileSystem.html">
-            
-                <a href="../Linux/FileSystem.html">
-            
-                    
-                    文件系统操作
+                    OpenSSL
             
                 </a>
             
@@ -198,26 +166,52 @@
         
         
     
-        <li class="chapter " data-level="2.1" >
+        <li class="chapter " data-level="2.1" data-path="../Linux/">
             
-                <span>
+                <a href="../Linux/">
             
                     
-                    杂项
+                    Linux
             
-                </span>
+                </a>
             
 
             
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.1.1" data-path="../Other/bt.html">
+        <li class="chapter " data-level="2.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="../Other/bt.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
-                    宝塔操作
+                    系统进程注解
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.2" data-path="../Linux/FileSystem.html">
+            
+                <a href="../Linux/FileSystem.html">
+            
+                    
+                    文件系统操作
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.3" data-path="../Linux/DNS.html">
+            
+                <a href="../Linux/DNS.html">
+            
+                    
+                    DNS协议
             
                 </a>
             
@@ -278,7 +272,7 @@
                                 <ul>
 <li><a href="Mysql.md#slave">主从配置</a></li>
 </ul>
-<hr>
+<hr></hr>
 <h2 id="字符集">字符集</h2>
 <blockquote>
 <p>文本存储的字符集类型</p>
@@ -346,8 +340,8 @@ log-bin=mysql-bin
 </code></pre>
 </li>
 <li><p>锁定表并创建从库账户</p>
-<pre><code class="lang-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">USER</span> <span class="hljs-string">&apos;slave&apos;</span>@<span class="hljs-string">&apos;%&apos;</span> IDENTIFIED <span class="hljs-keyword">BY</span> <span class="hljs-string">&apos;123456&apos;</span>;
-<span class="hljs-keyword">GRANT</span> REPLICATION SLAVE <span class="hljs-keyword">ON</span> <span class="hljs-operator">*</span>.<span class="hljs-operator">*</span> <span class="hljs-keyword">TO</span> <span class="hljs-string">&apos;slave&apos;</span>@<span class="hljs-string">&apos;%&apos;</span>;
+<pre><code class="lang-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">USER</span> <span class="hljs-string">'slave'</span>@<span class="hljs-string">'%'</span> IDENTIFIED <span class="hljs-keyword">BY</span> <span class="hljs-string">'123456'</span>;
+<span class="hljs-keyword">GRANT</span> REPLICATION SLAVE <span class="hljs-keyword">ON</span> <span class="hljs-operator">*</span>.<span class="hljs-operator">*</span> <span class="hljs-keyword">TO</span> <span class="hljs-string">'slave'</span>@<span class="hljs-string">'%'</span>;
 FLUSH PRIVILEGES;
 
 # 锁定所有表，以避免操作过程中数据未对齐
@@ -382,10 +376,10 @@ mysql -u root -p {database} &lt; backup.sql
 </li>
 <li><p>运行从库设置</p>
 <pre><code class="lang-sql">CHANGE MASTER <span class="hljs-keyword">TO</span>
-  MASTER_HOST<span class="hljs-operator">=</span><span class="hljs-string">&apos;192.168.1.1&apos;</span>,
-  MASTER_USER<span class="hljs-operator">=</span><span class="hljs-string">&apos;slave&apos;</span>,
-  MASTER_PASSWORD<span class="hljs-operator">=</span><span class="hljs-string">&apos;123456&apos;</span>,
-  MASTER_LOG_FILE<span class="hljs-operator">=</span><span class="hljs-string">&apos;mysql-bin.000001&apos;</span>,
+  MASTER_HOST<span class="hljs-operator">=</span><span class="hljs-string">'192.168.1.1'</span>,
+  MASTER_USER<span class="hljs-operator">=</span><span class="hljs-string">'slave'</span>,
+  MASTER_PASSWORD<span class="hljs-operator">=</span><span class="hljs-string">'123456'</span>,
+  MASTER_LOG_FILE<span class="hljs-operator">=</span><span class="hljs-string">'mysql-bin.000001'</span>,
   MASTER_LOG_POS<span class="hljs-operator">=</span><span class="hljs-number">1</span>;
 
 # master 信息从 主库的最后一步确认
@@ -428,12 +422,12 @@ RESET SLAVE; #重置
 
             
                 
-                <a href="NGINX.html" class="navigation navigation-prev " aria-label="Previous page: NGINX">
+                <a href="Nginx.md" class="navigation navigation-prev " aria-label="Previous page: Nginx">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="../Linux/" class="navigation navigation-next " aria-label="Next page: Linux">
+                <a href="OpenSSL.html" class="navigation navigation-next " aria-label="Next page: OpenSSL">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -444,7 +438,7 @@ RESET SLAVE; #重置
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"MySQL","level":"1.2.2","depth":2,"next":{"title":"Linux","level":"1.3","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"1.3.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"1.3.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]}]},"previous":{"title":"NGINX","level":"1.2.1","depth":2,"path":"Tools/NGINX.md","ref":"Tools/NGINX.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/MySQL.md","mtime":"2024-07-19T15:14:06.502Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-07-19T15:14:13.635Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"MySQL","level":"1.2.2","depth":2,"next":{"title":"OpenSSL","level":"1.2.3","depth":2,"path":"Tools/OpenSSL.md","ref":"Tools/OpenSSL.md","articles":[]},"previous":{"title":"Nginx","level":"1.2.1","depth":2,"path":"Tools/Nginx.md","ref":"Tools/Nginx.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Tools/MySQL.md","mtime":"2024-08-21T15:38:47.062Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-08-21T15:38:59.312Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
