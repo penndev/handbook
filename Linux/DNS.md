@@ -48,8 +48,6 @@ https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.1
 - ARCOUNT[16b] 额外记录数
 
 
-
-
 ### Question section format
 ```
 https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2
@@ -85,18 +83,43 @@ https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2
 - QCLASS：(网络类型) 0, 1, 0, 1,
 ```
 
-### DNS返回内容
+### Resource record format
 
-<!-- https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3 -->
+```
+https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3
+  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                                               |
+/                                               /
+/                      NAME                     /
+|                                               |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                      TYPE                     |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                     CLASS                     |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                      TTL                      |
+|                                               |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|                   RDLENGTH                    |
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+/                     RDATA                     /
+/                                               /
++--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+```
+- 前字段与请求段类似
+- TTLI(32b):  dns的生存周期返回数据的长度
+- RDLENGTH (16b): RDATA的长度。
+- RDATA (RDLENGTH byte): 实际数据， RDATA与NAME 可能会有数据压缩。
 
-
+**详细的实现步骤请参考 [Dart(flutter) 代码](./DNS.dart)**
 
 
 
 
 
 ## Doh(Dns over https)
-> 通过https进行dns查询  rfc文件格式是什么https://datatracker.ietf.org/doc/html/rfc8484
+> 通过https进行dns查询  rfc文件格式是https://datatracker.ietf.org/doc/html/rfc8484
 
 ### GET
 
@@ -107,7 +130,7 @@ https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2
     :path = /dns-query?dns=AAABAAABAAAAAAAAA3d3dwdleGFtcGxlA2NvbQAAAQAB
     accept = application/dns-message
 ```
-
+- dns 中的参数使用 base64url 原始的dns二进制message
 
 ### POST
 
@@ -124,10 +147,3 @@ content-length = 33
 07 65 78 61 6d 70 6c 65  03 63 6f 6d 00 00 01 00
 01
 ```
-
-
-base64url
-
-
-### DNS message 生成
-https://datatracker.ietf.org/doc/html/rfc6570
