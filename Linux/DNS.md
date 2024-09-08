@@ -118,7 +118,7 @@ https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3
 
 
 
-## Doh(Dns over https)
+## DOH(Dns over https)
 > 通过https进行dns查询  rfc文件格式是https://datatracker.ietf.org/doc/html/rfc8484
 
 ### GET
@@ -147,3 +147,6 @@ content-length = 33
 07 65 78 61 6d 70 6c 65  03 63 6f 6d 00 00 01 00
 01
 ```
+
+## DOT(Dns over TCP)
+> 通过TCP协议进行dns查询的方式 目前 移动设备基本都是支持，在安卓叫（私密DNS）
