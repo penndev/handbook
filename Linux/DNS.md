@@ -112,7 +112,7 @@ https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3
 - RDLENGTH (16b): RDATA的长度。
 - RDATA (RDLENGTH byte): 实际数据， RDATA与NAME 可能会有数据压缩。
 
-**详细的实现步骤请参考 [Dart(flutter) 代码](./DNS.dart)**
+**详细的实现步骤请参考 [Dart(flutter) 代码](https://gist.github.com/penndev/e78d0a2c9a1b354a7e048991effad3a2)**
 
 
 
