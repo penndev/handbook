@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>系统进程注解 · 随记手册</title>
+        <title>MPEG2-TS分析 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="FileSystem.html" />
+    <link rel="next" href="../Algo/README.md" />
     
     
-    <link rel="prev" href="./" />
+    <link rel="prev" href="ffmpeg.html" />
     
 
     </head>
@@ -186,9 +186,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="./">
+        <li class="chapter " data-level="3.1" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -200,9 +200,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="3.1.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="3.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     系统进程注解
@@ -213,9 +213,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="3.1.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统操作
@@ -226,9 +226,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.3" data-path="Network.html">
+        <li class="chapter " data-level="3.1.3" data-path="../Linux/Network.html">
             
-                <a href="Network.html">
+                <a href="../Linux/Network.html">
             
                     
                     系统网络操作
@@ -329,9 +329,9 @@
         
         
     
-        <li class="chapter " data-level="5.1" data-path="../Media/">
+        <li class="chapter " data-level="5.1" data-path="./">
             
-                <a href="../Media/">
+                <a href="./">
             
                     
                     音视频媒体
@@ -343,9 +343,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="5.1.1" data-path="../Media/ffmpeg.html">
+        <li class="chapter " data-level="5.1.1" data-path="ffmpeg.html">
             
-                <a href="../Media/ffmpeg.html">
+                <a href="ffmpeg.html">
             
                     
                     FFmpeg
@@ -356,9 +356,9 @@
             
         </li>
     
-        <li class="chapter " data-level="5.1.2" data-path="../Media/MPEG2-TS.html">
+        <li class="chapter active" data-level="5.1.2" data-path="MPEG2-TS.html">
             
-                <a href="../Media/MPEG2-TS.html">
+                <a href="MPEG2-TS.html">
             
                     
                     MPEG2-TS分析
@@ -424,7 +424,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >系统进程注解</a>
+        <a href=".." >MPEG2-TS分析</a>
     </h1>
 </div>
 
@@ -439,96 +439,255 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <ul>
-<li><a href="SystemProcess.html#show">查看概况</a></li>
-<li>守护进程<ul>
-<li><a href="SystemProcess.html#systemd">systemd</a></li>
-<li><a href="SystemProcess.html#supervisor">supervisor</a></li>
-</ul>
-</li>
-</ul>
-<hr></hr>
-<h2 id="show">概况查看 </h2>
-<p><strong>进程运行时</strong></p>
-<p><code>/proc/{pid}</code></p>
-<ul>
-<li>查看进程的执行文件<pre><code class="lang-bash"><span class="hljs-built_in">ls</span> -al /proc/{pid}/exe
-</code></pre>
-</li>
-</ul>
-<p><strong>发送信号到进程</strong></p>
-<pre><code> kill 9 1000 1001 1002
- pkill nginx
-</code></pre><h2 id="守护进程">守护进程</h2>
-<h3 id="systemd">systemd </h3>
-<p><code>vim /usr/lib/systemd/system/wafcdn.service</code> 配置文件</p>
-<pre><code class="lang-bash">[Unit]
-Description=WafCdn Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/wafcdn/wafcdn
-WorkingDirectory=/usr/local/wafcdn/wafcdn
-
-[Install]
-WantedBy=multi-user.target
-</code></pre>
-<ul>
-<li><code>systemctl disable|enable|status|start|stop|restart wafcdn</code></li>
-</ul>
-<h3 id="supervisor">Supervisor </h3>
-<p><strong>安装Supervisor</strong></p>
-<p><em><code>/tmp</code>文件会在空闲时间被清理</em></p>
-<p><em>系统open file limit 设置</em></p>
-<ol>
-<li>安装 <code>pip install supervisor</code></li>
-<li>生成配置文件 <code>echo_supervisord_conf &gt; /etc/supervisord.conf</code></li>
-<li><p>添加supervisor到守护进程 <code>vim /usr/lib/systemd/system/supervisord.service</code></p>
-<pre><code class="lang-bash"><span class="hljs-comment">#supervisord.service</span>
-
-[Unit] 
-Description=Supervisor daemon
-
-[Service] 
-Type=forking 
-ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
-ExecStop=/usr/local/bin/supervisorctl shutdown 
-ExecReload=/usr/local/bin/supervisorctl reload 
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
-
-[Install] 
-WantedBy=multi-user.target
-</code></pre>
-</li>
-<li>设置守护进程启动<pre><code class="lang-bash">systemctl <span class="hljs-built_in">enable</span> supervisord
-systemctl start supervisord
-systemctl status supervisord
-</code></pre>
-</li>
-<li>确定supervisor配置文件 <code>/etc/supervisord.conf</code> <pre><code class="lang-bash">[include] 
-files = /etc/supervisord.d/*.ini
-</code></pre>
-</li>
-</ol>
-<p><strong>配置supervisor启动程序</strong></p>
-<p>  <code>vim /etc/supervisord.d/cdnload.ini</code></p>
-<pre><code class="lang-bash">  [program:cdn]
-  <span class="hljs-built_in">command</span>=/www/wwwroot/cdnload
-  directory=/www/wwwroot
-  autorestart=<span class="hljs-literal">true</span>
-  stdout_logfile=/www/wwwlogs/cdnload.out.log
-  stderr_logfile=/www/wwwlogs/cdnload.err.log
-  user=root
-</code></pre>
-<p> <strong>管理supervisor</strong></p>
-<pre><code class="lang-bash"> supervisorctl status|update|reload
-</code></pre>
-<p> <strong>管理supervisor进程</strong></p>
-<pre><code class="lang-bash"> supervisorctl start|stop|restart|clear {program:name}
-</code></pre>
+                                <h1 id="mpeg2-ts-结构体">MPEG2-TS 结构体</h1>
+<blockquote>
+<p>mpeg-ts使用了3层封装（ES &gt; PES &gt; TS）数据。通常我们看到的文件都是若干个 188个以 0x47开头的 ts packet 组成的。如果我们需要拆包es 需要从上到下逐层拆包结构。如果需要封包则刚好相反。</p>
+</blockquote>
+<h2 id="ts">TS</h2>
+<blockquote>
+<p>每个 ts packet 由188个字节组成， 这些字节通常为3部分，文件头，适配字段（可能不存在），载荷。因为ts是对pes数据进行封装。通常来说pes的数据肯定是大于188的，这样就有多个ts packet 来进行包含pes数据。</p>
+</blockquote>
+<h3 id="ts--header">TS  Header</h3>
+<blockquote>
+<p>4个字节 32位数据包含了8个字段 </p>
+</blockquote>
+<p>示例数据 <code>47 41 00 30</code></p>
+<p><code>01000111 01000001 00000000 00110000</code></p>
+<p><code>01000111 0 1 0 0000100000000 00 11 0000</code></p>
+<table>
+<thead>
+<tr>
+<th>字节</th>
+<th>位数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>8</td>
+<td>固定的数据0x47</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>发送时（调制前）值为0。接收方的解调器在无法成功解调（即使有前向纠错机制）TS分组内容时，将该位设置为1，表示该TS分组损坏</td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td>负载单元起始标示符，一个完整的数据包开始时标记为1, 表示携带的是PSI或PES第一个包</td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td>值为1时，在相同PID的分组中具有更高的优先权。</td>
+</tr>
+<tr>
+<td>2,3</td>
+<td>13</td>
+<td>PID用于识别TS分组的ID。一个PID对应一种特定的PSI消息或者一个特定的PES。</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>值为'00'时表示载荷未加密。其余值由具体系统定义。</td>
+</tr>
+<tr>
+<td></td>
+<td>2</td>
+<td>适配域表示 '00' = 保留 (供未来使用) '01' = 无适配域，仅有载荷 '10' = 仅有适配域 '11' = 适配域和载荷都存在</td>
+</tr>
+<tr>
+<td></td>
+<td>4</td>
+<td>取值为0x00到0x0F，循环。用于检查同一个PID的TS分组的连续性。每当一个TS分组中包含载荷时，该计数器加1。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ts-adaptation-可以不存在">TS Adaptation (可以不存在)</h3>
+<blockquote>
+<p>这个结构体只有在 ts header 适配域 位 <code>10</code> <code>11</code> 时候存在。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>所属字节</th>
+<th>位数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>8</td>
+<td>适配域长度 不包括当前字节</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>不连续指示位</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>如果当前分组是一个PES的起始，取值为1。</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>取值为1时ES优先级更高。</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1表示适配域中有PCR域</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1表示适配域中有OPCR域</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1表示适配域中有接续倒数计数器域</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1表示适配域中有私有数据域</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1表示适配域中有适配域扩展域</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ts-payload-可以不存在">TS Payload (可以不存在)</h3>
+<blockquote>
+<p>这个结构体只有在 ts header 适配域 位 <code>01</code> <code>11</code> 时候存在。</p>
+</blockquote>
+<p>188 去掉头字段则为载荷</p>
+<h2 id="pes">PES</h2>
+<blockquote>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>所属字节</th>
+<th>位数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1，2，3</td>
+<td>32</td>
+<td>0x000001 文件头</td>
+</tr>
+<tr>
+<td>4</td>
+<td>8</td>
+<td>Audio streams (0xC0-0xDF), Video streams (0xE0-0xEF)</td>
+</tr>
+<tr>
+<td>5，6</td>
+<td>16</td>
+<td>PES Header标志 （标志详情见下 PES Header描述）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>8</td>
+<td>PES header 长度</td>
+</tr>
+<tr>
+<td>7</td>
+<td>8</td>
+<td>PES header 总长度</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pes-header">PES Header</h3>
+<blockquote>
+<p><a href="https://dvd.sourceforge.net/dvdinfo/pes-hdr.html" target="_blank">https://dvd.sourceforge.net/dvdinfo/pes-hdr.html</a></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>字段名称</th>
+<th>位数</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标记位 (Marker bits)</td>
+<td>2</td>
+<td>值为 二进制10</td>
+</tr>
+<tr>
+<td>加扰控制 (Scrambling control)</td>
+<td>2</td>
+<td>00 表示未加扰</td>
+</tr>
+<tr>
+<td>优先级 (Priority)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>数据对齐指示 (Data alignment indicator)</td>
+<td>1</td>
+<td>1 表示 PES 包头紧接着是视频起始码或音频同步字</td>
+</tr>
+<tr>
+<td>版权 (Copyright)</td>
+<td>1</td>
+<td>1 表示有版权</td>
+</tr>
+<tr>
+<td>原始或副本 (Original or Copy)</td>
+<td>1</td>
+<td>1 表示原始数据</td>
+</tr>
+<tr>
+<td>PTS DTS 指示符 (PTS DTS indicator)</td>
+<td>2</td>
+<td>11 = 同时存在 PTS 和 DTS，01 是禁止的，10 = 仅有 PTS，00 = 无 PTS 或 DTS</td>
+</tr>
+<tr>
+<td>ESCR 标志 (ESCR flag)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>ES 速率标志 (ES rate flag)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>DSM 技巧模式标志 (DSM trick mode flag)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>附加复制信息标志 (Additional copy info flag)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>CRC 标志 (CRC flag)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>扩展标志 (extension flag)</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
 
                                 
                                 </section>
@@ -556,12 +715,12 @@ files = /etc/supervisord.d/*.ini
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Linux">
+                <a href="ffmpeg.html" class="navigation navigation-prev " aria-label="Previous page: FFmpeg">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="FileSystem.html" class="navigation navigation-next " aria-label="Next page: 文件系统操作">
+                <a href="../Algo/README.md" class="navigation navigation-next " aria-label="Next page: 算法">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -572,7 +731,7 @@ files = /etc/supervisord.d/*.ini
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"系统进程注解","level":"3.1.1","depth":2,"next":{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},"previous":{"title":"Linux","level":"3.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/SystemProcess.md","mtime":"2024-09-20T10:01:45.911Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"MPEG2-TS分析","level":"5.1.2","depth":2,"next":{"title":"算法","level":"6.1","depth":1,"path":"Algo/README.md","ref":"Algo/README.md","articles":[]},"previous":{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/ffmpeg.md","ref":"Media/ffmpeg.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Media/MPEG2-TS.md","mtime":"2024-09-20T10:01:45.911Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

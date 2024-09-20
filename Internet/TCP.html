@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>系统进程注解 · 随记手册</title>
+        <title>TCP · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="FileSystem.html" />
+    <link rel="next" href="IP.html" />
     
     
-    <link rel="prev" href="./" />
+    <link rel="prev" href="DNS.html" />
     
 
     </head>
@@ -186,9 +186,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="./">
+        <li class="chapter " data-level="3.1" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -200,9 +200,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="3.1.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="3.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     系统进程注解
@@ -213,9 +213,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="3.1.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统操作
@@ -226,9 +226,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.3" data-path="Network.html">
+        <li class="chapter " data-level="3.1.3" data-path="../Linux/Network.html">
             
-                <a href="Network.html">
+                <a href="../Linux/Network.html">
             
                     
                     系统网络操作
@@ -251,9 +251,9 @@
         
         
     
-        <li class="chapter " data-level="4.1" data-path="../Internet/">
+        <li class="chapter " data-level="4.1" data-path="./">
             
-                <a href="../Internet/">
+                <a href="./">
             
                     
                     网络协议
@@ -265,9 +265,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="4.1.1" data-path="../Internet/DNS.html">
+        <li class="chapter " data-level="4.1.1" data-path="DNS.html">
             
-                <a href="../Internet/DNS.html">
+                <a href="DNS.html">
             
                     
                     DNS
@@ -278,9 +278,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.2" data-path="../Internet/TCP.html">
+        <li class="chapter active" data-level="4.1.2" data-path="TCP.html">
             
-                <a href="../Internet/TCP.html">
+                <a href="TCP.html">
             
                     
                     TCP
@@ -291,9 +291,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.3" data-path="../Internet/IP.html">
+        <li class="chapter " data-level="4.1.3" data-path="IP.html">
             
-                <a href="../Internet/IP.html">
+                <a href="IP.html">
             
                     
                     IP
@@ -304,9 +304,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.4" data-path="../Internet/Ethernet.html">
+        <li class="chapter " data-level="4.1.4" data-path="Ethernet.html">
             
-                <a href="../Internet/Ethernet.html">
+                <a href="Ethernet.html">
             
                     
                     Ethernet
@@ -424,7 +424,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >系统进程注解</a>
+        <a href=".." >TCP</a>
     </h1>
 </div>
 
@@ -439,96 +439,104 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <ul>
-<li><a href="SystemProcess.html#show">查看概况</a></li>
-<li>守护进程<ul>
-<li><a href="SystemProcess.html#systemd">systemd</a></li>
-<li><a href="SystemProcess.html#supervisor">supervisor</a></li>
+                                <h2 id="tcp">TCP</h2>
+<h3 id="报文头">报文头</h3>
+<p><img src="asset/tcp.png" alt="TCP头部报文段"></img></p>
+<ul>
+<li>源端口：<ul>
+<li>长度：16bit</li>
+<li>作用：用来确定是那个进程使用的tcp包，可以根据端口来确定发送进程。</li>
+</ul>
+</li>
+<li>目标端口：目标端口与源端口功能类似，用来表示对端。</li>
+<li>序号：<ul>
+<li>长度：32bit</li>
+<li>作用：在不通的阶段有不通的作用<ul>
+<li>SYN握手阶段：初始化一个数字（通常为0）发送给对端，并逐次+=1</li>
+<li>PSH传输阶段：本包第一字节在所有数据中的序号。</li>
 </ul>
 </li>
 </ul>
-<hr></hr>
-<h2 id="show">概况查看 </h2>
-<p><strong>进程运行时</strong></p>
-<p><code>/proc/{pid}</code></p>
-<ul>
-<li>查看进程的执行文件<pre><code class="lang-bash"><span class="hljs-built_in">ls</span> -al /proc/{pid}/exe
-</code></pre>
+</li>
+<li>确认号：<ul>
+<li>长度：32bit</li>
+<li>作用：仅ACK的标志位为1的时候确认号才有效。确认号为期望对端的发送的手字节序号。</li>
+</ul>
+</li>
+<li>数据偏移：tcp头长度，也表示数据开始位置<ul>
+<li>长度：4bit</li>
+<li>作用：结果需要乘4，则最小为固定长度20（tcp头固定长度），最大表示为|1111|*4=60(所以tcp头长度不能超过60)</li>
+</ul>
+</li>
+<li>Flags：对应位为1则表示当前flag<ul>
+<li>ns （Explicit Congestion Notification）显式拥塞通知</li>
+<li>cwr (Congestion Window Reduced) 拥塞窗口减少</li>
+<li>ece ECN-Echo</li>
+<li>urg 高优先级数据包</li>
+<li>ACK 确认序号</li>
+<li>PSH 传输数据</li>
+<li>RST 出现严重差错，要求断开或重连</li>
+<li>SYN 表示连接请求或连接接受报文</li>
+<li>fin 要求释放连接</li>
+</ul>
+</li>
+<li>窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。</li>
+<li>校验和：</li>
+<li>紧急指针：</li>
+<li>可选项：一组和多组kind类数据<ul>
+<li>长度：数据偏移-20固定字节</li>
+<li>Kind<ul>
+<li>0x00: 结束选项列表</li>
+<li>0x01: 无操作</li>
+<li>0x02: Maximum segment size (最大分段大小)</li>
+<li>0x03: 窗口扩大因子</li>
+<li>0x04: 选择性确认(SACK)</li>
+<li>0x05: 时间戳</li>
+</ul>
 </li>
 </ul>
-<p><strong>发送信号到进程</strong></p>
-<pre><code> kill 9 1000 1001 1002
- pkill nginx
-</code></pre><h2 id="守护进程">守护进程</h2>
-<h3 id="systemd">systemd </h3>
-<p><code>vim /usr/lib/systemd/system/wafcdn.service</code> 配置文件</p>
-<pre><code class="lang-bash">[Unit]
-Description=WafCdn Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/wafcdn/wafcdn
-WorkingDirectory=/usr/local/wafcdn/wafcdn
-
-[Install]
-WantedBy=multi-user.target
-</code></pre>
-<ul>
-<li><code>systemctl disable|enable|status|start|stop|restart wafcdn</code></li>
+</li>
 </ul>
-<h3 id="supervisor">Supervisor </h3>
-<p><strong>安装Supervisor</strong></p>
-<p><em><code>/tmp</code>文件会在空闲时间被清理</em></p>
-<p><em>系统open file limit 设置</em></p>
+<h3 id="握手">握手</h3>
+<p><img src="asset/tcp-handshake.png" alt="TCP握手"></img></p>
 <ol>
-<li>安装 <code>pip install supervisor</code></li>
-<li>生成配置文件 <code>echo_supervisord_conf &gt; /etc/supervisord.conf</code></li>
-<li><p>添加supervisor到守护进程 <code>vim /usr/lib/systemd/system/supervisord.service</code></p>
-<pre><code class="lang-bash"><span class="hljs-comment">#supervisord.service</span>
-
-[Unit] 
-Description=Supervisor daemon
-
-[Service] 
-Type=forking 
-ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
-ExecStop=/usr/local/bin/supervisorctl shutdown 
-ExecReload=/usr/local/bin/supervisorctl reload 
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
-
-[Install] 
-WantedBy=multi-user.target
-</code></pre>
+<li>首先客户端发送握手请求（一个SYN包）到服务器。</li>
+<li>服务器收到SYN包后会创建缓冲并将客户端发送SYN和ACK标志位的包表示同意连接。</li>
+<li>客户端则再次回复ACK包通知服务器，至此tcp握手完成。</li>
+</ol>
+<p>Q:</p>
+<ol>
+<li>如果客户端发送SYN 服务器除了应答还会怎么处理呢？<ul>
+<li>不应答 会触发连接超时 开启防火墙通常就是不应答。</li>
+<li>拒绝 直接回复RST包，直接进行拒绝 端口为监听。</li>
+</ul>
 </li>
-<li>设置守护进程启动<pre><code class="lang-bash">systemctl <span class="hljs-built_in">enable</span> supervisord
-systemctl start supervisord
-systemctl status supervisord
-</code></pre>
+<li>如果客户端收到服务器的同意请求 如果不回复会怎么样？<ul>
+<li>这样会造成资源浪费，服务器会在回复同意后创建接收缓存。批量操作会造成 SYN泛洪攻击。</li>
+</ul>
 </li>
-<li>确定supervisor配置文件 <code>/etc/supervisord.conf</code> <pre><code class="lang-bash">[include] 
-files = /etc/supervisord.d/*.ini
-</code></pre>
+<li>三次握手主要做了什么?<ul>
+<li>确定双全工通道通路正确，窗口初始化，MSS初始化。</li>
+</ul>
 </li>
 </ol>
-<p><strong>配置supervisor启动程序</strong></p>
-<p>  <code>vim /etc/supervisord.d/cdnload.ini</code></p>
-<pre><code class="lang-bash">  [program:cdn]
-  <span class="hljs-built_in">command</span>=/www/wwwroot/cdnload
-  directory=/www/wwwroot
-  autorestart=<span class="hljs-literal">true</span>
-  stdout_logfile=/www/wwwlogs/cdnload.out.log
-  stderr_logfile=/www/wwwlogs/cdnload.err.log
-  user=root
-</code></pre>
-<p> <strong>管理supervisor</strong></p>
-<pre><code class="lang-bash"> supervisorctl status|update|reload
-</code></pre>
-<p> <strong>管理supervisor进程</strong></p>
-<pre><code class="lang-bash"> supervisorctl start|stop|restart|clear {program:name}
-</code></pre>
+<h3 id="传输阶段">传输阶段</h3>
+<p><img src="asset/tcp-transport.png" alt="TCP数据传输"></img></p>
+<ol>
+<li>发送方发送PSH+ACK的Payload包发送到接收端。</li>
+<li>接受方收到后会回复一个ACK的包给发送方，告知已接收到数据。</li>
+<li>发送方收到确认，再次发送下一包数据。</li>
+</ol>
+<p><strong>窗口确认</strong>  每次发送端的消息都有标注发送大小 <strong>序号</strong> ，接收端收到后会回复 <strong>确认号</strong> 来确认收到。 </p>
+<p><strong>重传策略</strong> 如果迟迟收不到接收端回复<strong>确认号</strong>，则会再次发送消息，来避免在复杂的环境丢包。</p>
+<h3 id="连接断开">连接断开</h3>
+<p><img src="asset/tcp-close.png" alt="TCP关闭传输"></img></p>
+<ol>
+<li>关闭端发FIN包给接收端。</li>
+<li>接收端回复应答FIN包。</li>
+<li>应答端处理完成发送FIN包。</li>
+<li>关闭端回复应答FIN包。</li>
+</ol>
 
                                 
                                 </section>
@@ -556,12 +564,12 @@ files = /etc/supervisord.d/*.ini
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Linux">
+                <a href="DNS.html" class="navigation navigation-prev " aria-label="Previous page: DNS">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="FileSystem.html" class="navigation navigation-next " aria-label="Next page: 文件系统操作">
+                <a href="IP.html" class="navigation navigation-next " aria-label="Next page: IP">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -572,7 +580,7 @@ files = /etc/supervisord.d/*.ini
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"系统进程注解","level":"3.1.1","depth":2,"next":{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},"previous":{"title":"Linux","level":"3.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/SystemProcess.md","mtime":"2024-09-20T10:01:45.911Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"TCP","level":"4.1.2","depth":2,"next":{"title":"IP","level":"4.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},"previous":{"title":"DNS","level":"4.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/TCP.md","mtime":"2024-09-20T10:01:45.910Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

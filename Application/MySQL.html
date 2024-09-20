@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>系统进程注解 · 随记手册</title>
+        <title>MySQL · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="FileSystem.html" />
+    <link rel="next" href="OpenSSL.html" />
     
     
-    <link rel="prev" href="./" />
+    <link rel="prev" href="Nginx.md" />
     
 
     </head>
@@ -121,7 +121,7 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Application/README.md">
+        <li class="chapter " data-level="2.1" data-path="README.md">
             
                 <span>
             
@@ -135,7 +135,7 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="2.1.1" data-path="../Application/Nginx.md">
+        <li class="chapter " data-level="2.1.1" data-path="Nginx.md">
             
                 <span>
             
@@ -148,9 +148,9 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.2" data-path="../Application/MySQL.html">
+        <li class="chapter active" data-level="2.1.2" data-path="MySQL.html">
             
-                <a href="../Application/MySQL.html">
+                <a href="MySQL.html">
             
                     
                     MySQL
@@ -161,9 +161,9 @@
             
         </li>
     
-        <li class="chapter " data-level="2.1.3" data-path="../Application/OpenSSL.html">
+        <li class="chapter " data-level="2.1.3" data-path="OpenSSL.html">
             
-                <a href="../Application/OpenSSL.html">
+                <a href="OpenSSL.html">
             
                     
                     OpenSSL
@@ -186,9 +186,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="./">
+        <li class="chapter " data-level="3.1" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -200,9 +200,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="3.1.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="3.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     系统进程注解
@@ -213,9 +213,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="3.1.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统操作
@@ -226,9 +226,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.3" data-path="Network.html">
+        <li class="chapter " data-level="3.1.3" data-path="../Linux/Network.html">
             
-                <a href="Network.html">
+                <a href="../Linux/Network.html">
             
                     
                     系统网络操作
@@ -424,7 +424,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >系统进程注解</a>
+        <a href=".." >MySQL</a>
     </h1>
 </div>
 
@@ -440,95 +440,131 @@
                                 <section class="normal markdown-section">
                                 
                                 <ul>
-<li><a href="SystemProcess.html#show">查看概况</a></li>
-<li>守护进程<ul>
-<li><a href="SystemProcess.html#systemd">systemd</a></li>
-<li><a href="SystemProcess.html#supervisor">supervisor</a></li>
-</ul>
-</li>
+<li><a href="Mysql.md#slave">主从配置</a></li>
 </ul>
 <hr></hr>
-<h2 id="show">概况查看 </h2>
-<p><strong>进程运行时</strong></p>
-<p><code>/proc/{pid}</code></p>
+<h2 id="字符集">字符集</h2>
+<blockquote>
+<p>文本存储的字符集类型</p>
+</blockquote>
 <ul>
-<li>查看进程的执行文件<pre><code class="lang-bash"><span class="hljs-built_in">ls</span> -al /proc/{pid}/exe
-</code></pre>
-</li>
+<li>utf8mb4 常见兼容性强，常用。 </li>
 </ul>
-<p><strong>发送信号到进程</strong></p>
-<pre><code> kill 9 1000 1001 1002
- pkill nginx
-</code></pre><h2 id="守护进程">守护进程</h2>
-<h3 id="systemd">systemd </h3>
-<p><code>vim /usr/lib/systemd/system/wafcdn.service</code> 配置文件</p>
-<pre><code class="lang-bash">[Unit]
-Description=WafCdn Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/wafcdn/wafcdn
-WorkingDirectory=/usr/local/wafcdn/wafcdn
-
-[Install]
-WantedBy=multi-user.target
-</code></pre>
+<blockquote>
+<p>对字符进行排序的处理方式</p>
+</blockquote>
 <ul>
-<li><code>systemctl disable|enable|status|start|stop|restart wafcdn</code></li>
+<li>utf8mb4_bin 二进制排序</li>
+<li>utf8mb4_unicode_ci 不区分大小写排序等</li>
 </ul>
-<h3 id="supervisor">Supervisor </h3>
-<p><strong>安装Supervisor</strong></p>
-<p><em><code>/tmp</code>文件会在空闲时间被清理</em></p>
-<p><em>系统open file limit 设置</em></p>
+<h2 id="索引">索引</h2>
+<ul>
+<li><code>OPTIMIZE TABLE &lt;tablename&gt;</code> 优化表索引  清空被删除的记录，收回被浪费的空间，并重建表的索引等</li>
+<li><code>EXPLAN &lt;sql&gt;</code> 分析SQL <strong>分析的sql最好从慢日志里面取</strong></li>
+<li><a href="https://mariadb.com/kb/en/slow-query-log-overview/" target="_blank">慢日志文档</a><pre><code>[mariadb] 
+... 
+Slow_query_log
+// Slow_query_log_file=mariadb-slow.log
+log_output=FILE 
+long_query_time=5.0
+</code></pre></li>
+</ul>
+<h2 id="事务">事务</h2>
+<blockquote>
+<p>主要处理并发安全</p>
+</blockquote>
+<pre><code>[mariadb]
+... 
+transaction-isolation = REPEATABLE-READ
+
+
+START TRANSACTION
+COMMIT
+ROLLBACK
+</code></pre><p><strong>锁</strong></p>
+<ul>
+<li>级别 表，行</li>
+<li>类型 读锁（共享），写锁（独占，互斥，排他锁）</li>
+</ul>
+<p><strong>隔离级别</strong></p>
+<pre><code>SELECT @@GLOBAL.transaction_isolation, @@transaction_isolation;
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+</code></pre><ul>
+<li><code>READ_UNCOMMITTED</code> <strong>读未提交</strong> <em>脏读：事务没有提交的数据也会被读取，如果回滚则会造成脏数据。</em></li>
+<li><code>READ-COMMITTED</code> <strong>读已提交</strong> <em>幻读 其他事务修改后，本次事务读取效果立即生效</em></li>
+<li><code>REPEATABLE-READ</code> <strong>重复读</strong> <em>幻读 事务开始后已读取数据将被缓存，再次读取效果一致，其他事务修改无效</em></li>
+<li><code>SERIALIZABLE</code> <strong>串行化</strong> <em>独占锁 并发性能低</em></li>
+</ul>
+<h2 id="slave">主从复制 </h2>
+<blockquote>
+<p>前置条件 保证主从机器互通。从库业务账号最好使用只读账号。</p>
+</blockquote>
 <ol>
-<li>安装 <code>pip install supervisor</code></li>
-<li>生成配置文件 <code>echo_supervisord_conf &gt; /etc/supervisord.conf</code></li>
-<li><p>添加supervisor到守护进程 <code>vim /usr/lib/systemd/system/supervisord.service</code></p>
-<pre><code class="lang-bash"><span class="hljs-comment">#supervisord.service</span>
+<li><p>设置主库 </p>
+<ul>
+<li><p>修改配置<code>/etc/mysql/my.cnf</code></p>
+<pre><code class="lang-bash">server-id=1
+log-bin=mysql-bin
 
-[Unit] 
-Description=Supervisor daemon
-
-[Service] 
-Type=forking 
-ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
-ExecStop=/usr/local/bin/supervisorctl shutdown 
-ExecReload=/usr/local/bin/supervisorctl reload 
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
-
-[Install] 
-WantedBy=multi-user.target
+<span class="hljs-comment"># 重启Mysql让配置生效</span>
 </code></pre>
 </li>
-<li>设置守护进程启动<pre><code class="lang-bash">systemctl <span class="hljs-built_in">enable</span> supervisord
-systemctl start supervisord
-systemctl status supervisord
+<li><p>锁定表并创建从库账户</p>
+<pre><code class="lang-sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">USER</span> <span class="hljs-string">'slave'</span>@<span class="hljs-string">'%'</span> IDENTIFIED <span class="hljs-keyword">BY</span> <span class="hljs-string">'123456'</span>;
+<span class="hljs-keyword">GRANT</span> REPLICATION SLAVE <span class="hljs-keyword">ON</span> <span class="hljs-operator">*</span>.<span class="hljs-operator">*</span> <span class="hljs-keyword">TO</span> <span class="hljs-string">'slave'</span>@<span class="hljs-string">'%'</span>;
+FLUSH PRIVILEGES;
+
+# 锁定所有表，以避免操作过程中数据未对齐
+FLUSH TABLES <span class="hljs-keyword">WITH</span> READ LOCK;
 </code></pre>
 </li>
-<li>确定supervisor配置文件 <code>/etc/supervisord.conf</code> <pre><code class="lang-bash">[include] 
-files = /etc/supervisord.d/*.ini
+<li><p>导出数据</p>
+<pre><code class="lang-bash">mysqldump -u root -p {database} &gt; backup.sql
 </code></pre>
+</li>
+<li><p><code>SHOW MASTER STATUS;</code> 查看主库进度</p>
+</li>
+</ul>
+</li>
+<li><p>设置从库</p>
+<ul>
+<li><p>修改配置<code>/etc/mysql/my.cnf</code></p>
+<pre><code class="lang-bash">server-id=2
+log-bin=mysql-bin
+
+<span class="hljs-comment"># 重启Mysql让配置生效</span>
+</code></pre>
+</li>
+<li><p>导入数据</p>
+<pre><code class="lang-bash"><span class="hljs-comment"># 直接导入</span>
+mysql -u root -p {database} &lt; backup.sql
+
+<span class="hljs-comment"># 登录后导入</span>
+&gt; use {database};
+&gt; <span class="hljs-built_in">source</span> backup.sql
+</code></pre>
+</li>
+<li><p>运行从库设置</p>
+<pre><code class="lang-sql">CHANGE MASTER <span class="hljs-keyword">TO</span>
+  MASTER_HOST<span class="hljs-operator">=</span><span class="hljs-string">'192.168.1.1'</span>,
+  MASTER_USER<span class="hljs-operator">=</span><span class="hljs-string">'slave'</span>,
+  MASTER_PASSWORD<span class="hljs-operator">=</span><span class="hljs-string">'123456'</span>,
+  MASTER_LOG_FILE<span class="hljs-operator">=</span><span class="hljs-string">'mysql-bin.000001'</span>,
+  MASTER_LOG_POS<span class="hljs-operator">=</span><span class="hljs-number">1</span>;
+
+# master 信息从 主库的最后一步确认
+</code></pre>
+</li>
+<li><p>查看从库状态</p>
+<pre><code class="lang-sql"><span class="hljs-keyword">SHOW</span> SLAVE STATUS; #查看从库状态
+<span class="hljs-keyword">START</span> SLAVE; #启动从库复制
+STOP SLAVE; #停止复制
+RESET SLAVE; #重置
+</code></pre>
+</li>
+</ul>
 </li>
 </ol>
-<p><strong>配置supervisor启动程序</strong></p>
-<p>  <code>vim /etc/supervisord.d/cdnload.ini</code></p>
-<pre><code class="lang-bash">  [program:cdn]
-  <span class="hljs-built_in">command</span>=/www/wwwroot/cdnload
-  directory=/www/wwwroot
-  autorestart=<span class="hljs-literal">true</span>
-  stdout_logfile=/www/wwwlogs/cdnload.out.log
-  stderr_logfile=/www/wwwlogs/cdnload.err.log
-  user=root
-</code></pre>
-<p> <strong>管理supervisor</strong></p>
-<pre><code class="lang-bash"> supervisorctl status|update|reload
-</code></pre>
-<p> <strong>管理supervisor进程</strong></p>
-<pre><code class="lang-bash"> supervisorctl start|stop|restart|clear {program:name}
-</code></pre>
 
                                 
                                 </section>
@@ -556,12 +592,12 @@ files = /etc/supervisord.d/*.ini
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Linux">
+                <a href="Nginx.md" class="navigation navigation-prev " aria-label="Previous page: Nginx">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="FileSystem.html" class="navigation navigation-next " aria-label="Next page: 文件系统操作">
+                <a href="OpenSSL.html" class="navigation navigation-next " aria-label="Next page: OpenSSL">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -572,7 +608,7 @@ files = /etc/supervisord.d/*.ini
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"系统进程注解","level":"3.1.1","depth":2,"next":{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},"previous":{"title":"Linux","level":"3.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/SystemProcess.md","mtime":"2024-09-20T10:01:45.911Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"MySQL","level":"2.1.2","depth":2,"next":{"title":"OpenSSL","level":"2.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]},"previous":{"title":"Nginx","level":"2.1.1","depth":2,"path":"Application/Nginx.md","ref":"Application/Nginx.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Application/MySQL.md","mtime":"2024-09-20T10:01:45.909Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

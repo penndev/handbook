@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>系统进程注解 · 随记手册</title>
+        <title>IP · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -56,10 +56,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="FileSystem.html" />
+    <link rel="next" href="Ethernet.html" />
     
     
-    <link rel="prev" href="./" />
+    <link rel="prev" href="TCP.html" />
     
 
     </head>
@@ -186,9 +186,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="./">
+        <li class="chapter " data-level="3.1" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -200,9 +200,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="3.1.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="3.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     系统进程注解
@@ -213,9 +213,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="3.1.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统操作
@@ -226,9 +226,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.3" data-path="Network.html">
+        <li class="chapter " data-level="3.1.3" data-path="../Linux/Network.html">
             
-                <a href="Network.html">
+                <a href="../Linux/Network.html">
             
                     
                     系统网络操作
@@ -251,9 +251,9 @@
         
         
     
-        <li class="chapter " data-level="4.1" data-path="../Internet/">
+        <li class="chapter " data-level="4.1" data-path="./">
             
-                <a href="../Internet/">
+                <a href="./">
             
                     
                     网络协议
@@ -265,9 +265,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="4.1.1" data-path="../Internet/DNS.html">
+        <li class="chapter " data-level="4.1.1" data-path="DNS.html">
             
-                <a href="../Internet/DNS.html">
+                <a href="DNS.html">
             
                     
                     DNS
@@ -278,9 +278,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.2" data-path="../Internet/TCP.html">
+        <li class="chapter " data-level="4.1.2" data-path="TCP.html">
             
-                <a href="../Internet/TCP.html">
+                <a href="TCP.html">
             
                     
                     TCP
@@ -291,9 +291,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.3" data-path="../Internet/IP.html">
+        <li class="chapter active" data-level="4.1.3" data-path="IP.html">
             
-                <a href="../Internet/IP.html">
+                <a href="IP.html">
             
                     
                     IP
@@ -304,9 +304,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.4" data-path="../Internet/Ethernet.html">
+        <li class="chapter " data-level="4.1.4" data-path="Ethernet.html">
             
-                <a href="../Internet/Ethernet.html">
+                <a href="Ethernet.html">
             
                     
                     Ethernet
@@ -424,7 +424,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >系统进程注解</a>
+        <a href=".." >IP</a>
     </h1>
 </div>
 
@@ -439,96 +439,221 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <ul>
-<li><a href="SystemProcess.html#show">查看概况</a></li>
-<li>守护进程<ul>
-<li><a href="SystemProcess.html#systemd">systemd</a></li>
-<li><a href="SystemProcess.html#supervisor">supervisor</a></li>
-</ul>
-</li>
-</ul>
-<hr></hr>
-<h2 id="show">概况查看 </h2>
-<p><strong>进程运行时</strong></p>
-<p><code>/proc/{pid}</code></p>
-<ul>
-<li>查看进程的执行文件<pre><code class="lang-bash"><span class="hljs-built_in">ls</span> -al /proc/{pid}/exe
-</code></pre>
-</li>
-</ul>
-<p><strong>发送信号到进程</strong></p>
-<pre><code> kill 9 1000 1001 1002
- pkill nginx
-</code></pre><h2 id="守护进程">守护进程</h2>
-<h3 id="systemd">systemd </h3>
-<p><code>vim /usr/lib/systemd/system/wafcdn.service</code> 配置文件</p>
-<pre><code class="lang-bash">[Unit]
-Description=WafCdn Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/wafcdn/wafcdn
-WorkingDirectory=/usr/local/wafcdn/wafcdn
-
-[Install]
-WantedBy=multi-user.target
-</code></pre>
-<ul>
-<li><code>systemctl disable|enable|status|start|stop|restart wafcdn</code></li>
-</ul>
-<h3 id="supervisor">Supervisor </h3>
-<p><strong>安装Supervisor</strong></p>
-<p><em><code>/tmp</code>文件会在空闲时间被清理</em></p>
-<p><em>系统open file limit 设置</em></p>
+                                <h1 id="ip">IP</h1>
+<blockquote>
+<p>IP: Internet Protocol，互联网（因特网）协议的目的是对接入互联网的设备进行地址编码。<a href="https://datatracker.ietf.org/doc/html/rfc791" target="_blank">https://datatracker.ietf.org/doc/html/rfc791</a></p>
+</blockquote>
+<h2 id="ipv4">IPv4</h2>
+<h3 id="ip数据格式">IP数据格式</h3>
+<p><img src="asset/ip.png" alt="IP报文段"></img></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>版本 (Version)</td>
+<td>4位</td>
+<td>指定IP协议的版本，IPv4为4。</td>
+</tr>
+<tr>
+<td>头部长度 (Header Length)</td>
+<td>4位</td>
+<td>指示IP头部的长度，以32位字为单位。通常为5。</td>
+</tr>
+<tr>
+<td>服务类型 (Type of Service)</td>
+<td>8位</td>
+<td>指定数据包的服务质量，如优先级、延迟等。</td>
+</tr>
+<tr>
+<td>总长度 (Total Length)</td>
+<td>16位</td>
+<td>整个IP数据报的长度，包括头部和数据部分。</td>
+</tr>
+<tr>
+<td>标识 (Identification)</td>
+<td>16位</td>
+<td>用于标识数据报的唯一性，进行重新组装。</td>
+</tr>
+<tr>
+<td>标志 (Flags)</td>
+<td>3位</td>
+<td>分片相关的标志，如禁止分片、更多分片等。</td>
+</tr>
+<tr>
+<td>片偏移 (Fragment Offset)</td>
+<td>13位</td>
+<td>分片相对于原始数据报的偏移量。</td>
+</tr>
+<tr>
+<td>生存时间 (Time to Live, TTL)</td>
+<td>8位</td>
+<td>数据报在网络中的最大寿命。每经过路由器，TTL减1，TTL为0时数据报被丢弃。</td>
+</tr>
+<tr>
+<td>协议 (Protocol)</td>
+<td>8位</td>
+<td>指示数据报的上层协议，如TCP、UDP、ICMP等。</td>
+</tr>
+<tr>
+<td>头部校验和 (Header Checksum)</td>
+<td>16位</td>
+<td>用于检测IP头部的错误，提高数据传输的可靠性。</td>
+</tr>
+<tr>
+<td>源IP地址 (Source IP Address)</td>
+<td>32位</td>
+<td>数据报的发送者的IP地址。</td>
+</tr>
+<tr>
+<td>目标IP地址 (Destination IP Address)</td>
+<td>32位</td>
+<td>数据报的接收者的IP地址。</td>
+</tr>
+<tr>
+<td>选项 (Options)</td>
+<td>可变</td>
+<td>包含一些可选字段，如记录路由、时间戳等。</td>
+</tr>
+<tr>
+<td>数据 (Data)</td>
+<td>可变</td>
+<td>实际的数据部分，长度可变。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ip地址">IP地址</h3>
+<p>IP地址共有4字节所有可用的IP总数为255⁴ （0.0.0.0）- （255.255.255.255） 其中还有很多（<a href="https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml" target="_blank">特殊IP标注</a>）。互联网的高速发展造成IP消耗较严重，目前分别有两个方法来缓解，NET转发，IPv6等。</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>前缀码</th>
+<th>开始地址</th>
+<th>结束地址</th>
+<th>对应CIDR修饰</th>
+<th>默认子网掩码</th>
+<th>公网地址范围</th>
+<th>私有地址范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A类地址</td>
+<td>0</td>
+<td>0.0.0.0</td>
+<td>127.255.255.255</td>
+<td>/8</td>
+<td>255.0.0.0</td>
+<td>1.0.0.0 - 126.0.0.0</td>
+<td>10.0.0.0 - 10.255.255.255</td>
+</tr>
+<tr>
+<td>B类地址</td>
+<td>10</td>
+<td>128.0.0.0</td>
+<td>191.255.255.255</td>
+<td>/16</td>
+<td>255.255.0.0</td>
+<td>128.1.0.0 - 191.254.0.0</td>
+<td>172.16.0.0 - 172.31.255.255</td>
+</tr>
+<tr>
+<td>C类地址</td>
+<td>110</td>
+<td>192.0.0.0</td>
+<td>223.255.255.255</td>
+<td>/24</td>
+<td>255.255.255.0</td>
+<td>192.0.1.0 - 223.255.254.0</td>
+<td>192.168.0.0 - 192.168.255.255</td>
+</tr>
+<tr>
+<td>D类地址 （群播）</td>
+<td>1110</td>
+<td>224.0.0.0</td>
+<td>239.255.255.255</td>
+<td>/4</td>
+<td>未定义</td>
+<td>224.0.0.0 - 239.255.255.255</td>
+<td>无</td>
+</tr>
+<tr>
+<td>E类地址 （保留）</td>
+<td>1111</td>
+<td>240.0.0.0</td>
+<td>255.255.255.255</td>
+<td>/4</td>
+<td>未定义</td>
+<td>240.0.0.0 - 255.255.255.254</td>
+<td>无</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ip寻址">IP寻址</h3>
+<p>Q:</p>
 <ol>
-<li>安装 <code>pip install supervisor</code></li>
-<li>生成配置文件 <code>echo_supervisord_conf &gt; /etc/supervisord.conf</code></li>
-<li><p>添加supervisor到守护进程 <code>vim /usr/lib/systemd/system/supervisord.service</code></p>
-<pre><code class="lang-bash"><span class="hljs-comment">#supervisord.service</span>
-
-[Unit] 
-Description=Supervisor daemon
-
-[Service] 
-Type=forking 
-ExecStart=/usr/local/bin/supervisord -c /etc/supervisord.conf
-ExecStop=/usr/local/bin/supervisorctl shutdown 
-ExecReload=/usr/local/bin/supervisorctl reload 
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
-
-[Install] 
-WantedBy=multi-user.target
-</code></pre>
-</li>
-<li>设置守护进程启动<pre><code class="lang-bash">systemctl <span class="hljs-built_in">enable</span> supervisord
-systemctl start supervisord
-systemctl status supervisord
-</code></pre>
-</li>
-<li>确定supervisor配置文件 <code>/etc/supervisord.conf</code> <pre><code class="lang-bash">[include] 
-files = /etc/supervisord.d/*.ini
-</code></pre>
+<li>设备是如何准确的通过互联网来访问到指定的主机的，流程是怎么样的？<ul>
+<li><img src="asset/ip-route.png" alt="ip寻址"></img></li>
+<li>通过IP路由表串口来访问各种设备。例A-&gt;DA-DI-&gt;LI-LM-&gt;M 来完成了A-&gt;M的访问</li>
+</ul>
 </li>
 </ol>
-<p><strong>配置supervisor启动程序</strong></p>
-<p>  <code>vim /etc/supervisord.d/cdnload.ini</code></p>
-<pre><code class="lang-bash">  [program:cdn]
-  <span class="hljs-built_in">command</span>=/www/wwwroot/cdnload
-  directory=/www/wwwroot
-  autorestart=<span class="hljs-literal">true</span>
-  stdout_logfile=/www/wwwlogs/cdnload.out.log
-  stderr_logfile=/www/wwwlogs/cdnload.err.log
-  user=root
-</code></pre>
-<p> <strong>管理supervisor</strong></p>
-<pre><code class="lang-bash"> supervisorctl status|update|reload
-</code></pre>
-<p> <strong>管理supervisor进程</strong></p>
-<pre><code class="lang-bash"> supervisorctl start|stop|restart|clear {program:name}
-</code></pre>
+<h3 id="nat转换">NAT转换</h3>
+<blockquote>
+<p>通过程序来解析包中的源IP和目标IP替换为公网IP来完成NAT转换来共用公网IP。 <a href="https://datatracker.ietf.org/doc/html/rfc1631" target="_blank">https://datatracker.ietf.org/doc/html/rfc1631</a></p>
+</blockquote>
+<h4 id="nat">NAT</h4>
+<table>
+<thead>
+<tr>
+<th>内网IP</th>
+<th>外网IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>192.168.1.1</td>
+<td>39.156.66.10</td>
+</tr>
+<tr>
+<td>192.168.1.2</td>
+<td>39.156.66.11</td>
+</tr>
+<tr>
+<td>192.168.1.3</td>
+<td>39.156.66.12</td>
+</tr>
+</tbody>
+</table>
+<h4 id="napt">NAPT</h4>
+<table>
+<thead>
+<tr>
+<th>内网IP</th>
+<th>外网IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>192.168.1.1:80</td>
+<td>39.156.66.10:22000</td>
+</tr>
+<tr>
+<td>192.168.1.2:80</td>
+<td>39.156.66.10:22001</td>
+</tr>
+<tr>
+<td>192.168.1.1:443</td>
+<td>39.156.66.10:22002</td>
+</tr>
+</tbody>
+</table>
 
                                 
                                 </section>
@@ -556,12 +681,12 @@ files = /etc/supervisord.d/*.ini
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Linux">
+                <a href="TCP.html" class="navigation navigation-prev " aria-label="Previous page: TCP">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="FileSystem.html" class="navigation navigation-next " aria-label="Next page: 文件系统操作">
+                <a href="Ethernet.html" class="navigation navigation-next " aria-label="Next page: Ethernet">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -572,7 +697,7 @@ files = /etc/supervisord.d/*.ini
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"系统进程注解","level":"3.1.1","depth":2,"next":{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},"previous":{"title":"Linux","level":"3.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/SystemProcess.md","mtime":"2024-09-20T10:01:45.911Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"IP","level":"4.1.3","depth":2,"next":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"previous":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/IP.md","mtime":"2024-09-20T10:01:45.909Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-20T10:01:55.431Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
