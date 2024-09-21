@@ -24,7 +24,8 @@
 
 ---
 * [音视频媒体](Media/README.md)
-  * [FFmpeg](Media/ffmpeg.md)
+  * [FFmpeg](Media/FFmpeg.md)
+  * [H264](Media/H264.md)
   * [MPEG2-TS分析](Media/MPEG2-TS.md)
 
 ---
