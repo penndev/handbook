@@ -1,0 +1,8 @@
+{
+  "name": "handbook",
+  "description": "handbook theme for gitbook",
+  "main": "./index.js",
+  "engines": {
+    "gitbook": ">=3.0.0"
+  }
+}
