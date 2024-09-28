@@ -10,8 +10,14 @@
 
 **运行命令**
 
-- start: `honkit serve`
+`npm run serve`
 
-- build: `honkit build`
+`npm run build`
+
+---
+
+`cd @book && npm link`
+
+`honkit serve`
 
 *power by **[honkit](https://github.com/honkit/honkit)*** 

@@ -1,5 +1,6 @@
 {
     "title":"随记手册",
     "author": "Penn",
-    "language": "zh-hans"
+    "language": "zh-hans",
+    "plugins": ["book"]
 }

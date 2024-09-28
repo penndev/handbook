@@ -2,10 +2,13 @@
 from typing import List
 
 
+def printf(hex): print(f"[{' '.join(f"0x{byte:02x}" for byte in hex)}]")
+
 class slice_layer_without_partitioning_rbsp:
     # 构造方法 __init__
-    def __init__(self,hex):
-        pass
+    def __init__(self, hex):
+        printf(hex[:20])
+        print("===")
         # 7.3.2.8 Slice layer without partitioning RBSP syntax
         # 7.3.3 Slice header syntax
         # 7.3.4 slice_data( )
@@ -30,9 +33,9 @@ class NAL:
         self.forbidden_zero_bit = hex[0] >> 7 & 1
         self.nal_ref_idc = hex[0] >> 5 & 3
         self.nal_unit_type = hex[0] & 0x1f
-        data = hex[0:]
+        data = hex[1:]
         if self.nal_unit_type == 5 : # 处理idr帧流
-            slice_layer_without_partitioning_rbsp()
+            slice_layer_without_partitioning_rbsp(data)
         return self
 
 class H264: 
@@ -72,4 +75,4 @@ if __name__ == "__main__":
     v = H264()
     v.setFile("./vfile/output.h264")
     for e in v.list:
-        print("hello-> ", e.forbidden_zero_bit, e.nal_ref_idc, e.nal_unit_type)
+        print("nal-> ", e.forbidden_zero_bit, e.nal_ref_idc, e.nal_unit_type)
