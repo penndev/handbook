@@ -16,6 +16,14 @@
     
             
                 
+                <link rel="stylesheet" href="../gitbook/book/katex.min.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/book/main.css">
+                
+            
+                
                 <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -69,10 +77,6 @@
     <div class="book-summary">
         
             
-<div id="book-search-input" role="search">
-    <input type="text" placeholder="输入并搜索" />
-</div>
-
             
                 <nav role="navigation">
                 
@@ -121,9 +125,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Application/README.md">
+        <li class="chapter " data-level="2.1" data-path="../Application/">
             
-                <span>
+                <a href="../Application/">
             
                     
                     Application
@@ -405,18 +409,31 @@
             
 
             
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.html">
+            
+                <a href="../Algo/Exp-Golomb-coding.html">
+            
+                    
+                    指数哥伦布编码
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
     
 
     <li class="divider"></li>
-
-    <li>
-        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
-            本书使用 HonKit 发布
-        </a>
-    </li>
 </ul>
 
 
@@ -447,12 +464,9 @@
                     <div class="page-wrapper" tabindex="-1" role="main">
                         <div class="page-inner">
                             
-<div id="book-search-results">
-    <div class="search-noresults">
-    
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="dns数据包封装接口">DNS数据包封装接口</h2>
+                                <div class="markdown-it"><h2 id="dns数据包封装接口">DNS数据包封装接口</h2>
 <h3 id="header-section-format">Header section format</h3>
 <pre><code>https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.1
  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
@@ -469,22 +483,26 @@
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                    ARCOUNT                    |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-</code></pre><ul>
+</code></pre>
+<ul>
 <li>ID[16b]  查询ID或者响应ID</li>
-<li>QR[1b]   <ul>
+<li>QR[1b]
+<ul>
 <li>0 表示是查询请求</li>
 <li>1 标识是返回数据</li>
 </ul>
 </li>
-<li>Opcode[4b]<ul>
+<li>Opcode[4b]
+<ul>
 <li>0 (QUERY): 标准查询，这是最常见的操作类型，用于执行基本的域名解析。</li>
 <li>1 (IQUERY): 反向查询（已废弃，不再使用）。</li>
 <li>2 (STATUS): 服务器状态请求（也很少使用）。</li>
 <li>3-15保留</li>
 </ul>
 </li>
-<li>AA[1b] 是否权威应答 <ul>
-<li>0 表示可以从缓存去数据， </li>
+<li>AA[1b] 是否权威应答
+<ul>
+<li>0 表示可以从缓存去数据，</li>
 <li>1表示是权威服务器返回数据。</li>
 </ul>
 </li>
@@ -492,7 +510,8 @@
 <li>RD[1b] 是否递归查询</li>
 <li>RA[1b] 是否支持递归</li>
 <li>Z[3b] 保留位</li>
-<li>RCODE[4b]<ul>
+<li>RCODE[4b]
+<ul>
 <li>0 无错误条件</li>
 <li>1 格式错误,名称服务器无法解释查询。</li>
 <li>2 服务器故障,由于名称服务器出现问题，名称服务器无法处理此查询。</li>
@@ -520,12 +539,14 @@
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                     QCLASS                    |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-</code></pre><ul>
+
+</code></pre>
+<ul>
 <li>QNAME： 变长 字节长度 + 字符数据 如果下字节为0则结束否则要循环</li>
-<li>QTYPE类型：<a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.2" target="_blank">https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.2</a></li>
-<li>QCLASS类型：<a href="https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.4" target="_blank">https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.4</a></li>
+<li>QTYPE类型：https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.2</li>
+<li>QCLASS类型：https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.4</li>
 </ul>
-<p><strong>请求封装示例：</strong> </p>
+<p><strong>请求封装示例：</strong></p>
 <pre><code>184, 105, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 7, 97, 108, 105, 98, 97, 98, 97, 3, 99, 111, 109, 0, 0, 1, 0, 1
 
 - 头部分(固定12位，参考文档说明): 184, 105, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0
@@ -535,7 +556,8 @@
     - 0， 结束标志位 
 - QTYPE（查询类型）： 0, 1, 
 - QCLASS：(网络类型) 0, 1, 0, 1,
-</code></pre><h3 id="resource-record-format">Resource record format</h3>
+</code></pre>
+<h3 id="resource-record-format">Resource record format</h3>
 <pre><code>https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3
   0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -556,7 +578,8 @@
 /                     RDATA                     /
 /                                               /
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-</code></pre><ul>
+</code></pre>
+<ul>
 <li>前字段与请求段类似</li>
 <li>TTLI(32b):  dns的生存周期返回数据的长度</li>
 <li>RDLENGTH (16b): RDATA的长度。</li>
@@ -565,10 +588,10 @@
 <p><strong>详细的实现步骤请参考 <a href="https://gist.github.com/penndev/e78d0a2c9a1b354a7e048991effad3a2" target="_blank">Dart(flutter) 代码</a></strong></p>
 <h2 id="dohdns-over-https">DOH(Dns over https)</h2>
 <blockquote>
-<p>通过https进行dns查询  rfc文件格式是<a href="https://datatracker.ietf.org/doc/html/rfc8484" target="_blank">https://datatracker.ietf.org/doc/html/rfc8484</a></p>
+<p>通过https进行dns查询  rfc文件格式是https://datatracker.ietf.org/doc/html/rfc8484</p>
 </blockquote>
 <h3 id="get">GET</h3>
-<pre><code class="lang-bash">    :method = GET
+<pre><code class="language-bash">    :method = GET
     :scheme = https
     :authority = dnsserver.example.net
     :path = /dns-query?dns=AAABAAABAAAAAAAAA3d3dwdleGFtcGxlA2NvbQAAAQAB
@@ -578,7 +601,7 @@
 <li>dns 中的参数使用 base64url 原始的dns二进制message</li>
 </ul>
 <h3 id="post">POST</h3>
-<pre><code class="lang-bash">:method = POST
+<pre><code class="language-bash">:method = POST
 :scheme = https
 :authority = dnsserver.example.net
 :path = /dns-query
@@ -594,26 +617,10 @@ content-length = 33
 <blockquote>
 <p>通过TCP协议进行dns查询的方式 目前 移动设备基本都是支持，在安卓叫（私密DNS）</p>
 </blockquote>
-
+</div>
                                 
                                 </section>
                             
-    </div>
-    <div class="search-results">
-        <div class="has-results">
-            
-            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
-            <ul class="search-results-list"></ul>
-            
-        </div>
-        <div class="no-results">
-            
-            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
-            
-        </div>
-    </div>
-</div>
-
                         </div>
                     </div>
                 
@@ -637,7 +644,7 @@ content-length = 33
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"DNS","level":"4.1.1","depth":2,"next":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"previous":{"title":"网络协议","level":"4.1","depth":1,"path":"Internet/README.md","ref":"Internet/README.md","articles":[{"title":"DNS","level":"4.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},{"title":"IP","level":"4.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/DNS.md","mtime":"2024-09-27T15:35:12.841Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-27T15:35:22.667Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"DNS","level":"4.1.1","depth":2,"next":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"previous":{"title":"网络协议","level":"4.1","depth":1,"path":"Internet/README.md","ref":"Internet/README.md","articles":[{"title":"DNS","level":"4.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},{"title":"IP","level":"4.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/DNS.md","mtime":"2024-09-28T04:15:34.635Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-28T04:15:39.751Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

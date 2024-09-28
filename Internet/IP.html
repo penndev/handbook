@@ -16,6 +16,14 @@
     
             
                 
+                <link rel="stylesheet" href="../gitbook/book/katex.min.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/book/main.css">
+                
+            
+                
                 <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -69,10 +77,6 @@
     <div class="book-summary">
         
             
-<div id="book-search-input" role="search">
-    <input type="text" placeholder="输入并搜索" />
-</div>
-
             
                 <nav role="navigation">
                 
@@ -121,9 +125,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Application/README.md">
+        <li class="chapter " data-level="2.1" data-path="../Application/">
             
-                <span>
+                <a href="../Application/">
             
                     
                     Application
@@ -405,18 +409,31 @@
             
 
             
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.html">
+            
+                <a href="../Algo/Exp-Golomb-coding.html">
+            
+                    
+                    指数哥伦布编码
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
     
 
     <li class="divider"></li>
-
-    <li>
-        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
-            本书使用 HonKit 发布
-        </a>
-    </li>
 </ul>
 
 
@@ -447,14 +464,11 @@
                     <div class="page-wrapper" tabindex="-1" role="main">
                         <div class="page-inner">
                             
-<div id="book-search-results">
-    <div class="search-noresults">
-    
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="ip">IP</h1>
+                                <div class="markdown-it"><h1 id="ip">IP</h1>
 <blockquote>
-<p>IP: Internet Protocol，互联网（因特网）协议的目的是对接入互联网的设备进行地址编码。<a href="https://datatracker.ietf.org/doc/html/rfc791" target="_blank">https://datatracker.ietf.org/doc/html/rfc791</a></p>
+<p>IP: Internet Protocol，互联网（因特网）协议的目的是对接入互联网的设备进行地址编码。https://datatracker.ietf.org/doc/html/rfc791</p>
 </blockquote>
 <h2 id="ipv4">IPv4</h2>
 <h3 id="ip数据格式">IP数据格式</h3>
@@ -611,7 +625,8 @@
 <h3 id="ip寻址">IP寻址</h3>
 <p>Q:</p>
 <ol>
-<li>设备是如何准确的通过互联网来访问到指定的主机的，流程是怎么样的？<ul>
+<li>设备是如何准确的通过互联网来访问到指定的主机的，流程是怎么样的？
+<ul>
 <li><img src="asset/ip-route.png" alt="ip寻址"></img></li>
 <li>通过IP路由表串口来访问各种设备。例A-&gt;DA-DI-&gt;LI-LM-&gt;M 来完成了A-&gt;M的访问</li>
 </ul>
@@ -619,7 +634,7 @@
 </ol>
 <h3 id="nat转换">NAT转换</h3>
 <blockquote>
-<p>通过程序来解析包中的源IP和目标IP替换为公网IP来完成NAT转换来共用公网IP。 <a href="https://datatracker.ietf.org/doc/html/rfc1631" target="_blank">https://datatracker.ietf.org/doc/html/rfc1631</a></p>
+<p>通过程序来解析包中的源IP和目标IP替换为公网IP来完成NAT转换来共用公网IP。 https://datatracker.ietf.org/doc/html/rfc1631</p>
 </blockquote>
 <h4 id="nat">NAT</h4>
 <table>
@@ -667,26 +682,10 @@
 </tr>
 </tbody>
 </table>
-
+</div>
                                 
                                 </section>
                             
-    </div>
-    <div class="search-results">
-        <div class="has-results">
-            
-            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
-            <ul class="search-results-list"></ul>
-            
-        </div>
-        <div class="no-results">
-            
-            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
-            
-        </div>
-    </div>
-</div>
-
                         </div>
                     </div>
                 
@@ -710,7 +709,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"IP","level":"4.1.3","depth":2,"next":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"previous":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/IP.md","mtime":"2024-09-27T15:35:12.841Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-27T15:35:22.667Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"IP","level":"4.1.3","depth":2,"next":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"previous":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/IP.md","mtime":"2024-09-28T04:15:34.636Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-28T04:15:39.751Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

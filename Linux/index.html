@@ -16,6 +16,14 @@
     
             
                 
+                <link rel="stylesheet" href="../gitbook/book/katex.min.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/book/main.css">
+                
+            
+                
                 <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -69,10 +77,6 @@
     <div class="book-summary">
         
             
-<div id="book-search-input" role="search">
-    <input type="text" placeholder="输入并搜索" />
-</div>
-
             
                 <nav role="navigation">
                 
@@ -121,9 +125,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Application/README.md">
+        <li class="chapter " data-level="2.1" data-path="../Application/">
             
-                <span>
+                <a href="../Application/">
             
                     
                     Application
@@ -405,18 +409,31 @@
             
 
             
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.html">
+            
+                <a href="../Algo/Exp-Golomb-coding.html">
+            
+                    
+                    指数哥伦布编码
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
     
 
     <li class="divider"></li>
-
-    <li>
-        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
-            本书使用 HonKit 发布
-        </a>
-    </li>
 </ul>
 
 
@@ -447,14 +464,11 @@
                     <div class="page-wrapper" tabindex="-1" role="main">
                         <div class="page-inner">
                             
-<div id="book-search-results">
-    <div class="search-noresults">
-    
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="linux">Linux</h1>
+                                <div class="markdown-it"><h1 id="linux">Linux</h1>
 <blockquote>
-<p><a href="https://www.kernel.org/" target="_blank">https://www.kernel.org/</a></p>
+<p>https://www.kernel.org/</p>
 </blockquote>
 <h2 id="文件限制">文件限制</h2>
 <pre><code>vim /etc/security/limits.conf
@@ -463,7 +477,8 @@
 * soft nofile 102400
 
 # 需要重启进程后生效
-</code></pre><h2 id="网络优化">网络优化</h2>
+</code></pre>
+<h2 id="网络优化">网络优化</h2>
 <pre><code>vim /etc/sysctl.conf
 sysctl -p
 
@@ -478,28 +493,17 @@ net.netfilter.nf_conntrack_max = 524288
 net.netfilter.nf_conntrack_tcp_timeout_max_retrans  = 30
 net.core.somaxconn = 16384
 net.core.netdev_max_backlog = 5000
-</code></pre><h2 id="安全设置">安全设置</h2>
-<p>fail2ban 防爆破工具</p>
 
+
+
+
+</code></pre>
+<h2 id="安全设置">安全设置</h2>
+<p>fail2ban 防爆破工具</p>
+</div>
                                 
                                 </section>
                             
-    </div>
-    <div class="search-results">
-        <div class="has-results">
-            
-            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
-            <ul class="search-results-list"></ul>
-            
-        </div>
-        <div class="no-results">
-            
-            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
-            
-        </div>
-    </div>
-</div>
-
                         </div>
                     </div>
                 
@@ -523,7 +527,7 @@ net.core.netdev_max_backlog = 5000
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Linux","level":"3.1","depth":1,"next":{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"previous":{"title":"OpenSSL","level":"2.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]},"articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}],"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/README.md","mtime":"2024-09-27T15:35:12.843Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-27T15:35:22.667Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Linux","level":"3.1","depth":1,"next":{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"previous":{"title":"OpenSSL","level":"2.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]},"articles":[{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统操作","level":"3.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}],"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/README.md","mtime":"2024-09-28T04:15:34.637Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-28T04:15:39.751Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

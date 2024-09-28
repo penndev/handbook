@@ -16,6 +16,14 @@
     
             
                 
+                <link rel="stylesheet" href="../gitbook/book/katex.min.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/book/main.css">
+                
+            
+                
                 <link rel="stylesheet" href="../gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -69,10 +77,6 @@
     <div class="book-summary">
         
             
-<div id="book-search-input" role="search">
-    <input type="text" placeholder="输入并搜索" />
-</div>
-
             
                 <nav role="navigation">
                 
@@ -121,9 +125,9 @@
         
         
     
-        <li class="chapter " data-level="2.1" data-path="../Application/README.md">
+        <li class="chapter " data-level="2.1" data-path="../Application/">
             
-                <span>
+                <a href="../Application/">
             
                     
                     Application
@@ -405,18 +409,31 @@
             
 
             
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.html">
+            
+                <a href="../Algo/Exp-Golomb-coding.html">
+            
+                    
+                    指数哥伦布编码
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
         </li>
     
 
     
 
     <li class="divider"></li>
-
-    <li>
-        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
-            本书使用 HonKit 发布
-        </a>
-    </li>
 </ul>
 
 
@@ -447,41 +464,44 @@
                     <div class="page-wrapper" tabindex="-1" role="main">
                         <div class="page-inner">
                             
-<div id="book-search-results">
-    <div class="search-noresults">
-    
                                 <section class="normal markdown-section">
                                 
-                                <h2 id="tcp">TCP</h2>
+                                <div class="markdown-it"><h2 id="tcp">TCP</h2>
 <h3 id="报文头">报文头</h3>
 <p><img src="asset/tcp.png" alt="TCP头部报文段"></img></p>
 <ul>
-<li>源端口：<ul>
+<li>源端口：
+<ul>
 <li>长度：16bit</li>
 <li>作用：用来确定是那个进程使用的tcp包，可以根据端口来确定发送进程。</li>
 </ul>
 </li>
 <li>目标端口：目标端口与源端口功能类似，用来表示对端。</li>
-<li>序号：<ul>
+<li>序号：
+<ul>
 <li>长度：32bit</li>
-<li>作用：在不通的阶段有不通的作用<ul>
+<li>作用：在不通的阶段有不通的作用
+<ul>
 <li>SYN握手阶段：初始化一个数字（通常为0）发送给对端，并逐次+=1</li>
 <li>PSH传输阶段：本包第一字节在所有数据中的序号。</li>
 </ul>
 </li>
 </ul>
 </li>
-<li>确认号：<ul>
+<li>确认号：
+<ul>
 <li>长度：32bit</li>
 <li>作用：仅ACK的标志位为1的时候确认号才有效。确认号为期望对端的发送的手字节序号。</li>
 </ul>
 </li>
-<li>数据偏移：tcp头长度，也表示数据开始位置<ul>
+<li>数据偏移：tcp头长度，也表示数据开始位置
+<ul>
 <li>长度：4bit</li>
 <li>作用：结果需要乘4，则最小为固定长度20（tcp头固定长度），最大表示为|1111|*4=60(所以tcp头长度不能超过60)</li>
 </ul>
 </li>
-<li>Flags：对应位为1则表示当前flag<ul>
+<li>Flags：对应位为1则表示当前flag
+<ul>
 <li>ns （Explicit Congestion Notification）显式拥塞通知</li>
 <li>cwr (Congestion Window Reduced) 拥塞窗口减少</li>
 <li>ece ECN-Echo</li>
@@ -496,9 +516,11 @@
 <li>窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。</li>
 <li>校验和：</li>
 <li>紧急指针：</li>
-<li>可选项：一组和多组kind类数据<ul>
+<li>可选项：一组和多组kind类数据
+<ul>
 <li>长度：数据偏移-20固定字节</li>
-<li>Kind<ul>
+<li>Kind
+<ul>
 <li>0x00: 结束选项列表</li>
 <li>0x01: 无操作</li>
 <li>0x02: Maximum segment size (最大分段大小)</li>
@@ -519,16 +541,19 @@
 </ol>
 <p>Q:</p>
 <ol>
-<li>如果客户端发送SYN 服务器除了应答还会怎么处理呢？<ul>
+<li>如果客户端发送SYN 服务器除了应答还会怎么处理呢？
+<ul>
 <li>不应答 会触发连接超时 开启防火墙通常就是不应答。</li>
 <li>拒绝 直接回复RST包，直接进行拒绝 端口为监听。</li>
 </ul>
 </li>
-<li>如果客户端收到服务器的同意请求 如果不回复会怎么样？<ul>
+<li>如果客户端收到服务器的同意请求 如果不回复会怎么样？
+<ul>
 <li>这样会造成资源浪费，服务器会在回复同意后创建接收缓存。批量操作会造成 SYN泛洪攻击。</li>
 </ul>
 </li>
-<li>三次握手主要做了什么?<ul>
+<li>三次握手主要做了什么?
+<ul>
 <li>确定双全工通道通路正确，窗口初始化，MSS初始化。</li>
 </ul>
 </li>
@@ -540,7 +565,7 @@
 <li>接受方收到后会回复一个ACK的包给发送方，告知已接收到数据。</li>
 <li>发送方收到确认，再次发送下一包数据。</li>
 </ol>
-<p><strong>窗口确认</strong>  每次发送端的消息都有标注发送大小 <strong>序号</strong> ，接收端收到后会回复 <strong>确认号</strong> 来确认收到。 </p>
+<p><strong>窗口确认</strong>  每次发送端的消息都有标注发送大小 <strong>序号</strong> ，接收端收到后会回复 <strong>确认号</strong> 来确认收到。</p>
 <p><strong>重传策略</strong> 如果迟迟收不到接收端回复<strong>确认号</strong>，则会再次发送消息，来避免在复杂的环境丢包。</p>
 <h3 id="连接断开">连接断开</h3>
 <p><img src="asset/tcp-close.png" alt="TCP关闭传输"></img></p>
@@ -550,26 +575,10 @@
 <li>应答端处理完成发送FIN包。</li>
 <li>关闭端回复应答FIN包。</li>
 </ol>
-
+</div>
                                 
                                 </section>
                             
-    </div>
-    <div class="search-results">
-        <div class="has-results">
-            
-            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
-            <ul class="search-results-list"></ul>
-            
-        </div>
-        <div class="no-results">
-            
-            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
-            
-        </div>
-    </div>
-</div>
-
                         </div>
                     </div>
                 
@@ -593,7 +602,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"TCP","level":"4.1.2","depth":2,"next":{"title":"IP","level":"4.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},"previous":{"title":"DNS","level":"4.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/TCP.md","mtime":"2024-09-27T15:35:12.841Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-27T15:35:22.667Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"TCP","level":"4.1.2","depth":2,"next":{"title":"IP","level":"4.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},"previous":{"title":"DNS","level":"4.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/TCP.md","mtime":"2024-09-28T04:15:34.636Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-09-28T04:15:39.751Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
