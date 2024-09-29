@@ -13,11 +13,3 @@
 `npm run serve`
 
 `npm run build`
-
----
-
-`cd @book && npm link`
-
-`honkit serve`
-
-*power by **[honkit](https://github.com/honkit/honkit)*** 
