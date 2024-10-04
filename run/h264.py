@@ -195,10 +195,10 @@ class NAL():
     def slice_data(self):
         if self.pps.entropy_coding_mode_flag :
             while self.stream.position % 8 != 0:
-                self.stream.read_bits(0)
+                self.stream.read_bits(1)
         
-        MbaffFrameFlag = self.sps.mb_adaptive_frame_field_flag and self.field_pic_flag
-        self.CurrMbAddr = self.first_mb_in_slice * ( 1 + MbaffFrameFlag )
+        MbaffFrameFlag = getattr(self.sps, "mb_adaptive_frame_field_flag", False) and self.field_pic_flag
+        self.CurrMbAddr = self.first_mb_in_slice * (1 + MbaffFrameFlag)
         self.moreDataFlag = 1
         self.prevMbSkipped = 0
 
@@ -208,12 +208,16 @@ class NAL():
                 if not self.pps.entropy_coding_mode_flag:
                     self.mb_skip_run = self.stream.read_ue()
                     self.prevMbSkipped = ( self.mb_skip_run > 0 ) 
-                    raise("没懂01")
+                    raise("计算下一个宏块的地址")
                     # 没懂。
                     # for( i=0; i<mb_skip_run; i++ )
                     #     CurrMbAddr = NextMbAddress( CurrMbAddr )
                     # moreDataFlag = more_rbsp_data( ) 
+                else:
+                    self.mb_skip_flag = self.stream.read_ae()
+                    self.moreDataFlag = not self.mb_skip_flag
             
+            break
             if not condition:
                 break
 
