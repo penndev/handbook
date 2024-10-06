@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>IP · 随记手册</title>
+        <title>算数编码 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 5.1.4">
@@ -64,10 +64,8 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Ethernet.html" />
     
-    
-    <link rel="prev" href="TCP.html" />
+    <link rel="prev" href="Exp-Golomb-coding.html" />
     
 
     </head>
@@ -255,9 +253,9 @@
         
         
     
-        <li class="chapter " data-level="4.1" data-path="./">
+        <li class="chapter " data-level="4.1" data-path="../Internet/">
             
-                <a href="./">
+                <a href="../Internet/">
             
                     
                     网络协议
@@ -269,9 +267,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="4.1.1" data-path="DNS.html">
+        <li class="chapter " data-level="4.1.1" data-path="../Internet/DNS.html">
             
-                <a href="DNS.html">
+                <a href="../Internet/DNS.html">
             
                     
                     DNS
@@ -282,9 +280,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.2" data-path="TCP.html">
+        <li class="chapter " data-level="4.1.2" data-path="../Internet/TCP.html">
             
-                <a href="TCP.html">
+                <a href="../Internet/TCP.html">
             
                     
                     TCP
@@ -295,9 +293,9 @@
             
         </li>
     
-        <li class="chapter active" data-level="4.1.3" data-path="IP.html">
+        <li class="chapter " data-level="4.1.3" data-path="../Internet/IP.html">
             
-                <a href="IP.html">
+                <a href="../Internet/IP.html">
             
                     
                     IP
@@ -308,9 +306,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.4" data-path="Ethernet.html">
+        <li class="chapter " data-level="4.1.4" data-path="../Internet/Ethernet.html">
             
-                <a href="Ethernet.html">
+                <a href="../Internet/Ethernet.html">
             
                     
                     Ethernet
@@ -398,9 +396,9 @@
         
         
     
-        <li class="chapter " data-level="6.1" data-path="../Algo/">
+        <li class="chapter " data-level="6.1" data-path="./">
             
-                <a href="../Algo/">
+                <a href="./">
             
                     
                     算法
@@ -412,9 +410,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.html">
+        <li class="chapter " data-level="6.1.1" data-path="Exp-Golomb-coding.html">
             
-                <a href="../Algo/Exp-Golomb-coding.html">
+                <a href="Exp-Golomb-coding.html">
             
                     
                     指数哥伦布编码
@@ -425,9 +423,9 @@
             
         </li>
     
-        <li class="chapter " data-level="6.1.2" data-path="../Algo/Arithmetic-coding.html">
+        <li class="chapter active" data-level="6.1.2" data-path="Arithmetic-coding.html">
             
-                <a href="../Algo/Arithmetic-coding.html">
+                <a href="Arithmetic-coding.html">
             
                     
                     算数编码
@@ -467,7 +465,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >IP</a>
+        <a href=".." >算数编码</a>
     </h1>
 </div>
 
@@ -479,222 +477,70 @@
                             
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><h1 id="ip">IP</h1>
-<blockquote>
-<p>IP: Internet Protocol，互联网（因特网）协议的目的是对接入互联网的设备进行地址编码。https://datatracker.ietf.org/doc/html/rfc791</p>
-</blockquote>
-<h2 id="ipv4">IPv4</h2>
-<h3 id="ip数据格式">IP数据格式</h3>
-<p><img src="asset/ip.png" alt="IP报文段"></img></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>长度</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>版本 (Version)</td>
-<td>4位</td>
-<td>指定IP协议的版本，IPv4为4。</td>
-</tr>
-<tr>
-<td>头部长度 (Header Length)</td>
-<td>4位</td>
-<td>指示IP头部的长度，以32位字为单位。通常为5。</td>
-</tr>
-<tr>
-<td>服务类型 (Type of Service)</td>
-<td>8位</td>
-<td>指定数据包的服务质量，如优先级、延迟等。</td>
-</tr>
-<tr>
-<td>总长度 (Total Length)</td>
-<td>16位</td>
-<td>整个IP数据报的长度，包括头部和数据部分。</td>
-</tr>
-<tr>
-<td>标识 (Identification)</td>
-<td>16位</td>
-<td>用于标识数据报的唯一性，进行重新组装。</td>
-</tr>
-<tr>
-<td>标志 (Flags)</td>
-<td>3位</td>
-<td>分片相关的标志，如禁止分片、更多分片等。</td>
-</tr>
-<tr>
-<td>片偏移 (Fragment Offset)</td>
-<td>13位</td>
-<td>分片相对于原始数据报的偏移量。</td>
-</tr>
-<tr>
-<td>生存时间 (Time to Live, TTL)</td>
-<td>8位</td>
-<td>数据报在网络中的最大寿命。每经过路由器，TTL减1，TTL为0时数据报被丢弃。</td>
-</tr>
-<tr>
-<td>协议 (Protocol)</td>
-<td>8位</td>
-<td>指示数据报的上层协议，如TCP、UDP、ICMP等。</td>
-</tr>
-<tr>
-<td>头部校验和 (Header Checksum)</td>
-<td>16位</td>
-<td>用于检测IP头部的错误，提高数据传输的可靠性。</td>
-</tr>
-<tr>
-<td>源IP地址 (Source IP Address)</td>
-<td>32位</td>
-<td>数据报的发送者的IP地址。</td>
-</tr>
-<tr>
-<td>目标IP地址 (Destination IP Address)</td>
-<td>32位</td>
-<td>数据报的接收者的IP地址。</td>
-</tr>
-<tr>
-<td>选项 (Options)</td>
-<td>可变</td>
-<td>包含一些可选字段，如记录路由、时间戳等。</td>
-</tr>
-<tr>
-<td>数据 (Data)</td>
-<td>可变</td>
-<td>实际的数据部分，长度可变。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="ip地址">IP地址</h3>
-<p>IP地址共有4字节所有可用的IP总数为255⁴ （0.0.0.0）- （255.255.255.255） 其中还有很多（<a href="https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml" target="_blank">特殊IP标注</a>）。互联网的高速发展造成IP消耗较严重，目前分别有两个方法来缓解，NET转发，IPv6等。</p>
-<table>
-<thead>
-<tr>
-<th>分类</th>
-<th>前缀码</th>
-<th>开始地址</th>
-<th>结束地址</th>
-<th>对应CIDR修饰</th>
-<th>默认子网掩码</th>
-<th>公网地址范围</th>
-<th>私有地址范围</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>A类地址</td>
-<td>0</td>
-<td>0.0.0.0</td>
-<td>127.255.255.255</td>
-<td>/8</td>
-<td>255.0.0.0</td>
-<td>1.0.0.0 - 126.0.0.0</td>
-<td>10.0.0.0 - 10.255.255.255</td>
-</tr>
-<tr>
-<td>B类地址</td>
-<td>10</td>
-<td>128.0.0.0</td>
-<td>191.255.255.255</td>
-<td>/16</td>
-<td>255.255.0.0</td>
-<td>128.1.0.0 - 191.254.0.0</td>
-<td>172.16.0.0 - 172.31.255.255</td>
-</tr>
-<tr>
-<td>C类地址</td>
-<td>110</td>
-<td>192.0.0.0</td>
-<td>223.255.255.255</td>
-<td>/24</td>
-<td>255.255.255.0</td>
-<td>192.0.1.0 - 223.255.254.0</td>
-<td>192.168.0.0 - 192.168.255.255</td>
-</tr>
-<tr>
-<td>D类地址 （群播）</td>
-<td>1110</td>
-<td>224.0.0.0</td>
-<td>239.255.255.255</td>
-<td>/4</td>
-<td>未定义</td>
-<td>224.0.0.0 - 239.255.255.255</td>
-<td>无</td>
-</tr>
-<tr>
-<td>E类地址 （保留）</td>
-<td>1111</td>
-<td>240.0.0.0</td>
-<td>255.255.255.255</td>
-<td>/4</td>
-<td>未定义</td>
-<td>240.0.0.0 - 255.255.255.254</td>
-<td>无</td>
-</tr>
-</tbody>
-</table>
-<h3 id="ip寻址">IP寻址</h3>
-<p>Q:</p>
-<ol>
-<li>设备是如何准确的通过互联网来访问到指定的主机的，流程是怎么样的？
+                                <div class="markdown-it"><h1 id="算数编码">算数编码</h1>
+<p>算数编码是一种熵编码</p>
+<h2 id="编码示例">编码示例</h2>
 <ul>
-<li><img src="asset/ip-route.png" alt="ip寻址"></img></li>
-<li>通过IP路由表串口来访问各种设备。例A-&gt;DA-DI-&gt;LI-LM-&gt;M 来完成了A-&gt;M的访问</li>
+<li>开始编码原始区间<pre><code>示例字符：AABABCABAB
+----------
+字符 = 概率数区间
+A   = 0.5 [0, 0.5]
+B   = 0.4 [0.5 0.9]
+C   = 0.1 [0.9, 1]
+</code></pre>
+</li>
 </ul>
+<ol>
+<li>
+<p>第一个字母 A 根据 A 区间开始编码 A:[0-0.5]</p>
+<pre><code>A   =   [0, 0.25] 
+B   =   [0.25, 0.45]
+C   =   [0.45, 0.5]
+</code></pre>
+</li>
+<li>
+<p>第二个字母 A 根据 A 区间开始编码 A:[0-0.25]</p>
+<pre><code>A [0, 0.125]
+B:[0.125, 0.225]
+C:[0.225, 0.25]
+</code></pre>
+</li>
+<li>
+<p>第三个字母 B 根据 B 区间开始编码 B:[0.125-0.225]</p>
+<pre><code>A:[0.125, 0.175]
+B:[0.175, 0.215]
+C:[0.215, 0.225]
+</code></pre>
+</li>
+<li>
+<p>所有字母编码后汇总</p>
+<pre><code>当前字符   =   当前目标区间
+A       =   [0, 0.5]
+A       =   [0, 0.25]
+B       =   [0.125, 0.225]
+A       =   [0.125, 0.175]
+B       =   [0.15, 0.17]
+C       =   [0.168, 0.17]
+A       =   [0.168, 0.169]
+B       =   [0.1685, 0.1689]
+A       =   [0.1685, 0.1687]
+B       =   [0.1686, 0.16868]
+</code></pre>
 </li>
 </ol>
-<h3 id="nat转换">NAT转换</h3>
-<blockquote>
-<p>通过程序来解析包中的源IP和目标IP替换为公网IP来完成NAT转换来共用公网IP。 https://datatracker.ietf.org/doc/html/rfc1631</p>
-</blockquote>
-<h4 id="nat">NAT</h4>
-<table>
-<thead>
-<tr>
-<th>内网IP</th>
-<th>外网IP</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>192.168.1.1</td>
-<td>39.156.66.10</td>
-</tr>
-<tr>
-<td>192.168.1.2</td>
-<td>39.156.66.11</td>
-</tr>
-<tr>
-<td>192.168.1.3</td>
-<td>39.156.66.12</td>
-</tr>
-</tbody>
-</table>
-<h4 id="napt">NAPT</h4>
-<table>
-<thead>
-<tr>
-<th>内网IP</th>
-<th>外网IP</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>192.168.1.1:80</td>
-<td>39.156.66.10:22000</td>
-</tr>
-<tr>
-<td>192.168.1.2:80</td>
-<td>39.156.66.10:22001</td>
-</tr>
-<tr>
-<td>192.168.1.1:443</td>
-<td>39.156.66.10:22002</td>
-</tr>
-</tbody>
-</table>
+<ul>
+<li>至此 最后的区间<code>[0.1686, 0.16868]</code>已经是最终的编码结果</li>
+</ul>
+<h2 id="解码示例">解码示例</h2>
+<ol>
+<li>[0.1686, 0.16868]在原始区间[0, 0.5]
+第一个字母为 A</li>
+<li>[0.1686, 0.16868]在原始区间[0, 0.25] 第二个字母仍然为A</li>
+<li>[0.1686, 0.16868]在原始区间[0.125, 0.225] 第二个字母为B</li>
+<li>[0.1686, 0.16868]在原始区间[0.125, 0.175] 第二个字母为A</li>
+</ol>
+<p>....依次处理</p>
+<p><strong>解码方必须知道 1.概率分布  2. 流的长度; 不知道1就无法划分区间；不知道2就无法在正确的位置停下来，很有可能一直分下去结果解出来的码超过明文长度</strong></p>
 </div>
                                 
                                 </section>
@@ -706,14 +552,10 @@
 
             
                 
-                <a href="TCP.html" class="navigation navigation-prev " aria-label="Previous page: TCP">
+                <a href="Exp-Golomb-coding.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: 指数哥伦布编码">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="Ethernet.html" class="navigation navigation-next " aria-label="Next page: Ethernet">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -722,7 +564,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"IP","level":"4.1.3","depth":2,"next":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"previous":{"title":"TCP","level":"4.1.2","depth":2,"path":"Internet/TCP.md","ref":"Internet/TCP.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/IP.md","mtime":"2024-10-06T12:01:54.153Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-10-06T12:01:59.278Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"算数编码","level":"6.1.2","depth":2,"previous":{"title":"指数哥伦布编码","level":"6.1.1","depth":2,"path":"Algo/Exp-Golomb-coding.md","ref":"Algo/Exp-Golomb-coding.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Algo/Arithmetic-coding.md","mtime":"2024-10-06T12:01:54.153Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-10-06T12:01:59.278Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
