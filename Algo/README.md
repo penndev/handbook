@@ -13,3 +13,10 @@
 
 - 对数 O(log n) 
 - 超级指数 O(n^n)
+
+
+
+## 编码
+
+  * [算数编码](Algo/Arithmetic-coding.md)
+  * [指数哥伦布编码](Algo/Exp-Golomb-coding.md)
