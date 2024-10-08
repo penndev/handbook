@@ -197,9 +197,9 @@ class NAL():
             while self.stream.position % 8 != 0:
                 self.stream.read_bits(1)
         
-        MbaffFrameFlag = getattr(self.sps, "mb_adaptive_frame_field_flag", False) and self.field_pic_flag
+        self.MbaffFrameFlag = getattr(self.sps, "mb_adaptive_frame_field_flag", False) and not self.field_pic_flag
         # 当前宏块地址。
-        self.CurrMbAddr = self.first_mb_in_slice * (1 + MbaffFrameFlag)
+        self.CurrMbAddr = self.first_mb_in_slice * (1 + self.MbaffFrameFlag)
 
         moreDataFlag = 1
         prevMbSkipped = 0
@@ -207,22 +207,37 @@ class NAL():
         condition = True
         while condition:
             if self.slice_type not in [SliceType.I, SliceType.SI ]:
-                # if not self.pps.entropy_coding_mode_flag:
-                #     self.mb_skip_run = self.stream.read_ue()
-                #     self.prevMbSkipped = ( self.mb_skip_run > 0 ) 
-                #     raise("计算下一个宏块的地址")
-                #     # 没懂。
-                #     # for( i=0; i<mb_skip_run; i++ )
-                #     #     CurrMbAddr = NextMbAddress( CurrMbAddr )
-                #     # moreDataFlag = more_rbsp_data( ) 
-                # else:
-                #     # " 9-13
-                #     # " 9-14
-                #     # self.mb_skip_flag = self.stream.read_ae()
-                #     pass
-                raise("SliceType" + self.slice_type)
+                 raise("SliceType" + self.slice_type)
+            if moreDataFlag :
+                if self.MbaffFrameFlag and (self.CurrMbAddr % 2 == 0 or (self.CurrMbAddr % 2 == 1 and prevMbSkipped )) :
+                    self.mb_field_decoding_flag = self.bits.ae() if self.pps.entropy_coding_mode_flag else self.bits.u(1)
+                    raise('MbaffFrameFlag error')
+                self.macroblock_layer()
 
 
+    def macroblock_layer(self):
+        mbtype_islice_table = ["I_NxN","I_16x16_0_0_0","I_16x16_1_0_0","I_16x16_2_0_0","I_16x16_3_0_0","I_16x16_0_1_0","I_16x16_1_1_0","I_16x16_2_1_0","I_16x16_3_1_0","I_16x16_0_2_0","I_16x16_1_2_0","I_16x16_2_2_0","I_16x16_3_2_0","I_16x16_0_0_1","I_16x16_1_0_1","I_16x16_2_0_1","I_16x16_3_0_1","I_16x16_0_1_1","I_16x16_1_1_1","I_16x16_2_1_1","I_16x16_3_1_1","I_16x16_0_2_1","I_16x16_1_2_1","I_16x16_2_2_1","I_16x16_3_2_1","I_PCM"]
+        if self.slice_type == SliceType.I:
+                self.mb_type = 5 # mbtype_islice_table[5]
+        else:
+            raise('223 error')
+        if self.mb_type == 0:
+            return "Intra4x4"
+        elif self.mb_type >= 1 and self.mb_type <= 24:
+            self.Intra16x16PredMode = (self.mb_type - 1) % 4
+            self.CodedBlockPatternChroma = ((self.mb_type - 1) // 4) % 3
+            self.CodedBlockPatternLuma = (self.mb_type // 13) * 15
+            self.pred_mode = "Intra16x16"
+        elif (self.mb_type, 0) in [(0,0), (1,0), (2,0), (5,0), (1,1), (2,1)]:
+            self.NumMbPart = [1,2,2,4,4,1][self.mb_type]
+            self.MbPartWidth = [16,16,8,8,8,16][self.mb_type]
+            self.MbPartHeight = [16,8,16,8,8,16][self.mb_type]
+            self.pred_mode = "Pred_L0"
+        else:
+            raise NameError("Unknown MbPartPredMode")
+
+        # self.pred_mode = self.MbPartPredMode(self.mb_type_int)
+        
     def pic_parameter_set_rbsp(self):
         self.pic_parameter_set_id = self.stream.read_ue()
         self.seq_parameter_set_id = self.stream.read_ue()
