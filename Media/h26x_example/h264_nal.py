@@ -285,7 +285,11 @@ class NAL():
                 return
                 
     def macroblock_layer(self):
-        self.mb_type_int = self.stream.read_ue()
+        if self.pps.entropy_coding_mode_flag:
+            if self.slice_type == SliceType.I:
+                pass
+            else:
+                raise("slice_type not support " + str(self.slice_type))
 
     def pic_parameter_set_rbsp(self):
         '传说中的pps数据'
