@@ -270,6 +270,9 @@ class NAL():
             while not self.stream.byte_aligned():
                 self.stream.read_bits(1)
         self.MbaffFrameFlag = getattr(self.sps, "mb_adaptive_frame_field_flag", False) and not self.field_pic_flag
+
+        # PicHeightInMbs = FrameHeightInMbs / ( 1 + field_pic_flag ) 
+
         self.CurrMbAddr = self.first_mb_in_slice * (1 + self.MbaffFrameFlag)
 
         moreDataFlag = 1
@@ -285,11 +288,13 @@ class NAL():
                 return
                 
     def macroblock_layer(self):
+
         if self.pps.entropy_coding_mode_flag:
             if self.slice_type == SliceType.I:
-                pass
+                mb_type = self.stream.cabac
             else:
                 raise("slice_type not support " + str(self.slice_type))
+                
 
     def pic_parameter_set_rbsp(self):
         '传说中的pps数据'
