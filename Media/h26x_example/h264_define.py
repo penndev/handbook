@@ -110,12 +110,6 @@ class BitStream():
     def byte_aligned(self):
         return self.position % 8 == 0
     
-    def cabac_mb_type(self, sliceType):
-        # table 9-25
-        if sliceType == SliceType.I:
-            ctxIdxOffset = 3
-            maxBinIdxCtx = 6
-        else:
-            raise("mb_type not support " + str(sliceType))
-        ctxIdxInc = condTermFlagA + condTermFlagB
-        return ctxIdxInc
+    def DecodeBin(self, bypassFlag:int, ctxIdx:int):
+        '''9.3.3.2'''
+        pass

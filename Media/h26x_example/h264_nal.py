@@ -286,7 +286,29 @@ class NAL():
                     raise('MbaffFrameFlag error')
                 self.macroblock_layer()
                 return
-                
+
+    # 6.4.9
+    def mb_type(self):
+        # table 9-25
+        if slice.slice_type == SliceType.I:
+            ctxIdxOffset = 3
+            maxBinIdxCtx = 6
+        else: 
+            raise("mb_type not support " + str(slice.slice_type))
+        # 9.3.3.1.1.3 推导过程
+        condTermFlagA = 1
+        if True: 
+            condTermFlagA = 0
+        condTermFlagB = 1
+        if True: 
+            condTermFlagB = 0
+
+        # ctxIdx 的增量
+        ctxIdxInc = condTermFlagA + condTermFlagB
+        ctxIdx = ctxIdxInc + ctxIdxOffset
+
+        return 0
+
     def macroblock_layer(self):
 
         if self.pps.entropy_coding_mode_flag:
@@ -294,7 +316,7 @@ class NAL():
                 mb_type = self.stream.cabac
             else:
                 raise("slice_type not support " + str(self.slice_type))
-                
+        
 
     def pic_parameter_set_rbsp(self):
         '传说中的pps数据'
