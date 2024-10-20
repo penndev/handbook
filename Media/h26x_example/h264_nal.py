@@ -352,6 +352,10 @@ class NAL():
         self.deblocking_filter_control_present_flag = self.stream.read_bits(1)
         self.constrained_intra_pred_flag = self.stream.read_bits(1)
         self.redundant_pic_cnt_present_flag = self.stream.read_bits(1)
+
+        
+        print("->", self.stream.position, "|", len(self.stream.hex))
+
         # 如果有更多的 RBSP 数据
         if self.stream.more_rbsp_data():
             self.transform_8x8_mode_flag = self.stream.read_bits(1)

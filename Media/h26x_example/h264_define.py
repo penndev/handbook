@@ -102,14 +102,24 @@ class BitStream():
     def read_te(self):
         raise('not support te(v)') 
 
-    # 逻辑验证
     def more_rbsp_data(self):
-        return self.position / 8 + 2 > len(self.hex)
+        return not self.rbsp_trailing_bits()
     def more_rbsp_trailing_data(self):
         return self.position < len(self.hex)
     def byte_aligned(self):
+        '''判断字节是否对齐'''
         return self.position % 8 == 0
-    
+    def rbsp_trailing_bits(self):
+        '''rbsp_trailing_bits 如果失败返回False并还原postion'''
+        current = self.position
+        if self.read_bits(1) != 1:
+            self.position = current
+            return False
+        while not self.byte_aligned():
+            if self.read_bits(1) != 0:
+                self.position = current
+                return False
+        return True
     def DecodeBin(self, bypassFlag:int, ctxIdx:int):
         '''9.3.3.2'''
         pass
