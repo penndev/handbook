@@ -290,7 +290,7 @@ class NAL():
     # 6.4.9
     def mb_type(self):
         # table 9-25
-        if slice.slice_type == SliceType.I:
+        if self.slice_type == SliceType.I:
             ctxIdxOffset = 3
             maxBinIdxCtx = 6
         else: 
@@ -306,14 +306,14 @@ class NAL():
         # ctxIdx 的增量
         ctxIdxInc = condTermFlagA + condTermFlagB
         ctxIdx = ctxIdxInc + ctxIdxOffset
-
+        print("ctxIdx", "|", ctxIdx)
         return 0
 
     def macroblock_layer(self):
 
         if self.pps.entropy_coding_mode_flag:
             if self.slice_type == SliceType.I:
-                mb_type = self.stream.cabac
+                mb_type = self.mb_type()
             else:
                 raise("slice_type not support " + str(self.slice_type))
         
@@ -352,10 +352,6 @@ class NAL():
         self.deblocking_filter_control_present_flag = self.stream.read_bits(1)
         self.constrained_intra_pred_flag = self.stream.read_bits(1)
         self.redundant_pic_cnt_present_flag = self.stream.read_bits(1)
-
-        
-        print("->", self.stream.position, "|", len(self.stream.hex))
-
         # 如果有更多的 RBSP 数据
         if self.stream.more_rbsp_data():
             self.transform_8x8_mode_flag = self.stream.read_bits(1)
@@ -404,11 +400,14 @@ class NAL():
         'Table 7-1 – NAL unit type codes, syntax element categories, and NAL unit type classes'
         if self.nal_unit_type ==  NalUnitType.IDR: # 处理图像帧
             self.slice_layer_without_partitioning_rbsp()
+        elif self.nal_unit_type == NalUnitType.SEI:
+            print(json.dumps(self.to_dict(), indent=4))
+            return
         elif self.nal_unit_type == NalUnitType.SPS: # sps 
             self.seq_parameter_set_rbsp()
         elif self.nal_unit_type == NalUnitType.PPS: # pps 
             self.pic_parameter_set_rbsp()
         else :
-            print('NO SUPPORT ' + str(self.nal_unit_type))
+            print('NO SUPPORT ' , self.nal_unit_type)
             return
         print(json.dumps(self.to_dict(), indent=4))

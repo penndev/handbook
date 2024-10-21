@@ -11,6 +11,8 @@ class H264():
     def nal_unit(self, hex):
         if len(hex) == 0: # 头字节引起
             return
+        # self.hex = self.hex + hex
+        # return
         nal = NAL(BitStream(hex), sps=self.sps_nalu, pps=self.pps_nalu)
         if nal.nal_unit_type == 7:
             self.sps_nalu = nal
