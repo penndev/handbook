@@ -287,9 +287,22 @@ class NAL():
                 self.macroblock_layer()
                 return
 
-    # 6.4.9
+    def DecodeDecision(self):
+        '''实现 '9.3.3.2.1 DecodeDecision()'''
+        pass 
+
+    def cabac_decode(self, bypassFlag, ctxIdx):
+        '''9.3.3.2'''
+        if bypassFlag == 1:
+            raise '9.3.3.2.3 DecodeBypass()'
+        if ctxIdx == 276:
+            raise '9.3.3.2.4 DecodeTerminate()'
+        # '
+        self.DecodeDecision()
+
+
     def mb_type(self):
-        # table 9-25
+        '''6.4.9 说明实现'''
         if self.slice_type == SliceType.I:
             ctxIdxOffset = 3
             maxBinIdxCtx = 6
@@ -307,6 +320,8 @@ class NAL():
         ctxIdxInc = condTermFlagA + condTermFlagB
         ctxIdx = ctxIdxInc + ctxIdxOffset
         print("ctxIdx", "|", ctxIdx)
+
+        synElVal
         return 0
 
     def macroblock_layer(self):
