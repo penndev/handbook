@@ -120,6 +120,26 @@ class BitStream():
                 self.position = current
                 return False
         return True
+
+    def cabac_getmn(self, ctxIdx:int) -> tuple[int, int]: 
+        ''' 9[12-24]nm对照表'''
+        if ctxIdx >= 0 and ctxIdx <= 10:
+            ctxMN = [
+                (20, -15), (2, 54), (3, 74), (20, -15), (2, 54),(3, 74), 
+                (-28, 127), (-23, 104), (-6, 53), (-1, 54), (7, 51)
+            ]
+        else:
+            raise "cabac_getmn 错误的 ctxIdx:" + str(ctxIdx)
+        return ctxMN[ctxIdx]
+    def cabac_init(self, ctxIdx:int):
+        '''
+        **9.3.1.1 初始化变量**
+        - pStateIdx
+        - valMPS
+        '''
+
+
+
     def DecodeBin(self, bypassFlag:int, ctxIdx:int):
         '''9.3.3.2'''
         pass
