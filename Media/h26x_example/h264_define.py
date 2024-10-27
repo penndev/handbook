@@ -1,8 +1,8 @@
 
 from enum import Enum
 
-def Clip3(value, min, max):
-    return min(max(value, min), max)
+def Clip3(value, minVal, maxVal):
+    return min(max(value, minVal), maxVal)
 
 class SliceType(Enum):
     '''Table 7-6  Name association to slice_type'''
@@ -209,11 +209,10 @@ class BitStream():
             ctxMN = ctxMNIDC[cabac_init_idc]
             ctxIdx -= 54
         elif ctxIdx >= 60 and ctxIdx <= 69:
-            ctxMNIDC = (
+            ctxMN = (
                 (0, 41), (0, 63), (0, 63), (0, 63), (-9, 83), 
                 (4, 86), (0, 97), (-7, 72), (13, 41), (3, 62)
             )
-            ctxMN = ctxMNIDC[cabac_init_idc]
             ctxIdx -= 60
         elif ctxIdx >= 70 and ctxIdx <= 104:
             ctxMNIDC = (
@@ -242,7 +241,7 @@ class BitStream():
                     (-4, 92), (-6, 56), (3, 68), (-8, 71), (-13, 98)
                 )
             )
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -286,7 +285,7 @@ class BitStream():
                     (-22, 127)
                 )
             )
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -330,7 +329,7 @@ class BitStream():
                     (-24, 127)
                 )
             )
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -366,7 +365,7 @@ class BitStream():
                     (-6, 38), (-13, 62), (-6, 58), (-2, 59), (-16, 73), (-10, 76), (-13, 86), (-9, 83), (-10, 87)
                 )
             )
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -412,7 +411,7 @@ class BitStream():
                     (25, 42)
                 )
             )
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -457,7 +456,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -477,7 +476,7 @@ class BitStream():
                     (21,33), (19,50), (17,61)
                 )
             )
-            if slice_type in (SliceType.I):
+            if slice_type == SliceType.I:
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -518,7 +517,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I):
+            if slice_type == SliceType.I:
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -658,7 +657,7 @@ class BitStream():
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
-            ctxIdx -= 718
+            ctxIdx -= 572
         elif ctxIdx >= 660 and ctxIdx <= 717:
             ctxMNIDC = (
                 (
@@ -695,7 +694,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I):
+            if slice_type == SliceType.I:
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -736,7 +735,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I):
+            if slice_type == SliceType.I:
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -789,7 +788,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -842,7 +841,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -883,7 +882,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -908,7 +907,7 @@ class BitStream():
                 )
             )
 
-            if slice_type in (SliceType.I, slice_type.SI):
+            if slice_type in (SliceType.I, SliceType.SI):
                 ctxMN = ctxMNIDC[0]
             else:
                 ctxMN = ctxMNIDC[cabac_init_idc + 1]
@@ -923,8 +922,10 @@ class BitStream():
         - pStateIdx
         - valMPS
         '''
+        self.stateIdx = {}
+        self.MPSValue = {}
         for ctxIdx in range(1024):
-            m, n = self.cabac_getmn(ctxIdx)
+            m, n = self.cabac_getmn(ctxIdx, cabac_init_idc, slice_type)
             preCtxState = Clip3(1, 126, ((m * Clip3(0, 51, SliceQPY))  >> 4 ) + n )
             if preCtxState <= 63:
                 self.stateIdx[ctxIdx] = 63 - preCtxState
@@ -935,7 +936,7 @@ class BitStream():
     
     def cabac_inti_arithmetic_decoding_engine(self):
         self.codIRange = 0x01FE
-        self.codIOffset = self.read_bit(9)
+        self.codIOffset = self.read_bits(9)
 
     def cabac_RenormD(self):
         while self.codIRange < 0x0100:
@@ -1028,7 +1029,8 @@ class BitStream():
             33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
             49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 62, 63
         )
-
+        # print(self.stateIdx)
+        # print("cabac_DecodeDecision ctxIdx", ctxIdx, )
         pStateIdx = self.stateIdx[ctxIdx]
         qCodIRangeIdx = (self.codIRange >> 6) & 3
         codIRangeLPS = rangeTabLPS[pStateIdx][qCodIRangeIdx]
@@ -1056,4 +1058,4 @@ class BitStream():
         if ctxIdx == 276:
             raise '9.3.3.2.4 DecodeTerminate()'
         # '
-        return self.cabac_DecodeDecision()
+        return self.cabac_DecodeDecision(ctxIdx)

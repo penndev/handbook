@@ -248,6 +248,7 @@ class NAL():
             self.pred_weight_table()
         if self.nal_ref_idc != 0:  # dec_ref_pic_marking
             self.dec_ref_pic_marking()
+        self.cabac_init_idc = 0
         if self.pps.entropy_coding_mode_flag and self.slice_type not in [SliceType.I, SliceType.SI]:
             self.cabac_init_idc = self.stream.read_ue()
         self.slice_qp_delta = self.stream.read_se()
@@ -271,8 +272,12 @@ class NAL():
                 self.stream.read_bits(1)
         self.MbaffFrameFlag = getattr(self.sps, "mb_adaptive_frame_field_flag", False) and not self.field_pic_flag
 
+        self.SliceQPY = 26 + self.pps.pic_init_qp_minus26 + self.slice_qp_delta
+        #=========初始化cabac参数
+        self.stream.cabac_init_context_variables(self.slice_type, self.cabac_init_idc, self.SliceQPY)
+        self.stream.cabac_inti_arithmetic_decoding_engine()
         # PicHeightInMbs = FrameHeightInMbs / ( 1 + field_pic_flag ) 
-
+        print("self.codIOffset", self.stream.codIOffset)
         self.CurrMbAddr = self.first_mb_in_slice * (1 + self.MbaffFrameFlag)
 
         moreDataFlag = 1
@@ -285,28 +290,15 @@ class NAL():
                     self.mb_field_decoding_flag = self.bits.ae() if self.pps.entropy_coding_mode_flag else self.bits.u(1)
                     raise('MbaffFrameFlag error')
                 self.macroblock_layer()
+                exit(0)
                 return
-
-    def DecodeDecision(self):
-        '''实现 '9.3.3.2.1 DecodeDecision()'''
-        pass 
-
-    def cabac_decode(self, bypassFlag, ctxIdx):
-        '''9.3.3.2'''
-        if bypassFlag == 1:
-            raise '9.3.3.2.3 DecodeBypass()'
-        if ctxIdx == 276:
-            raise '9.3.3.2.4 DecodeTerminate()'
-        # '
-        self.DecodeDecision()
-
 
     def mb_type(self):
         '''6.4.9 说明实现'''
         if self.slice_type == SliceType.I:
             ctxIdxOffset = 3
             maxBinIdxCtx = 6
-        else: 
+        else:
             raise("mb_type not support " + str(slice.slice_type))
         # 9.3.3.1.1.3 推导过程
         condTermFlagA = 1
@@ -319,16 +311,164 @@ class NAL():
         # ctxIdx 的增量
         ctxIdxInc = condTermFlagA + condTermFlagB
         ctxIdx = ctxIdxInc + ctxIdxOffset
-        print("ctxIdx", "|", ctxIdx)
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        # 表 9-27－I条带中的宏块类型二值化
+        if binVal == 0:  # 0
+            synElVal = 0  # I_NxN
+        else:  # 1
+            # ctxIdx = 276 is used for mb_type where binIdx indicates I_PCM mode
+            # For binIdx = 1 in Table 9-39, the value for I/P/SP/B is 276
+            ctxIdx = 276
+            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 1
 
-        synElVal
-        return 0
+            if binVal == 0:  # 10
+                # In Table 9-39, for binIdx = 2, intra macroblocks for I-slice correspond to 3,
+                # and for P/SP/B slices correspond to 1
+                ctxIdx = ctxIdxOffset + (3 if ctxIdxOffset == 3 else 1)
+                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 2
+
+                if binVal == 0:  # 100
+                    # In Table 9-39, for binIdx = 3, intra macroblocks for I-slice correspond to 4,
+                    # and for P/SP/B slices correspond to 2
+                    ctxIdx = ctxIdxOffset + (4 if ctxIdxOffset == 3 else 2)
+                    binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 3
+
+                    if binVal == 0:  # 1000
+                        # In Table 9-39, for binIdx = 4, the values are derived according to section 9.3.3.1.2
+                        if ctxIdxOffset == 3:  # I slice
+                            ctxIdx = ctxIdxOffset + 6
+                        else:  # P/SP/B slice
+                            ctxIdx = ctxIdxOffset + 3
+
+                        binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 4
+
+                        if binVal == 0:  # 10000
+                            ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 100000
+                                synElVal = 1  # I_16x16_0_0_0
+                            else:
+                                synElVal = 2  # I_16x16_1_0_0
+                        else:  # 10001
+                            ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 100010
+                                synElVal = 3  # I_16x16_2_0_0
+                            else:
+                                synElVal = 4  # I_16x16_3_0_0
+                    else:  # 1001
+                        if ctxIdxOffset == 3:  # I slice
+                            ctxIdx = ctxIdxOffset + 5
+                        else:  # P/SP/B slice
+                            ctxIdx = ctxIdxOffset + 2
+
+                        binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 4
+
+                        if binVal == 0:  # 10010
+                            ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 100100
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1001000
+                                    synElVal = 5  # I_16x16_0_1_0
+                                else:
+                                    synElVal = 6  # I_16x16_1_1_0
+                            else:  # 100101
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1001010
+                                    synElVal = 7  # I_16x16_2_1_0
+                                else:
+                                    synElVal = 8  # I_16x16_3_1_0
+                        else:  # 10011
+                            ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 100110
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1001100
+                                    synElVal = 9  # I_16x16_0_2_0
+                                else:
+                                    synElVal = 10  # I_16x16_1_2_0
+                            else:  # 100111
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1001110
+                                    synElVal = 11  # I_16x16_2_2_0
+                                else:
+                                    synElVal = 12  # I_16x16_3_2_0
+                else:  # 101
+                    ctxIdx = ctxIdxOffset + (4 if ctxIdxOffset == 3 else 2)
+                    binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 3
+
+                    if binVal == 0:  # 1010
+                        if ctxIdxOffset == 3:  # I slice
+                            ctxIdx = ctxIdxOffset + 6
+                        else:  # P/SP/B slice
+                            ctxIdx = ctxIdxOffset + 3
+
+                        binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 4
+
+                        if binVal == 0:  # 10100
+                            ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 101000
+                                synElVal = 13  # I_16x16_0_0_1
+                            else:
+                                synElVal = 14  # I_16x16_1_0_1
+                        else:  # 10101
+                            ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 101010
+                                synElVal = 15  # I_16x16_2_0_1
+                            else:
+                                synElVal = 16  # I_16x16_3_0_1
+                    else:  # 1011
+                        ctxIdx = ctxIdxOffset + (5 if ctxIdxOffset == 3 else 2)
+                        binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 4
+
+                        if binVal == 0:  # 10110
+                            ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+
+                            if binVal == 0:  # 101100
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1011000
+                                    synElVal = 17  # I_16x16_0_1_1
+                                else:
+                                    synElVal = 18  # I_16x16_1_1_1
+                            else:  # 101101
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 6
+
+                                if binVal == 0:  # 1011010
+                                    synElVal = 19  # I_16x16_2_1_1
+                                else:
+                                    synElVal = 20  # I_16x16_3_1_1
+                        else:  # 10111
+                            ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                            binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
+        return synElVal
 
     def macroblock_layer(self):
 
         if self.pps.entropy_coding_mode_flag:
             if self.slice_type == SliceType.I:
                 mb_type = self.mb_type()
+                print("mb_type",mb_type)
             else:
                 raise("slice_type not support " + str(self.slice_type))
         
