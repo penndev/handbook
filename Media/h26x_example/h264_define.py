@@ -4,6 +4,97 @@ from enum import Enum
 def Clip3(value, minVal, maxVal):
     return min(max(value, minVal), maxVal)
 
+from enum import Enum
+
+class MbType(Enum):
+    NA = -1
+    # Table 7-11: Macroblock types for I slices
+    I_NxN = 0
+    I_16x16_0_0_0 = 1
+    I_16x16_1_0_0 = 2
+    I_16x16_2_0_0 = 3
+    I_16x16_3_0_0 = 4
+    I_16x16_0_1_0 = 5
+    I_16x16_1_1_0 = 6
+    I_16x16_2_1_0 = 7
+    I_16x16_3_1_0 = 8
+    I_16x16_0_2_0 = 9
+    I_16x16_1_2_0 = 10
+    I_16x16_2_2_0 = 11
+    I_16x16_3_2_0 = 12
+    I_16x16_0_0_1 = 13
+    I_16x16_1_0_1 = 14
+    I_16x16_2_0_1 = 15
+    I_16x16_3_0_1 = 16
+    I_16x16_0_1_1 = 17
+    I_16x16_1_1_1 = 18
+    I_16x16_2_1_1 = 19
+    I_16x16_3_1_1 = 20
+    I_16x16_0_2_1 = 21
+    I_16x16_1_2_1 = 22
+    I_16x16_2_2_1 = 23
+    I_16x16_3_2_1 = 24
+    I_PCM = 25
+
+    # Table 7-13: Macroblock types for P and SP slices
+    P_L0_16x16 = 0
+    P_L0_L0_16x8 = 1
+    P_L0_L0_8x16 = 2
+    P_8x8 = 3
+    P_8x8ref0 = 4
+    P_Skip = -1
+
+    # Table 7-12: Macroblock type for SI slices
+    SI = 0
+
+    # Table 7-14: Macroblock types for B slices
+    B_Direct_16x16 = 0
+    B_L0_16x16 = 1
+    B_L1_16x16 = 2
+    B_Bi_16x16 = 3
+    B_L0_L0_16x8 = 4
+    B_L0_L0_8x16 = 5
+    B_L1_L1_16x8 = 6
+    B_L1_L1_8x16 = 7
+    B_L0_L1_16x8 = 8
+    B_L0_L1_8x16 = 9
+    B_L1_L0_16x8 = 10
+    B_L1_L0_8x16 = 11
+    B_L0_Bi_16x8 = 12
+    B_L0_Bi_8x16 = 13
+    B_L1_Bi_16x8 = 14
+    B_L1_Bi_8x16 = 15
+    B_Bi_L0_16x8 = 16
+    B_Bi_L0_8x16 = 17
+    B_Bi_L1_16x8 = 18
+    B_Bi_L1_8x16 = 19
+    B_Bi_Bi_16x8 = 20
+    B_Bi_Bi_8x16 = 21
+    B_8x8 = 22
+    B_Skip = -1  # B_Skip explicitly set to -1
+
+    # Table 7-17 – Sub-macroblock types in P macroblocks
+    P_L0_8x8 = 0
+    P_L0_8x4 = 1
+    P_L0_4x8 = 2
+    P_L0_4x4 = 3
+
+    # Table 7-18 – Sub-macroblock types in B macroblocks
+    B_Direct_8x8 = 0
+    B_L0_8x8 = 1
+    B_L1_8x8 = 2
+    B_Bi_8x8 = 3
+    B_L0_8x4 = 4
+    B_L0_4x8 = 5
+    B_L1_8x4 = 6
+    B_L1_4x8 = 7
+    B_Bi_8x4 = 8
+    B_Bi_4x8 = 9
+    B_L0_4x4 = 10
+    B_L1_4x4 = 11
+    B_Bi_4x4 = 12
+
+
 class SliceType(Enum):
     '''Table 7-6  Name association to slice_type'''
     P = 0
@@ -1049,7 +1140,6 @@ class BitStream():
         self.cabac_RenormD()
 
         return binVal
-        
 
     def cabac_decode(self, bypassFlag, ctxIdx):
         '''9.3.3.2'''
