@@ -8,7 +8,28 @@ if TYPE_CHECKING:
 
 class MacroBlock():
 
-    def mb_type(self):
+    def transform_size_8x8_flag_Inc(self):
+        '''
+        6.4.8.1 
+        9.3.3.1.1.10 ctxIdxInc 推导过程
+        '''
+        #  第一个宏块
+        # penndev 等下第二个宏块要实现。
+        # condTermFlagA 
+        # ctxIdxInc = condTermFlagA + condTermFlagB
+        return 0
+    
+    def _transform_size_8x8_flag(self):
+        '''Table 9-11'''
+        if self.slice.slice_type != SliceType.I:
+            raise('transform_size_8x8_flag != SliceType.I')
+        ctxIdxOffset = 399
+        ctxIdxInc = self.transform_size_8x8_flag_Inc()
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        return binVal
+
+    def _mb_type(self):
         '''6.4.9 说明实现'''
         if self.slice.slice_type == SliceType.I:
             ctxIdxOffset = 3
@@ -178,11 +199,10 @@ class MacroBlock():
                             binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
         return synElVal
 
-    def transform_size_8x8_flag(self):
-        '''
-        9.3.3.1.1.10 ctxIdxInc 推导过程
-        '''
-        
+    def mb_pred(self):
+        mode = MbType.MbPartPredMode(self.slice.slice_type, self.mb_type)
+        if mode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
+            pass
 
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
@@ -199,19 +219,20 @@ class MacroBlock():
         NumMbPart = 0
         if self.pps.entropy_coding_mode_flag:
             if self.slice.slice_type == SliceType.I:
-                mb_type = self.mb_type()
-                if mb_type == MbType.I_PCM:
-                    raise("mb_type not support " + str(mb_type))
+                self.mb_type = self._mb_type()
+                if self.mb_type == MbType.I_PCM:
+                    raise("mb_type not support " + str(self.mb_type))
                 # print("mb_type",mb_type)
                 else:
                     noSubMbPartSizeLessThan8x8Flag = 1
-                    if mb_type != MbType.I_NxN and \
-                    (mb_type < 1 or mb_type > 24) and \
-                    NumMbPart == 4 :
+                    if  self.mb_type != MbType.I_NxN and \
+                        MbType.MbPartPredMode(self.mb_type) == 'Intra_16x16' and \
+                        NumMbPart == 4 :
                         raise("mb_type not support 111")
                     else:
-                        if self.pps.transform_8x8_mode_flag == 1 and  mb_type == MbType.I_NxN:
+                        if self.pps.transform_8x8_mode_flag == 1 and self.mb_type == MbType.I_NxN:
                             raise("mb_type not support 222")
-                        
+                        self.transform_size_8x8_flag = self._transform_size_8x8_flag()
+                        self.mb_pred() 
             else:
                 raise("slice_type not support " + str(self.slice.slice_type))

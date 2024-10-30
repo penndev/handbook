@@ -7,7 +7,6 @@ def Clip3(value, minVal, maxVal):
 from enum import Enum
 
 class MbType(Enum):
-    NA = -1
     # Table 7-11: Macroblock types for I slices
     I_NxN = 0
     I_16x16_0_0_0 = 1
@@ -94,6 +93,21 @@ class MbType(Enum):
     B_L1_4x4 = 11
     B_Bi_4x4 = 12
 
+    @staticmethod
+    def MbPartPredModeI(slice_type, mb_type, transform_size_8x8_flag) -> str:
+        '''
+            slice_type 条带类型
+            mb_type 宏块类型
+        '''
+        if slice_type == SliceType.I:
+            if mb_type == 1:
+                return "Intra_4x4" if transform_size_8x8_flag else "Intra_8x8"
+            if mb_type < 1 or mb_type > 24 :
+                return "Intra_16x16"
+            else:
+                raise('MbType MbPartPredMode mb_type:' + str(mb_type))
+        else:
+            raise('MbType MbPartPredMode slice_type:' + str(slice_type))
 
 class SliceType(Enum):
     '''Table 7-6  Name association to slice_type'''
