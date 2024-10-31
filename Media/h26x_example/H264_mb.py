@@ -19,7 +19,7 @@ class MacroBlock():
         # ctxIdxInc = condTermFlagA + condTermFlagB
         return 0
     
-    def _transform_size_8x8_flag(self):
+    def cabac_transform_size_8x8_flag(self):
         '''Table 9-11'''
         if self.slice.slice_type != SliceType.I:
             raise('transform_size_8x8_flag != SliceType.I')
@@ -29,7 +29,7 @@ class MacroBlock():
         binVal = self.stream.cabac_decode(False, ctxIdx)
         return binVal
 
-    def _mb_type(self):
+    def get_mb_type(self):
         '''6.4.9 说明实现'''
         if self.slice.slice_type == SliceType.I:
             ctxIdxOffset = 3
@@ -199,10 +199,59 @@ class MacroBlock():
                             binVal = self.stream.cabac_decode(False, ctxIdx)  # binIdx = 5
         return synElVal
 
+    def get_prev_intra4x4_pred_mode_flag(self):
+        ctxIdxOffset = 68
+        ctxIdx = ctxIdxOffset + 0
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        return binVal
+
+    def get_rem_intra4x4_pred_mode(self):
+        ctxIdxOffset = 69
+        ctxIdx = ctxIdxOffset + 0
+
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        synElVal += binVal << 0
+
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        synElVal += binVal << 1
+
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        synElVal += binVal << 2
+
+        return synElVal
+
+    def get_prev_intra8x8_pred_mode_flag(self):
+        return self.get_prev_intra4x4_pred_mode_flag()
+    
+    def get_rem_intra8x8_pred_mode(self):
+        return self.get_rem_intra4x4_pred_mode()
+    
+    def get_intra_chroma_pred_mode():
+        pass
+    
     def mb_pred(self):
         mode = MbType.MbPartPredMode(self.slice.slice_type, self.mb_type)
         if mode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
+            if mode == "Intra_4x4":
+                prev_intra4x4_pred_mode_flag = {}
+                rem_intra4x4_pred_mode = {}
+                for luma4x4BlkIdx in range(16):
+                    prev_intra4x4_pred_mode_flag[luma4x4BlkIdx] = self.get_prev_intra4x4_pred_mode_flag()
+                    if not prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
+                        rem_intra4x4_pred_mode[luma4x4BlkIdx] = self.get_rem_intra4x4_pred_mode()
+            if mode == "Intra_8x8":
+                prev_intra8x8_pred_mode_flag = {}
+                rem_intra8x8_pred_mode = {}
+                for luma8x8BlkIdx in range(4):
+                    prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = self.get_prev_intra8x8_pred_mode_flag()
+                    if not prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
+                        rem_intra8x8_pred_mode[ luma8x8BlkIdx ] = self.get_rem_intra8x8_pred_mode()
+            if self.pps.chroma_format_idc != 0 :
+                intra_chroma_pred_mode = self.get_intra_chroma_pred_mode()
+
+        elif mode != "Direct":
             pass
+
 
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
