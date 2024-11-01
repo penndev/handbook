@@ -19,7 +19,7 @@ class MacroBlock():
         # ctxIdxInc = condTermFlagA + condTermFlagB
         return 0
     
-    def cabac_transform_size_8x8_flag(self):
+    def get_transform_size_8x8_flag(self):
         '''Table 9-11'''
         if self.slice.slice_type != SliceType.I:
             raise('transform_size_8x8_flag != SliceType.I')
@@ -226,11 +226,31 @@ class MacroBlock():
     def get_rem_intra8x8_pred_mode(self):
         return self.get_rem_intra4x4_pred_mode()
     
-    def get_intra_chroma_pred_mode():
-        pass
-    
-    def mb_pred(self):
-        mode = MbType.MbPartPredMode(self.slice.slice_type, self.mb_type)
+    def get_intra_chroma_pred_mode(self):
+        ctxIdxOffset = 64
+        ctxIdxInc = 0
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        if binVal == 0:
+            synElVal = 0
+        else :
+            ctxIdx = ctxIdxOffset + 3; #Table 9-39
+            binVal = self.stream.cabac_decode(False, ctxIdx)
+
+        if binVal == 0: #//10
+            synElVal = 1 
+        else: #11 
+            ctxIdx = ctxIdxOffset + 3 #Table 9-39
+            binVal = self.stream.cabac_decode(False, ctxIdx)
+
+        if binVal == 0: #110
+            synElVal = 2
+        else: #111
+            synElVal = 3;#TU, cMax=3
+        return synElVal
+
+    def mb_pred(self, mode):
         if mode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
             if mode == "Intra_4x4":
                 prev_intra4x4_pred_mode_flag = {}
@@ -251,7 +271,13 @@ class MacroBlock():
 
         elif mode != "Direct":
             pass
+    
+    def coded_block_pattern_inc(self):
+        '''9.3.3.1.1.4'''
+        return 0
 
+    def get_coded_block_pattern(self) : #9.3.3.1.1.4
+        pass
 
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
@@ -274,6 +300,7 @@ class MacroBlock():
                 # print("mb_type",mb_type)
                 else:
                     noSubMbPartSizeLessThan8x8Flag = 1
+                    mode = MbType.MbPartPredMode(self.slice.slice_type, self.mb_type)
                     if  self.mb_type != MbType.I_NxN and \
                         MbType.MbPartPredMode(self.mb_type) == 'Intra_16x16' and \
                         NumMbPart == 4 :
@@ -282,6 +309,8 @@ class MacroBlock():
                         if self.pps.transform_8x8_mode_flag == 1 and self.mb_type == MbType.I_NxN:
                             raise("mb_type not support 222")
                         self.transform_size_8x8_flag = self._transform_size_8x8_flag()
-                        self.mb_pred() 
+                        self.mb_pred(mode)
+                    if mode == "Intra_16x16" :
+                        coded_block_pattern = self.get_coded_block_pattern()
             else:
                 raise("slice_type not support " + str(self.slice.slice_type))
