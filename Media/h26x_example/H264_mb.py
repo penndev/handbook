@@ -277,7 +277,66 @@ class MacroBlock():
         return 0
 
     def get_coded_block_pattern(self) : #9.3.3.1.1.4
-        pass
+        # ctxIdxOffset = 73表示CodedBlockPatternLuma
+        # ctxIdxOffset = 77表示CodedBlockPatternChroma
+        ctxIdxOffset = 73
+
+        # CodedBlockPatternLuma由FL二值化表示给出 cMax = 15
+        # 定长编码，解析4个bit
+        CodedBlockPatternLuma = 0 
+        binIdx = 0
+        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma = binVal
+
+        binIdx = 1
+        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 1
+
+        binIdx = 2
+        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 2
+
+        binIdx = 3
+        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 3
+
+        # cMax = 15，maxBinIdxCtx = 3 ,最大只有15，最多解析到binIdx = 3，停止解析
+
+        # 当ChromaArrayType不等于0或3时，后缀部分会出现
+        CodedBlockPatternChroma = 0
+        if self.sps.ChromaArrayType != 0 and self.sps.ChromaArrayType != 3:
+            # CodedBlockPatternChroma由TU二值化表示给出 cMax = 2;
+            # 截断一元二值化，等于cMax，二进制码全部为1，长度为cMax。不然最后一位为0
+            ctxIdxOffset = 77
+            binIdx = 0
+            ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, binVal)
+            ctxIdx = ctxIdxOffset + ctxIdxInc
+            binVal = self.stream.cabac_decode(False, ctxIdx)
+            if binVal == 0: #0
+                CodedBlockPatternChroma = 0
+            else: # 1
+                CodedBlockPatternChroma = 1
+
+                binIdx = 1
+                ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, binVal)
+                ctxIdx = ctxIdxOffset + ctxIdxInc
+                binVal = self.stream.cabac_decode(False, ctxIdx)
+                if binVal == 1: #11
+                    # cMax = 2，maxBinIdxCtx = 1 ,最大只有2，最多解析到binIdx = 1，停止解析
+                    CodedBlockPatternChroma = 2
+
+        # 把CodedBlockPatternChroma*16是因为后面要%掉CodedBlockPatternChroma，这样就剩CodedBlockPatternLuma
+        # CodedBlockPatternLuma = coded_block_pattern % 16;
+        # CodedBlockPatternChroma = coded_block_pattern / 16;
+        return  CodedBlockPatternLuma + CodedBlockPatternChroma * 16
 
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
