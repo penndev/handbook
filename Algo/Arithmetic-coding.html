@@ -541,6 +541,19 @@ B       =   [0.1686, 0.16868]
 </ol>
 <p>....依次处理</p>
 <p><strong>解码方必须知道 1.概率分布  2. 流的长度; 不知道1就无法划分区间；不知道2就无法在正确的位置停下来，很有可能一直分下去结果解出来的码超过明文长度</strong></p>
+<h2 id="重新归一化">重新归一化</h2>
+<p>让我们指出与编码程序相关的几个相当明显的考虑因素。
+显然，如果当前区间完全包含在 0 和 ½ 之间，编码结果的当前比特将是零。
+同样，如果当前区间完全包含在 ½ 和 1 之间，编码结果的当前比特将有一个值 1。
+然而，如果当前区间的左端点小于 ½，右端点大于 ½，但两者与 ½ 的差异不超过 ¼，当前结果比特将是未知的。
+另一方面，可以肯定的是，下一个结果比特将与当前比特的值相反。
+当我们为这次迭代获得每个当前结果比特后，我们可以将区间长度加倍。
+所有这些都使得引入一种克服算术编码上述缺点的当前区间长度加倍程序成为可能。</p>
+<p>这个程序在标准中被称为重新归一化。
+通过重新归一化，编码结果比特在编码过程中立即输出（在完成之前），并且当前区间长度加倍。
+每次选择新的当前区间时，都会迭代执行重新归一化。
+迭代继续进行，直到当前区间完全包含在以下三个区间之一：[0, 0.5), [0.25, 0.75), [0.5, 1)</p>
+<h2 id="上下文二进制算术编码">上下文二进制算术编码</h2>
 </div>
                                 
                                 </section>
@@ -564,7 +577,7 @@ B       =   [0.1686, 0.16868]
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"算数编码","level":"6.1.2","depth":2,"previous":{"title":"指数哥伦布编码","level":"6.1.1","depth":2,"path":"Algo/Exp-Golomb-coding.md","ref":"Algo/Exp-Golomb-coding.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Algo/Arithmetic-coding.md","mtime":"2024-11-02T15:29:49.657Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-11-02T15:29:55.001Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"算数编码","level":"6.1.2","depth":2,"previous":{"title":"指数哥伦布编码","level":"6.1.1","depth":2,"path":"Algo/Exp-Golomb-coding.md","ref":"Algo/Exp-Golomb-coding.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Algo/Arithmetic-coding.md","mtime":"2024-11-04T15:43:22.457Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-11-04T15:43:27.397Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
