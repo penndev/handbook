@@ -214,93 +214,6 @@ class NAL():
             if self.vui_parameters_present_flag == 1:
                 self.vui_parameters()
 
-    def slice_header(self):
-        self.idr_pic_flag = 1 if self.nal_unit_type == NalUnitType.IDR else 0
-        self.first_mb_in_slice = self.stream.read_ue()
-        self.slice_type = self.stream.read_ue()
-        self.pic_parameter_set_id = self.stream.read_ue()
-        if self.sps.separate_colour_plane_flag:
-            self.colour_plane_id = self.stream.read_bits(2)
-        self.frame_num = self.stream.read_bits(self.sps.log2_max_frame_num_minus4 + 4)
-        if not self.sps.frame_mbs_only_flag:
-            self.field_pic_flag = self.stream.read_bits(1)
-            if self.field_pic_flag:
-                self.bottom_field_flag = self.stream.read_bits(1)
-        if self.idr_pic_flag:
-            self.idr_pic_id = self.stream.read_ue()
-        if self.sps.pic_order_cnt_type == 0:
-            self.pic_order_cnt_lsb = self.stream.read_bits(self.sps.log2_max_pic_order_cnt_lsb_minus4 + 4)
-            if self.pps.bottom_field_pic_order_in_frame_present_flag and not getattr(self, 'field_pic_flag', False):
-                self.delta_pic_order_cnt_bottom = self.stream.read_se()
-        if self.sps.pic_order_cnt_type == 1 and not self.delta_pic_order_always_zero_flag:
-            self.delta_pic_order_cnt_0 = self.stream.read_se()
-            if self.pps.bottom_field_pic_order_in_frame_present_flag and not getattr(self, 'field_pic_flag', False):
-                self.delta_pic_order_cnt_1 = self.stream.read_se()
-        if self.pps.redundant_pic_cnt_present_flag:
-            self.redundant_pic_cnt = self.stream.read_ue()
-        if self.slice_type == SliceType.B:
-            self.direct_spatial_mv_pred_flag = self.stream.read_bits(1)
-        if self.slice_type in [SliceType.P, SliceType.SP, SliceType.B]:
-            self.num_ref_idx_active_override_flag = self.stream.read_bits(1)
-            if self.num_ref_idx_active_override_flag:
-                self.num_ref_idx_l0_active_minus1 = self.stream.read_ue()
-                if self.slice_type == SliceType.B:
-                    self.num_ref_idx_l1_active_minus1 = self.stream.read_ue()
-        if self.nal_unit_type in [NalUnitType.CSE, NalUnitType.CSE3D]:
-            self.ref_pic_list_mvc_modification()
-        else:
-            self.ref_pic_list_modification()
-        if (self.pps.weighted_pred_flag == 1  and self.slice_type in [SliceType.P, SliceType.SP]) or \
-           (self.pps.weighted_bipred_idc == 1 and self.slice_type ==  SliceType.B):  # pred_weight_table
-            self.pred_weight_table()
-        if self.nal_ref_idc != 0:  # dec_ref_pic_marking
-            self.dec_ref_pic_marking()
-        self.cabac_init_idc = 0
-        if self.pps.entropy_coding_mode_flag and self.slice_type not in [SliceType.I, SliceType.SI]:
-            self.cabac_init_idc = self.stream.read_ue()
-        self.slice_qp_delta = self.stream.read_se()
-        if self.slice_type in [SliceType.SP, SliceType.SI]:
-            if self.slice_type == SliceType.SP:
-                self.sp_for_switch_flag = self.stream.read_bits(1)
-            self.slice_qs_delta = self.stream.read_se()
-        if self.pps.deblocking_filter_control_present_flag:
-            self.disable_deblocking_filter_idc = self.stream.read_ue()
-            if self.disable_deblocking_filter_idc != 1:
-                self.slice_alpha_c0_offset_div2 = self.stream.read_se()
-                self.slice_beta_offset_div2 = self.stream.read_se()
-        if self.pps.num_slice_groups_minus1 > 0 and 3 <= self.pps.slice_group_map_type <= 5:
-            pic_size = (self.sps.pic_width_in_mbs_minus1 + 1) * (self.sps.pic_height_in_map_units_minus1 + 1)
-            max = (pic_size + self.pps.slice_group_change_rate_minus1) // (self.pps.slice_group_change_rate_minus1 + 1) 
-            self.slice_group_change_cycle = self.stream.read_bits(math.ceil(math.log2(max + 1)))
-
-    def slice_data(self):
-
-        self.SliceQPY = 26 + self.pps.pic_init_qp_minus26 + self.slice_qp_delta
-        self.MbaffFrameFlag = 1 if self.sps.mb_adaptive_frame_field_flag and (not self.field_pic_flag) else 0
-        self.CurrMbAddr = self.first_mb_in_slice * (1 + self.MbaffFrameFlag)
-        if self.pps.entropy_coding_mode_flag:
-            while not self.stream.byte_aligned():
-                self.stream.read_bits(1)
-            #=========初始化cabac参数
-            self.stream.cabac_init_context_variables(self.slice_type, self.cabac_init_idc, self.SliceQPY)
-            self.stream.cabac_inti_arithmetic_decoding_engine()
-            #=========
-        moreDataFlag = 1
-        prevMbSkipped = 0
-        self.macroblock = {}
-        while True:
-            if self.slice_type not in [SliceType.I, SliceType.SI ]:
-                 raise("SliceType" + self.slice_type)
-            if moreDataFlag :
-                if self.MbaffFrameFlag and \
-                    (self.CurrMbAddr % 2 == 0 or \
-                    (self.CurrMbAddr % 2 == 1 and prevMbSkipped )
-                ) :
-                    raise('MbaffFrameFlag error')
-                self.macroblock[self.CurrMbAddr] = MacroBlock(self, self.sps, self.pps, self.stream)
-                exit(0)
-                return
-
     def pic_parameter_set_rbsp(self):
         '传说中的pps数据'
         self.pic_parameter_set_id = self.stream.read_ue()
@@ -358,6 +271,101 @@ class NAL():
         '传说中的 sps 后续理解再解释 penndev'
         self.seq_parameter_set_data()
         # self.stream.rbsp_trailing_bits()
+
+    def slice_header(self):
+        ## 动态给的
+        self.idr_pic_flag = 1 if self.nal_unit_type == NalUnitType.IDR else 0
+        ##
+        self.first_mb_in_slice = self.stream.read_ue()
+        self.slice_type = self.stream.read_ue()
+        self.pic_parameter_set_id = self.stream.read_ue()
+        if self.sps.separate_colour_plane_flag:
+            self.colour_plane_id = self.stream.read_bits(2)
+        self.frame_num = self.stream.read_bits(self.sps.log2_max_frame_num_minus4 + 4)
+        self.field_pic_flag = 0
+        self.MbaffFrameFlag = 0
+        if not self.sps.frame_mbs_only_flag:
+            self.field_pic_flag = self.stream.read_bits(1)
+            if self.field_pic_flag:
+                self.bottom_field_flag = self.stream.read_bits(1)
+                self.MbaffFrameFlag = 1 if self.sps.mb_adaptive_frame_field_flag and (not self.field_pic_flag) else 0
+        if self.idr_pic_flag:
+            self.idr_pic_id = self.stream.read_ue()
+        if self.sps.pic_order_cnt_type == 0:
+            self.pic_order_cnt_lsb = self.stream.read_bits(self.sps.log2_max_pic_order_cnt_lsb_minus4 + 4)
+            if self.pps.bottom_field_pic_order_in_frame_present_flag and not getattr(self, 'field_pic_flag', False):
+                self.delta_pic_order_cnt_bottom = self.stream.read_se()
+        if self.sps.pic_order_cnt_type == 1 and not self.delta_pic_order_always_zero_flag:
+            self.delta_pic_order_cnt_0 = self.stream.read_se()
+            if self.pps.bottom_field_pic_order_in_frame_present_flag and not getattr(self, 'field_pic_flag', False):
+                self.delta_pic_order_cnt_1 = self.stream.read_se()
+        if self.pps.redundant_pic_cnt_present_flag:
+            self.redundant_pic_cnt = self.stream.read_ue()
+        if self.slice_type == SliceType.B:
+            self.direct_spatial_mv_pred_flag = self.stream.read_bits(1)
+        if self.slice_type in [SliceType.P, SliceType.SP, SliceType.B]:
+            self.num_ref_idx_active_override_flag = self.stream.read_bits(1)
+            if self.num_ref_idx_active_override_flag:
+                self.num_ref_idx_l0_active_minus1 = self.stream.read_ue()
+                if self.slice_type == SliceType.B:
+                    self.num_ref_idx_l1_active_minus1 = self.stream.read_ue()
+        if self.nal_unit_type in [NalUnitType.CSE, NalUnitType.CSE3D]:
+            self.ref_pic_list_mvc_modification()
+        else:
+            self.ref_pic_list_modification()
+        if (self.pps.weighted_pred_flag == 1  and self.slice_type in [SliceType.P, SliceType.SP]) or \
+           (self.pps.weighted_bipred_idc == 1 and self.slice_type ==  SliceType.B):  # pred_weight_table
+            self.pred_weight_table()
+        if self.nal_ref_idc != 0:  # dec_ref_pic_marking
+            self.dec_ref_pic_marking()
+        self.cabac_init_idc = 0
+        if self.pps.entropy_coding_mode_flag and self.slice_type not in [SliceType.I, SliceType.SI]:
+            self.cabac_init_idc = self.stream.read_ue()
+        self.slice_qp_delta = self.stream.read_se()
+        if self.slice_type in [SliceType.SP, SliceType.SI]:
+            if self.slice_type == SliceType.SP:
+                self.sp_for_switch_flag = self.stream.read_bits(1)
+            self.slice_qs_delta = self.stream.read_se()
+        if self.pps.deblocking_filter_control_present_flag:
+            self.disable_deblocking_filter_idc = self.stream.read_ue()
+            if self.disable_deblocking_filter_idc != 1:
+                self.slice_alpha_c0_offset_div2 = self.stream.read_se()
+                self.slice_beta_offset_div2 = self.stream.read_se()
+        if self.pps.num_slice_groups_minus1 > 0 and 3 <= self.pps.slice_group_map_type <= 5:
+            pic_size = (self.sps.pic_width_in_mbs_minus1 + 1) * (self.sps.pic_height_in_map_units_minus1 + 1)
+            max = (pic_size + self.pps.slice_group_change_rate_minus1) // (self.pps.slice_group_change_rate_minus1 + 1) 
+            self.slice_group_change_cycle = self.stream.read_bits(math.ceil(math.log2(max + 1)))
+
+    def slice_data(self):
+        self.SliceQPY = 26 + self.pps.pic_init_qp_minus26 + self.slice_qp_delta
+
+        if self.pps.entropy_coding_mode_flag:
+            while not self.stream.byte_aligned():
+                if 1 != self.stream.read_bits(1):
+                    raise('slice_data cabac_alignment_one_bit')
+            #=========初始化cabac参数
+            self.stream.cabac_init_context_variables(self.slice_type, self.cabac_init_idc, self.SliceQPY)
+            self.stream.cabac_inti_arithmetic_decoding_engine()
+            #=========
+        self.CurrMbAddr = self.first_mb_in_slice * ( 1 + self.MbaffFrameFlag )
+        moreDataFlag = 1
+        prevMbSkipped = 0
+
+        moreDataFlag = 1
+        prevMbSkipped = 0
+        self.macroblock = {}
+        while True:
+            if self.slice_type not in [SliceType.I, SliceType.SI ]:
+                 raise("SliceType" + self.slice_type)
+            if moreDataFlag :
+                if self.MbaffFrameFlag and \
+                    (self.CurrMbAddr % 2 == 0 or \
+                    (self.CurrMbAddr % 2 == 1 and prevMbSkipped )
+                ) :
+                    raise('MbaffFrameFlag error')
+                self.macroblock[self.CurrMbAddr] = MacroBlock(self, self.sps, self.pps, self.stream)
+                exit(0)
+                return
 
     def slice_layer_without_partitioning_rbsp(self): 
         '处理图像数据'

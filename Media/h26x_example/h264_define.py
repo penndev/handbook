@@ -1,113 +1,9 @@
 
 from enum import Enum
 
-def Clip3(value, minVal, maxVal):
-    return min(max(value, minVal), maxVal)
-
-from enum import Enum
-
-class MbType(Enum):
-    # Table 7-11: Macroblock types for I slices
-    I_NxN = 0
-    I_16x16_0_0_0 = 1
-    I_16x16_1_0_0 = 2
-    I_16x16_2_0_0 = 3
-    I_16x16_3_0_0 = 4
-    I_16x16_0_1_0 = 5
-    I_16x16_1_1_0 = 6
-    I_16x16_2_1_0 = 7
-    I_16x16_3_1_0 = 8
-    I_16x16_0_2_0 = 9
-    I_16x16_1_2_0 = 10
-    I_16x16_2_2_0 = 11
-    I_16x16_3_2_0 = 12
-    I_16x16_0_0_1 = 13
-    I_16x16_1_0_1 = 14
-    I_16x16_2_0_1 = 15
-    I_16x16_3_0_1 = 16
-    I_16x16_0_1_1 = 17
-    I_16x16_1_1_1 = 18
-    I_16x16_2_1_1 = 19
-    I_16x16_3_1_1 = 20
-    I_16x16_0_2_1 = 21
-    I_16x16_1_2_1 = 22
-    I_16x16_2_2_1 = 23
-    I_16x16_3_2_1 = 24
-    I_PCM = 25
-
-    # Table 7-13: Macroblock types for P and SP slices
-    P_L0_16x16 = 0
-    P_L0_L0_16x8 = 1
-    P_L0_L0_8x16 = 2
-    P_8x8 = 3
-    P_8x8ref0 = 4
-    P_Skip = -1
-
-    # Table 7-12: Macroblock type for SI slices
-    SI = 0
-
-    # Table 7-14: Macroblock types for B slices
-    B_Direct_16x16 = 0
-    B_L0_16x16 = 1
-    B_L1_16x16 = 2
-    B_Bi_16x16 = 3
-    B_L0_L0_16x8 = 4
-    B_L0_L0_8x16 = 5
-    B_L1_L1_16x8 = 6
-    B_L1_L1_8x16 = 7
-    B_L0_L1_16x8 = 8
-    B_L0_L1_8x16 = 9
-    B_L1_L0_16x8 = 10
-    B_L1_L0_8x16 = 11
-    B_L0_Bi_16x8 = 12
-    B_L0_Bi_8x16 = 13
-    B_L1_Bi_16x8 = 14
-    B_L1_Bi_8x16 = 15
-    B_Bi_L0_16x8 = 16
-    B_Bi_L0_8x16 = 17
-    B_Bi_L1_16x8 = 18
-    B_Bi_L1_8x16 = 19
-    B_Bi_Bi_16x8 = 20
-    B_Bi_Bi_8x16 = 21
-    B_8x8 = 22
-    B_Skip = -1  # B_Skip explicitly set to -1
-
-    # Table 7-17 – Sub-macroblock types in P macroblocks
-    P_L0_8x8 = 0
-    P_L0_8x4 = 1
-    P_L0_4x8 = 2
-    P_L0_4x4 = 3
-
-    # Table 7-18 – Sub-macroblock types in B macroblocks
-    B_Direct_8x8 = 0
-    B_L0_8x8 = 1
-    B_L1_8x8 = 2
-    B_Bi_8x8 = 3
-    B_L0_8x4 = 4
-    B_L0_4x8 = 5
-    B_L1_8x4 = 6
-    B_L1_4x8 = 7
-    B_Bi_8x4 = 8
-    B_Bi_4x8 = 9
-    B_L0_4x4 = 10
-    B_L1_4x4 = 11
-    B_Bi_4x4 = 12
-
-    @staticmethod
-    def MbPartPredModeI(slice_type, mb_type, transform_size_8x8_flag) -> str:
-        '''
-            slice_type 条带类型
-            mb_type 宏块类型
-        '''
-        if slice_type == SliceType.I:
-            if mb_type == 1:
-                return "Intra_4x4" if transform_size_8x8_flag else "Intra_8x8"
-            if mb_type < 1 or mb_type > 24 :
-                return "Intra_16x16"
-            else:
-                raise('MbType MbPartPredMode mb_type:' + str(mb_type))
-        else:
-            raise('MbType MbPartPredMode slice_type:' + str(slice_type))
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from h264_define import MbType
 
 class SliceType(Enum):
     '''Table 7-6  Name association to slice_type'''
@@ -121,6 +17,127 @@ class SliceType(Enum):
         if isinstance(other, int):
             return self.value == other % 5
         return False
+
+
+class MbType():
+    def __init__(self, mb_type, NameOfMbType, MbPartPredMode):
+        self.mb_type = mb_type
+        self.name = NameOfMbType
+        self.MbPartPredMode = MbPartPredMode
+
+    @staticmethod
+    def I(mb_type) -> MbType :
+        '''
+            Table 7-11
+        '''
+        if mb_type == 0:
+            return MbType(mb_type, "I_NxN", "Intra_4x4")
+        else:
+            raise("MbType i mb_type" + str(mb_type))
+
+
+# class MbType():
+#     # Table 7-11: Macroblock types for I slices
+#     I_NxN = 0
+#     I_16x16_0_0_0 = 1
+#     I_16x16_1_0_0 = 2
+#     I_16x16_2_0_0 = 3
+#     I_16x16_3_0_0 = 4
+#     I_16x16_0_1_0 = 5
+#     I_16x16_1_1_0 = 6
+#     I_16x16_2_1_0 = 7
+#     I_16x16_3_1_0 = 8
+#     I_16x16_0_2_0 = 9
+#     I_16x16_1_2_0 = 10
+#     I_16x16_2_2_0 = 11
+#     I_16x16_3_2_0 = 12
+#     I_16x16_0_0_1 = 13
+#     I_16x16_1_0_1 = 14
+#     I_16x16_2_0_1 = 15
+#     I_16x16_3_0_1 = 16
+#     I_16x16_0_1_1 = 17
+#     I_16x16_1_1_1 = 18
+#     I_16x16_2_1_1 = 19
+#     I_16x16_3_1_1 = 20
+#     I_16x16_0_2_1 = 21
+#     I_16x16_1_2_1 = 22
+#     I_16x16_2_2_1 = 23
+#     I_16x16_3_2_1 = 24
+#     I_PCM = 25
+
+#     # Table 7-13: Macroblock types for P and SP slices
+#     P_L0_16x16 = 0
+#     P_L0_L0_16x8 = 1
+#     P_L0_L0_8x16 = 2
+#     P_8x8 = 3
+#     P_8x8ref0 = 4
+#     P_Skip = -1
+
+#     # Table 7-12: Macroblock type for SI slices
+#     SI = 0
+
+#     # Table 7-14: Macroblock types for B slices
+#     B_Direct_16x16 = 0
+#     B_L0_16x16 = 1
+#     B_L1_16x16 = 2
+#     B_Bi_16x16 = 3
+#     B_L0_L0_16x8 = 4
+#     B_L0_L0_8x16 = 5
+#     B_L1_L1_16x8 = 6
+#     B_L1_L1_8x16 = 7
+#     B_L0_L1_16x8 = 8
+#     B_L0_L1_8x16 = 9
+#     B_L1_L0_16x8 = 10
+#     B_L1_L0_8x16 = 11
+#     B_L0_Bi_16x8 = 12
+#     B_L0_Bi_8x16 = 13
+#     B_L1_Bi_16x8 = 14
+#     B_L1_Bi_8x16 = 15
+#     B_Bi_L0_16x8 = 16
+#     B_Bi_L0_8x16 = 17
+#     B_Bi_L1_16x8 = 18
+#     B_Bi_L1_8x16 = 19
+#     B_Bi_Bi_16x8 = 20
+#     B_Bi_Bi_8x16 = 21
+#     B_8x8 = 22
+#     B_Skip = -1  # B_Skip explicitly set to -1
+
+#     # Table 7-17 – Sub-macroblock types in P macroblocks
+#     P_L0_8x8 = 0
+#     P_L0_8x4 = 1
+#     P_L0_4x8 = 2
+#     P_L0_4x4 = 3
+
+#     # Table 7-18 – Sub-macroblock types in B macroblocks
+#     B_Direct_8x8 = 0
+#     B_L0_8x8 = 1
+#     B_L1_8x8 = 2
+#     B_Bi_8x8 = 3
+#     B_L0_8x4 = 4
+#     B_L0_4x8 = 5
+#     B_L1_8x4 = 6
+#     B_L1_4x8 = 7
+#     B_Bi_8x4 = 8
+#     B_Bi_4x8 = 9
+#     B_L0_4x4 = 10
+#     B_L1_4x4 = 11
+#     B_Bi_4x4 = 12
+
+#     @staticmethod
+#     def MbPartPredMode(slice_type, mb_type, transform_size_8x8_flag) -> str:
+#         '''
+#             slice_type 条带类型
+#             mb_type 宏块类型
+#         '''
+#         if slice_type == SliceType.I:
+#             if mb_type == 1:
+#                 return "Intra_4x4" if transform_size_8x8_flag else "Intra_8x8"
+#             if mb_type < 1 or mb_type > 24 :
+#                 return "Intra_16x16"
+#             else:
+#                 raise('MbType MbPartPredMode mb_type:' + str(mb_type))
+#         else:
+#             raise('MbType MbPartPredMode slice_type:' + str(slice_type))
 
 class NalUnitType(Enum):
     NotIDR = 0
@@ -156,6 +173,11 @@ class NalUnitType(Enum):
 
 class BitStream():
     '''根据 7.2 Specification of syntax functions, categories, and descriptors 文档定义的数据读取方法'''
+        
+    @staticmethod
+    def Clip3(value, minVal, maxVal):
+        return min(max(value, minVal), maxVal)
+    
     def __init__(self, hex:bytearray) -> None:
         self.hex = hex
         self.position = 0
@@ -1020,7 +1042,7 @@ class BitStream():
         else:
             raise "cabac_getmn 错误的 ctxIdx:" + str(ctxIdx)
         return ctxMN[ctxIdx]
-    
+
     def cabac_init_context_variables(self, slice_type, cabac_init_idc, SliceQPY):
         '''
         **9.3.1.1 初始化变量**
@@ -1030,8 +1052,9 @@ class BitStream():
         self.stateIdx = {}
         self.MPSValue = {}
         for ctxIdx in range(1024):
+
             m, n = self.cabac_getmn(ctxIdx, cabac_init_idc, slice_type)
-            preCtxState = Clip3(1, 126, ((m * Clip3(0, 51, SliceQPY))  >> 4 ) + n )
+            preCtxState = BitStream.Clip3(1, 126, ((m * BitStream.Clip3(0, 51, SliceQPY))  >> 4 ) + n )
             if preCtxState <= 63:
                 self.stateIdx[ctxIdx] = 63 - preCtxState
                 self.MPSValue[ctxIdx] = 0
@@ -1163,3 +1186,6 @@ class BitStream():
             raise '9.3.3.2.4 DecodeTerminate()'
         # '
         return self.cabac_DecodeDecision(ctxIdx)
+
+if __name__ == "__main__":
+    print(MbType.I_NxN == MbType.P_L0_16x16)
