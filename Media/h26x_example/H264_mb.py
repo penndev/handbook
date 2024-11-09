@@ -8,57 +8,26 @@ if TYPE_CHECKING:
 
 class MacroBlock():
 
-    def transform_size_8x8_flag_Inc(self):
-        '''
-        6.4.8.1 
-        9.3.3.1.1.10 ctxIdxInc 推导过程
-        '''
-        #  第一个宏块
-        # penndev 等下第二个宏块要实现。
-        # condTermFlagA 
-        # ctxIdxInc = condTermFlagA + condTermFlagB
-        return 0
-    
-    def get_transform_size_8x8_flag(self):
-        '''Table 9-11'''
-        if self.slice.slice_type != SliceType.I:
-            raise('transform_size_8x8_flag != SliceType.I')
-        ctxIdxOffset = 399
-        ctxIdxInc = self.transform_size_8x8_flag_Inc()
-        ctxIdx = ctxIdxOffset + ctxIdxInc
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        return binVal
 
-    def get_prev_intra4x4_pred_mode_flag(self):
-        ctxIdxOffset = 68
-        ctxIdx = ctxIdxOffset + 0
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        return binVal
-
-    def get_rem_intra4x4_pred_mode(self):
-        ctxIdxOffset = 69
-        ctxIdx = ctxIdxOffset + 0
-
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        synElVal += binVal << 0
-
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        synElVal += binVal << 1
-
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        synElVal += binVal << 2
-
-        return synElVal
-
-    def get_prev_intra8x8_pred_mode_flag(self):
-        return self.get_prev_intra4x4_pred_mode_flag()
-    
-    def get_rem_intra8x8_pred_mode(self):
-        return self.get_rem_intra4x4_pred_mode()
-    
     def get_intra_chroma_pred_mode(self):
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        # Table 9-11 
         ctxIdxOffset = 64
-        ctxIdxInc = 0
+        # 9.3.3.1.1.8
+        mbAddrA = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        condTermFlagA = 1
+        if not mbAddrA or \
+            mbAddrA.mb_type.name.I_PCM == 0 or \
+             mbAddrA.intra_chroma_pred_mode == 0 :
+            condTermFlagA = 0
+        mbAddrB = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        condTermFlagB = 1
+        if not mbAddrB or \
+            mbAddrB.mb_type.name.I_PCM == 0 or \
+            mbAddrB.intra_chroma_pred_mode == 0 :
+            condTermFlagB = 0
+        ctxIdxInc = condTermFlagA + condTermFlagB 
         ctxIdx = ctxIdxOffset + ctxIdxInc
 
         binVal = self.stream.cabac_decode(False, ctxIdx)
@@ -80,95 +49,53 @@ class MacroBlock():
             synElVal = 3;#TU, cMax=3
         return synElVal
 
-    def mb_pred(self, mode):
-        print("hello o am here")
-        if mode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
-            if mode == "Intra_4x4":
-                prev_intra4x4_pred_mode_flag = {}
-                rem_intra4x4_pred_mode = {}
+    def mb_pred(self):
+        if self.mb_type.MbPartPredMode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
+            if self.mb_type.MbPartPredMode == "Intra_4x4":
+                self.prev_intra4x4_pred_mode_flag = {}
+                self.rem_intra4x4_pred_mode = {}
                 for luma4x4BlkIdx in range(16):
-                    prev_intra4x4_pred_mode_flag[luma4x4BlkIdx] = self.get_prev_intra4x4_pred_mode_flag()
-                    if not prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
-                        rem_intra4x4_pred_mode[luma4x4BlkIdx] = self.get_rem_intra4x4_pred_mode()
-            if mode == "Intra_8x8":
-                prev_intra8x8_pred_mode_flag = {}
-                rem_intra8x8_pred_mode = {}
+                    self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx] = self.stream.cabac_decode(False, ctxIdx = 68)
+                    if not self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
+                        self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = self.stream.cabac_decode(False, ctxIdx = 69)
+            if self.mb_type.MbPartPredMode == "Intra_8x8":
+                if self.slice.slice_type == SliceType.SI:
+                    raise("Table 9-11 mb_pred prev_intra8x8_pred_mode_flag no")
+                self.prev_intra8x8_pred_mode_flag = {}
+                self.rem_intra8x8_pred_mode = {}
                 for luma8x8BlkIdx in range(4):
-                    prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = self.get_prev_intra8x8_pred_mode_flag()
-                    if not prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
-                        rem_intra8x8_pred_mode[ luma8x8BlkIdx ] = self.get_rem_intra8x8_pred_mode()
-            if self.pps.chroma_format_idc != 0 :
-                intra_chroma_pred_mode = self.get_intra_chroma_pred_mode()
+                    self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = self.stream.cabac_decode(False, ctxIdx = 68)
+                    if not self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
+                        self.rem_intra8x8_pred_mode[ luma8x8BlkIdx ] = self.stream.cabac_decode(False, ctxIdx = 69)
+            if self.pps.chroma_format_idc in (1, 2):
+                self.intra_chroma_pred_mode = self.get_intra_chroma_pred_mode()
 
-        elif mode != "Direct":
+        elif self.mb_type.MbPartPredMode != "Direct":
             pass
-    
-    def coded_block_pattern_inc(self):
-        '''9.3.3.1.1.4'''
-        return 0
 
-    def get_coded_block_pattern(self) : #9.3.3.1.1.4
-        # ctxIdxOffset = 73表示CodedBlockPatternLuma
-        # ctxIdxOffset = 77表示CodedBlockPatternChroma
-        ctxIdxOffset = 73
-
-        # CodedBlockPatternLuma由FL二值化表示给出 cMax = 15
-        # 定长编码，解析4个bit
-        CodedBlockPatternLuma = 0 
-        binIdx = 0
-        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
+    def get_transform_size_8x8_flag(self):
+        '''Table 9-11'''
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        if self.slice.slice_type != SliceType.I:
+            raise('transform_size_8x8_flag != SliceType.I')
+        ctxIdxOffset = 399
+        # 6.4.8.1 
+        # 9.3.3.1.1.10 ctxIdxInc 推导过程
+        mbAddrA = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        condTermFlagA = 1
+        if not mbAddrA or \
+            mbAddrA.transform_size_8x8_flag == 0 :
+            condTermFlagA = 0
+        mbAddrB = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        condTermFlagB = 1
+        if not mbAddrB or \
+            mbAddrB.transform_size_8x8_flag == 0 :
+            condTermFlagB = 0
+        ctxIdxInc = condTermFlagA + condTermFlagB
         ctxIdx = ctxIdxOffset + ctxIdxInc
         binVal = self.stream.cabac_decode(False, ctxIdx)
-        CodedBlockPatternLuma = binVal
-
-        binIdx = 1
-        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
-        ctxIdx = ctxIdxOffset + ctxIdxInc
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        CodedBlockPatternLuma += binVal << 1
-
-        binIdx = 2
-        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
-        ctxIdx = ctxIdxOffset + ctxIdxInc
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        CodedBlockPatternLuma += binVal << 2
-
-        binIdx = 3
-        ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, CodedBlockPatternLuma)
-        ctxIdx = ctxIdxOffset + ctxIdxInc
-        binVal = self.stream.cabac_decode(False, ctxIdx)
-        CodedBlockPatternLuma += binVal << 3
-
-        # cMax = 15，maxBinIdxCtx = 3 ,最大只有15，最多解析到binIdx = 3，停止解析
-
-        # 当ChromaArrayType不等于0或3时，后缀部分会出现
-        CodedBlockPatternChroma = 0
-        if self.sps.chroma_format_idc != 0 and self.sps.chroma_format_idc != 3:
-            # CodedBlockPatternChroma由TU二值化表示给出 cMax = 2;
-            # 截断一元二值化，等于cMax，二进制码全部为1，长度为cMax。不然最后一位为0
-            ctxIdxOffset = 77
-            binIdx = 0
-            ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, binVal)
-            ctxIdx = ctxIdxOffset + ctxIdxInc
-            binVal = self.stream.cabac_decode(False, ctxIdx)
-            if binVal == 0: #0
-                CodedBlockPatternChroma = 0
-            else: # 1
-                CodedBlockPatternChroma = 1
-
-                binIdx = 1
-                ctxIdxInc = self.get_coded_block_pattern(ctxIdxOffset, binIdx, binVal)
-                ctxIdx = ctxIdxOffset + ctxIdxInc
-                binVal = self.stream.cabac_decode(False, ctxIdx)
-                if binVal == 1: #11
-                    # cMax = 2，maxBinIdxCtx = 1 ,最大只有2，最多解析到binIdx = 1，停止解析
-                    CodedBlockPatternChroma = 2
-
-        # 把CodedBlockPatternChroma*16是因为后面要%掉CodedBlockPatternChroma，这样就剩CodedBlockPatternLuma
-        # CodedBlockPatternLuma = coded_block_pattern % 16;
-        # CodedBlockPatternChroma = coded_block_pattern / 16;
-        return  CodedBlockPatternLuma + CodedBlockPatternChroma * 16
-
+        return binVal
 
     def get_mb_type(self) -> MbType:
         '''6.4.9 说明实现'''
@@ -373,29 +300,21 @@ class MacroBlock():
 
         self.mb_type = self.get_mb_type()
 
-        if self.mb_type == MbType.I_PCM:
+        if self.mb_type.name == "I_PCM":
             raise("mb_type not support " + str(self.mb_type))
         # print("mb_type",mb_type)
         else:
             noSubMbPartSizeLessThan8x8Flag = 1
-            if  self.mb_type != MbType.I_NxN and \
-                self.mb_type == 'Intra_16x16' :
+            if self.mb_type.name != "I_NxN" and \
+               self.mb_type.MbPartPredMode == 'Intra_16x16'  and \
+               self.mb_type.NumMbPart == 4 :
                 raise("mb_type not support 111")
             else:
-                if self.pps.transform_8x8_mode_flag == 1 and self.mb_type == MbType.I_NxN:
-                    raise("mb_type not support 222")
-                self.transform_size_8x8_flag = self.get_transform_size_8x8_flag()
+                if self.pps.transform_8x8_mode_flag == 1 and \
+                   self.mb_type.name == "I_NxN":
+                    self.transform_size_8x8_flag = self.get_transform_size_8x8_flag()
+                    if self.transform_size_8x8_flag == 1:
+                        self.mb_type.MbPartPredMode = "Intra_8x8"
                 self.mb_pred()
-            # if mode == "Intra_16x16" :
-            #     coded_block_pattern = self.get_coded_block_pattern()
-            #     if CodedBlockPatternLuma > 0 and \
-            #         self.pps.transform_8x8_mode_flag == 1 and \
-            #         mode != "I_NxN"  and \
-            #         noSubMbPartSizeLessThan8x8Flag  and \
-            #         ( mb_type != "B_Direct_16x16" or direct_8x8_inference_flag ):
-            #         transform_size_8x8_flag = 0
-            # if CodedBlockPatternLuma > 0 or \
-            #     CodedBlockPatternChroma > 0 or \
-            #     mode == "Intra_16x16":
-            #         mb_qp_delta 2 se(v) | ae(v)
-            #         residual( ) 3 | 4
+            if self.mb_type.MbPartPredMode == 'Intra_16x16':
+                coded_block_pattern = None
