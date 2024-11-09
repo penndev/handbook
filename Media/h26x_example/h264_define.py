@@ -20,10 +20,12 @@ class SliceType(Enum):
 
 
 class MbType():
-    def __init__(self, mb_type, NameOfMbType, MbPartPredMode):
+    NA = -1
+    def __init__(self, mb_type, NameOfMbType, MbPartPredMode, NumMbPart = MbType.NA):
         self.mb_type = mb_type
         self.name = NameOfMbType
         self.MbPartPredMode = MbPartPredMode
+        self.NumMbPart = NumMbPart
 
     @staticmethod
     def I(mb_type) -> MbType :
