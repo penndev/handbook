@@ -8,6 +8,14 @@ if TYPE_CHECKING:
 
 class MacroBlock():
 
+    def get_coded_block_pattern_inc(self, ctxIdxOffset, binIdx):
+        '''9.3.3.1.1.4'''
+        if ctxIdxOffset == 73:  binIdx
+        return 0
+
+    def get_coded_block_pattern(self):
+        pass
+
 
     def get_intra_chroma_pred_mode(self):
         if self.pps.entropy_coding_mode_flag != 1:
