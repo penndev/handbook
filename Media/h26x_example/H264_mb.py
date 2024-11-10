@@ -8,6 +8,32 @@ if TYPE_CHECKING:
 
 class MacroBlock():
 
+    def get_coded_block_pattern_inc(self, ctxIdxOffset, binIdx):
+        '''9.3.3.1.1.4'''
+        if ctxIdxOffset == 73: 
+            luma8x8BlkIdx = binIdx
+            mbAddrA = self.slice.macroblock[self.slice.CurrMbAddr-1]
+            condTermFlagA = 1
+            if not mbAddrA or \
+                mbAddrA.mb_type.name.I_PCM == 0 or \
+                mbAddrA.intra_chroma_pred_mode == 0 :
+                condTermFlagA = 0
+            mbAddrB = self.slice.macroblock[self.slice.CurrMbAddr-1]
+            ctxIdxInc = condTermFlagA + 2 * condTermFlagB
+        return ctxIdxInc
+
+    def get_coded_block_pattern(self):
+        '''Table 9-11 '''
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        ctxIdxOffset = 73
+        binIdx = 0
+        ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma = binVal
+
+
 
     def get_intra_chroma_pred_mode(self):
         if self.pps.entropy_coding_mode_flag != 1:
