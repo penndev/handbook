@@ -353,7 +353,7 @@ class NAL():
 
         moreDataFlag = 1
         prevMbSkipped = 0
-        self.macroblock = {}
+        self.macroblock: dict[int,MacroBlock] = {}
         while True:
             if self.slice_type not in [SliceType.I, SliceType.SI ]:
                  raise("SliceType" + self.slice_type)
