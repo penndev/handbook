@@ -9,12 +9,81 @@ if TYPE_CHECKING:
 class MacroBlock():
 
     def get_coded_block_pattern_inc(self, ctxIdxOffset, binIdx):
-        '''9.3.3.1.1.4'''
-        if ctxIdxOffset == 73:  binIdx
+        '''9.3.3.1.1.4 太过复杂，暂时返回0'''
+        # if ctxIdxOffset == 73: 
+        #     luma8x8BlkIdx = binIdx
+        #     xA = (luma8x8BlkIdx % 2) * 8 + (-1)
+        #     yA = (luma8x8BlkIdx / 2) * 8 + (0)
+
+
+        #     mbAddrA = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        #     condTermFlagA = 1
+        #     if not mbAddrA or \
+        #         mbAddrA.mb_type.name == 'I_PCM' or \
+        #         (   mbAddrA.mb_type.name not in ('P_Skip', 'B_Skip') and \
+        #             mbAddrA.CodedBlockPatternLuma >> luma8x8BlkIdxA) & 1) != 0 \
+        #         ) or \
+        #         mbAddrA.intra_chroma_pred_mode == 0 :
+        #         condTermFlagA = 0
+
+        #     mbAddrB = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        #     ctxIdxInc = condTermFlagA + 2 * condTermFlagB
+        # return ctxIdxInc
         return 0
 
     def get_coded_block_pattern(self):
-        pass
+        '''Table 9-11 '''
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        ctxIdxOffset = 73
+
+        # 第一个 bin
+        binIdx = 0
+        ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma = binVal
+
+        # 第二个 bin (b1)
+        binIdx = 1
+        ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 1
+
+        # 第三个 bin (b2)
+        binIdx = 2
+        ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 2
+
+        # 第四个 bin (b3)
+        binIdx = 3
+        ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 3
+        
+        CodedBlockPatternChroma = 0
+        if self.sps.chroma_format_idc not in (1,3):
+            ctxIdxOffset = 77
+            binIdx = 0
+            ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+            ctxIdx = ctxIdxOffset + ctxIdxInc
+            binVal = self.stream.cabac_decode(False, ctxIdx)
+            if binVal == 0 :
+                CodedBlockPatternChroma = 0
+            else:
+                CodedBlockPatternChroma = 1
+                binIdx = 1
+                ctxIdxInc = self.get_coded_block_pattern_inc(ctxIdxOffset, binIdx)
+                ctxIdx = ctxIdxOffset + ctxIdxInc
+                binVal = self.stream.cabac_decode(False, ctxIdx)
+                if binVal == 1:
+                    CodedBlockPatternChroma = 2
+        return CodedBlockPatternLuma + CodedBlockPatternChroma * 16
+
 
 
     def get_intra_chroma_pred_mode(self):
@@ -325,4 +394,5 @@ class MacroBlock():
                         self.mb_type.MbPartPredMode = "Intra_8x8"
                 self.mb_pred()
             if self.mb_type.MbPartPredMode == 'Intra_16x16':
-                coded_block_pattern = None
+                coded_block_pattern = self.get_coded_block_pattern()
+
