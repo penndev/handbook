@@ -395,4 +395,4 @@ class MacroBlock():
                 self.mb_pred()
             if self.mb_type.MbPartPredMode == 'Intra_16x16':
                 coded_block_pattern = self.get_coded_block_pattern()
-                
+
