@@ -84,8 +84,6 @@ class MacroBlock():
                     CodedBlockPatternChroma = 2
         return CodedBlockPatternLuma + CodedBlockPatternChroma * 16
 
-
-
     def get_intra_chroma_pred_mode(self):
         if self.pps.entropy_coding_mode_flag != 1:
             raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
@@ -395,4 +393,16 @@ class MacroBlock():
                 self.mb_pred()
             if self.mb_type.MbPartPredMode == 'Intra_16x16':
                 coded_block_pattern = self.get_coded_block_pattern()
-
+                CodedBlockPatternLuma = coded_block_pattern % 16
+                CodedBlockPatternChroma = coded_block_pattern / 16
+                if CodedBlockPatternLuma > 0 and \
+                    self.pps.transform_8x8_mode_flag and \
+                    self.mb_type.name != "I_NxN" and \
+                    noSubMbPartSizeLessThan8x8Flag and \
+                    (self.mb_type.name != "B_Direct_16x16" or self.pps.direct_8x8_inference_flag):
+                    self.transform_size_8x8_flag = self.get_transform_size_8x8_flag() 
+            if CodedBlockPatternLuma > 0 or \
+                CodedBlockPatternChroma > 0 or \
+                self.mb_type.MbPartPredMode == "Intra_16x16":
+                mb_qp_delta = None
+                residual = ( 0, 15 )
