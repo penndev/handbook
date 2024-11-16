@@ -228,8 +228,8 @@ class BitStream():
         ''' CABAC解析过程 \n
             sps. entropy_coding_mode_flag = 1 才会调用本过程
         '''
-        pStateIdx
-        valMPS1
+        # pStateIdx
+        # valMPS1
         raise('not support ae(v)')
     def read_te(self):
         raise('not support te(v)') 
@@ -1188,6 +1188,3 @@ class BitStream():
             raise '9.3.3.2.4 DecodeTerminate()'
         # '
         return self.cabac_DecodeDecision(ctxIdx)
-
-if __name__ == "__main__":
-    print(MbType.I_NxN == MbType.P_L0_16x16)

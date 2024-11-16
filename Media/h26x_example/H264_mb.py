@@ -8,6 +8,48 @@ if TYPE_CHECKING:
 
 class MacroBlock():
 
+    def mb_qp_delta_inc(self):
+        '''9.3.3.1.1.5'''
+        prevMbAddr = self.slice.macroblock[self.slice.CurrMbAddr-1]
+        ctxIdxInc = 1
+        if prevMbAddr or \
+           prevMbAddr.mb_type.name in ("P_Skip", "B_Skip", "I_PCM") or \
+           (
+               prevMbAddr.mb_type.MbPartPredMode != "Intra_16x16" and \
+               prevMbAddr.CodedBlockPatternChroma == 0 and \
+               prevMbAddr.CodedBlockPatternLuma == 0 
+           ) or \
+           prevMbAddr.mb_qp_delta == 0:
+            ctxIdxInc = 0
+        return ctxIdxInc
+    
+    def get_mb_qp_delta(self):
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        ctxIdxOffset = 60
+        ctxIdxInc = self.mb_qp_delta_inc()
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.stream.cabac_decode(False, ctxIdx)
+        synElVal = 0
+        if binVal == 0:
+            synElVal = 0
+        else:
+            ctxIdx = ctxIdxOffset + 2
+            binVal = self.stream.cabac_decode(False, ctxIdx)
+            binIdx = 1
+
+            while binVal == 1:
+                ctxIdx = ctxIdxOffset + 3
+                binVal = self.stream.cabac_decode(False, ctxIdx)
+                binIdx += 1
+            # Table 9-3 se(v)
+            if binIdx & 0x01:  # 奇数
+                binIdx = (binIdx + 1) >> 1  # (−1)^(k+1) * Ceil(k÷2)
+            else:  # 偶数
+                binIdx = -(binIdx >> 1)  # (−1)^(k+1) * Ceil(k÷2)
+            synElVal = binIdx
+        return synElVal
+
     def get_coded_block_pattern_inc(self, ctxIdxOffset, binIdx):
         '''9.3.3.1.1.4 太过复杂，暂时返回0'''
         # if ctxIdxOffset == 73: 
@@ -360,6 +402,28 @@ class MacroBlock():
         
         # return synElVal
 
+    def residual_block_cavlc():
+        raise("residual_block_cavlc")
+
+    def residual_block_cabac(coeffLevel, maxNumCoeff):
+        raise("residual_block_cabac")
+
+    def residual_luma( i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx):
+        pass
+
+    def residual(self, startIdx, endIdx):
+        if self.pps.entropy_coding_mode_flag != 1:
+            self.residual_block = self.residual_block_cavlc
+        else:
+            self.residual_block = self.residual_block_cabac
+
+        self.residual_luma(i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx )
+        Intra16x16DCLevel = i16x16DClevel
+        Intra16x16ACLevel = i16x16AClevel
+        LumaLevel4x4 = level4x4
+        LumaLevel8x8 = level8x8
+
+
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
             **处理宏块数据**
@@ -404,5 +468,5 @@ class MacroBlock():
             if CodedBlockPatternLuma > 0 or \
                 CodedBlockPatternChroma > 0 or \
                 self.mb_type.MbPartPredMode == "Intra_16x16":
-                mb_qp_delta = None
-                residual = ( 0, 15 )
+                self.mb_qp_delta = self.get_mb_qp_delta()
+                self.residual(0, 15)
