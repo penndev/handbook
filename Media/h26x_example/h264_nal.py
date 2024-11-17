@@ -364,6 +364,7 @@ class NAL():
                 ) :
                     raise('MbaffFrameFlag error')
                 self.macroblock[self.CurrMbAddr] = MacroBlock(self, self.sps, self.pps, self.stream)
+                print(self.macroblock[self.CurrMbAddr])
                 exit(0)
                 return
 
@@ -401,4 +402,4 @@ class NAL():
         else :
             print('NO SUPPORT ' , self.nal_unit_type)
             return
-        print(json.dumps(self.to_dict(), indent=4))
+        # print(json.dumps(self.to_dict(), indent=4))
