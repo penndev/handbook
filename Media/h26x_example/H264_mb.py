@@ -166,7 +166,7 @@ class MacroBlock():
         return synElVal
 
     def mb_pred(self):
-        if self.mb_type.MbPartPredMode in ("Intra_4x4",  "Intra_8x8"   "Intra_16x16" ):
+        if self.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16"):
             if self.mb_type.MbPartPredMode == "Intra_4x4":
                 self.prev_intra4x4_pred_mode_flag = {}
                 self.rem_intra4x4_pred_mode = {}
@@ -183,7 +183,8 @@ class MacroBlock():
                     self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = self.stream.cabac_decode(False, ctxIdx = 68)
                     if not self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
                         self.rem_intra8x8_pred_mode[ luma8x8BlkIdx ] = self.stream.cabac_decode(False, ctxIdx = 69)
-            if self.pps.chroma_format_idc in (1, 2):
+                
+            if self.sps.chroma_format_idc in (1, 2):
                 self.intra_chroma_pred_mode = self.get_intra_chroma_pred_mode()
 
         elif self.mb_type.MbPartPredMode != "Direct":
