@@ -1,9 +1,9 @@
-
-from enum import Enum
-
+from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from h264_define import MbType
+    from h264_nal import NAL
+from enum import Enum
+
 
 class SliceType(Enum):
     '''Table 7-6  Name association to slice_type'''
@@ -21,7 +21,7 @@ class SliceType(Enum):
 
 class MbType():
     NA = -1
-    def __init__(self, mb_type, NameOfMbType, MbPartPredMode, NumMbPart = MbType.NA):
+    def __init__(self, mb_type, NameOfMbType, MbPartPredMode, NumMbPart = -1):
         self.mb_type = mb_type
         self.name = NameOfMbType
         self.MbPartPredMode = MbPartPredMode

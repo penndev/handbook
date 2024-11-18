@@ -364,6 +364,7 @@ class NAL():
                 ) :
                     raise('MbaffFrameFlag error')
                 self.macroblock[self.CurrMbAddr] = MacroBlock(self, self.sps, self.pps, self.stream)
+                # print(self.macroblock[self.CurrMbAddr].__dict__)
                 exit(0)
                 return
 
@@ -392,7 +393,7 @@ class NAL():
         if self.nal_unit_type ==  NalUnitType.IDR: # 处理图像帧
             self.slice_layer_without_partitioning_rbsp()
         elif self.nal_unit_type == NalUnitType.SEI:
-            print(json.dumps(self.to_dict(), indent=4))
+            # print(json.dumps(self.to_dict(), indent=4))
             return
         elif self.nal_unit_type == NalUnitType.SPS: # sps 
             self.seq_parameter_set_rbsp()
@@ -401,4 +402,4 @@ class NAL():
         else :
             print('NO SUPPORT ' , self.nal_unit_type)
             return
-        print(json.dumps(self.to_dict(), indent=4))
+        # print(json.dumps(self.to_dict(), indent=4))
