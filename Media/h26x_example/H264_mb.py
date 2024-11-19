@@ -7,11 +7,11 @@ from h264_define import BitStream, MbType, SliceType
 
 class MacroBlock():
 
-    def mb_qp_delta_inc(self):
+    def get_mb_qp_delta_inc(self):
         '''9.3.3.1.1.5'''
         prevMbAddr = self.slice.macroblock.get(self.slice.CurrMbAddr-1)
         ctxIdxInc = 1
-        if prevMbAddr or \
+        if prevMbAddr == None or \
            prevMbAddr.mb_type.name in ("P_Skip", "B_Skip", "I_PCM") or \
            (
                prevMbAddr.mb_type.MbPartPredMode != "Intra_16x16" and \
@@ -26,7 +26,7 @@ class MacroBlock():
         if self.pps.entropy_coding_mode_flag != 1:
             raise("get_mb_type self.pps.entropy_coding_mode_flag != 1")
         ctxIdxOffset = 60
-        ctxIdxInc = self.mb_qp_delta_inc()
+        ctxIdxInc = self.get_mb_qp_delta_inc()
         ctxIdx = ctxIdxOffset + ctxIdxInc
         binVal = self.stream.cabac_decode(False, ctxIdx)
         synElVal = 0
@@ -434,7 +434,6 @@ class MacroBlock():
                 for i in range(64):
                     level8x8[ i8x8 ][ i ] = 0
 
-
     def residual(self, startIdx, endIdx):
         if self.pps.entropy_coding_mode_flag != 1:
             self.residual_block = self.residual_block_cavlc
@@ -484,7 +483,6 @@ class MacroBlock():
             CrLevel4x4 = level4x4
             CrLevel8x8 = level8x8
 
-
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
             **处理宏块数据**
@@ -519,7 +517,7 @@ class MacroBlock():
             ## 初始化变量
             self.CodedBlockPatternLuma = 0
             self.CodedBlockPatternChroma = 0
-            if self.mb_type.MbPartPredMode == 'Intra_16x16':
+            if self.mb_type.MbPartPredMode != 'Intra_16x16':
                 self.coded_block_pattern = self.get_coded_block_pattern()
                 self.CodedBlockPatternLuma = self.coded_block_pattern % 16
                 self.CodedBlockPatternChroma = self.coded_block_pattern / 16
