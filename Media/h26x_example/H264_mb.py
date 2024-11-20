@@ -412,7 +412,7 @@ class MacroBlock():
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
             self.residual_block(i16x16DClevel, 0, 15, 16)
         for i8x8 in range(4):
-            if not self.transform_size_8x8_flag or not self.sps.entropy_coding_mode_flag:
+            if not self.transform_size_8x8_flag or not self.pps.entropy_coding_mode_flag:
                 for i4x4 in range(4):
                     if self.CodedBlockPatternLuma & ( 1 << i8x8 ) :
                         if self.mb_type.MbPartPredMode == "Intra_16x16":
@@ -425,7 +425,7 @@ class MacroBlock():
                     else:
                         for i in range(16):
                             level4x4[ i8x8 * 4 + i4x4 ][ i ] = 0
-                    if not self.sps.entropy_coding_mode_flag and self.transform_size_8x8_flag :
+                    if not self.pps.entropy_coding_mode_flag and self.transform_size_8x8_flag :
                         for i in range(16):
                             level8x8[ i8x8 ][ 4 * i + i4x4 ] = level4x4[ i8x8 * 4 + i4x4 ][ i ]
             elif self.CodedBlockPatternLuma & ( 1 << i8x8 ) :
@@ -433,6 +433,7 @@ class MacroBlock():
             else:
                 for i in range(64):
                     level8x8[ i8x8 ][ i ] = 0
+        return i16x16DClevel, i16x16AClevel, level4x4, level8x8
 
     def residual(self, startIdx, endIdx):
         if self.pps.entropy_coding_mode_flag != 1:
@@ -440,49 +441,16 @@ class MacroBlock():
         else:
             self.residual_block = self.residual_block_cabac
 
-        self.residual_luma(i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx )
-        Intra16x16DCLevel = i16x16DClevel
-        Intra16x16ACLevel = i16x16AClevel
-        LumaLevel4x4 = level4x4
-        LumaLevel8x8 = level8x8
+        Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8 = self.residual_luma( 
+            i16x16DClevel = {}, 
+            i16x16AClevel = {}, 
+            level4x4 = {}, 
+            level8x8 = {}, 
+            startIdx = startIdx, 
+            endIdx = endIdx
+        )
         
-        if self.sps.chroma_format_idc in (1,2):
-            NumC8x8 = 4 / ( SubWidthC * SubHeightC )
-            for iCbCr in range(2):
-                if ( self.CodedBlockPatternChroma & 3 ) and startIdx == 0 :
-                    #/* chroma DC residual present */
-                    self.residual_block(ChromaDCLevel[ iCbCr ], 0, 4 * NumC8x8 - 1, 4 * NumC8x8 )
-                else:
-                    for i in range(4):
-                        ChromaDCLevel[ iCbCr ][ i ] = 0
-            for iCbCr in range(2):
-                for i8x8 in range(NumC8x8):
-                    for i4x4 in range(4):
-                        if self.CodedBlockPatternChroma & 2 :
-                            #/* chroma AC residual present */
-                            self.residual_block(
-                                ChromaACLevel[ iCbCr ][ i8x8 * 4+ i4x4 ], 
-                                max( 0, startIdx - 1 ), 
-                                endIdx - 1, 
-                                15 
-                            )
-                        else:
-                            for i in range(15):
-                                ChromaACLevel[ iCbCr ][ i8x8 * 4 + i4x4 ][ i ] = 0
-
-        elif self.sps.chroma_format_idc == 3 :
-            self.residual_luma( i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx )
-            CbIntra16x16DCLevel = i16x16DClevel
-            CbIntra16x16ACLevel = i16x16AClevel
-            CbLevel4x4 = level4x4
-            CbLevel8x8 = level8x8
-            self.residual_luma( i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx )
-
-            CrIntra16x16DCLevel = i16x16DClevel
-            CrIntra16x16ACLevel = i16x16AClevel
-            CrLevel4x4 = level4x4
-            CrLevel8x8 = level8x8
-
+   
     def __init__(self, nal_slice:NAL, nal_sps:NAL, nal_pps:NAL, stream: BitStream):
         '''
             **处理宏块数据**
