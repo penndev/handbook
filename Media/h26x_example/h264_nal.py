@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from h264_nal import NAL
 
 
-
 class NAL():
     '7 单元结构体的实现'
+
     def dec_ref_pic_marking(self):
         if self.idr_pic_flag:
             self.no_output_of_prior_pics_flag = self.stream.read_bits(1)
@@ -34,8 +34,8 @@ class NAL():
 
     def pred_weight_table(self):
         self.luma_log2_weight_denom = self.stream.read_ue()
-        
-        if self.sps.chroma_format_idc != 0: # 读取色度权重的对数值
+
+        if self.sps.chroma_format_idc != 0:  # 读取色度权重的对数值
             self.chroma_log2_weight_denom = self.stream.read_ue()
         for i in range(self.num_ref_idx_l0_active_minus1 + 1):
             luma_weight_l0_flag = self.stream.read_bits(1)
@@ -77,7 +77,7 @@ class NAL():
                         self.long_term_pic_num = self.stream.read_ue()
                     elif modification_of_pic_nums_idc == 3:
                         break  # 退出循环
-        if self.slice_type  % 5 == 1:  # 如果 slice_type 是 B 类型，需要处理 ref_pic_list_modification_flag_l1
+        if self.slice_type % 5 == 1:  # 如果 slice_type 是 B 类型，需要处理 ref_pic_list_modification_flag_l1
             self.ref_pic_list_modification_flag_l1 = self.stream.read_bits(1)
             if self.ref_pic_list_modification_flag_l1:
                 while True:
@@ -126,8 +126,10 @@ class NAL():
                 self.matrix_coefficients = self.stream.read_bits(8)
         self.chroma_loc_info_present_flag = self.stream.read_bits(1)
         if self.chroma_loc_info_present_flag:
-            self.chroma_sample_loc_type_top_field = self.stream.read_ue()  # Exp-Golomb-coded value (ue(v))
-            self.chroma_sample_loc_type_bottom_field = self.stream.read_ue()  # Exp-Golomb-coded value (ue(v))
+            # Exp-Golomb-coded value (ue(v))
+            self.chroma_sample_loc_type_top_field = self.stream.read_ue()
+            # Exp-Golomb-coded value (ue(v))
+            self.chroma_sample_loc_type_bottom_field = self.stream.read_ue()
         self.timing_info_present_flag = self.stream.read_bits(1)
         if self.timing_info_present_flag:
             self.num_units_in_tick = self.stream.read_bits(32)
@@ -149,7 +151,8 @@ class NAL():
         self.bitstream_restriction_flag = self.stream.read_bits(1)
 
         if self.bitstream_restriction_flag:
-            self.motion_vectors_over_pic_boundaries_flag = self.stream.read_bits(1)
+            self.motion_vectors_over_pic_boundaries_flag = self.stream.read_bits(
+                1)
             self.max_bytes_per_pic_denom = self.stream.read_ue()
             self.max_bits_per_mb_denom = self.stream.read_ue()
             self.log2_max_mv_length_horizontal = self.stream.read_ue()
@@ -176,7 +179,8 @@ class NAL():
                 self.separate_colour_plane_flag = self.stream.read_bits(1)
             self.bit_depth_luma_minus8 = self.stream.read_ue()
             self.bit_depth_chroma_minus8 = self.stream.read_ue()
-            self.qpprime_y_zero_transform_bypass_flag = self.stream.read_bits(1)
+            self.qpprime_y_zero_transform_bypass_flag = self.stream.read_bits(
+                1)
             self.seq_scaling_matrix_present_flag = self.stream.read_bits(1)
             if self.seq_scaling_matrix_present_flag == 1:
                 for i in range(8 if self.chroma_format_idc != 3 else 12):
@@ -188,7 +192,8 @@ class NAL():
             if self.pic_order_cnt_type == 0:
                 self.log2_max_pic_order_cnt_lsb_minus4 = self.stream.read_ue()
             elif self.pic_order_cnt_type == 1:
-                self.delta_pic_order_always_zero_flag = self.stream.read_bits(1)
+                self.delta_pic_order_always_zero_flag = self.stream.read_bits(
+                    1)
                 self.offset_for_non_ref_pic = self.stream.read_ue()
                 self.offset_for_top_to_bottom_field = self.stream.read_ue()
                 self.num_ref_frames_in_pic_order_cnt_cycle = self.stream.read_ue()
@@ -196,7 +201,8 @@ class NAL():
                     # offset_for_ref_frame[i]
                     self.stream.read_se()
             self.num_ref_frames = self.stream.read_ue()
-            self.gaps_in_frame_num_value_allowed_flag = self.stream.read_bits(1)
+            self.gaps_in_frame_num_value_allowed_flag = self.stream.read_bits(
+                1)
             self.pic_width_in_mbs_minus1 = self.stream.read_ue()
             self.pic_height_in_map_units_minus1 = self.stream.read_ue()
             self.frame_mbs_only_flag = self.stream.read_bits(1)
@@ -219,21 +225,27 @@ class NAL():
         self.pic_parameter_set_id = self.stream.read_ue()
         self.seq_parameter_set_id = self.stream.read_ue()
         self.entropy_coding_mode_flag = self.stream.read_bits(1)
-        self.bottom_field_pic_order_in_frame_present_flag = self.stream.read_bits(1)
+        self.bottom_field_pic_order_in_frame_present_flag = self.stream.read_bits(
+            1)
         self.num_slice_groups_minus1 = self.stream.read_ue()
         if self.num_slice_groups_minus1 > 0:
             self.slice_group_map_type = self.stream.read_ue()
             if self.slice_group_map_type == 0:
-                self.run_length_minus1 = [self.stream.read_ue() for _ in range(self.num_slice_groups_minus1 + 1)]
+                self.run_length_minus1 = [self.stream.read_ue(
+                ) for _ in range(self.num_slice_groups_minus1 + 1)]
             elif self.slice_group_map_type == 2:
-                self.top_left = [self.stream.read_ue() for _ in range(self.num_slice_groups_minus1)]
-                self.bottom_right = [self.stream.read_ue() for _ in range(self.num_slice_groups_minus1)]
+                self.top_left = [self.stream.read_ue()
+                                 for _ in range(self.num_slice_groups_minus1)]
+                self.bottom_right = [self.stream.read_ue()
+                                     for _ in range(self.num_slice_groups_minus1)]
             elif self.slice_group_map_type in {3, 4, 5}:
-                self.slice_group_change_direction_flag = self.stream.read_bits(1)
+                self.slice_group_change_direction_flag = self.stream.read_bits(
+                    1)
                 self.slice_group_change_rate_minus1 = self.stream.read_ue()
             elif self.slice_group_map_type == 6:
                 self.pic_size_in_map_units_minus1 = self.stream.read_ue()
-                self.slice_group_id = [self.stream.read_bits(1) for _ in range(self.pic_size_in_map_units_minus1 + 1)]
+                self.slice_group_id = [self.stream.read_bits(
+                    1) for _ in range(self.pic_size_in_map_units_minus1 + 1)]
         # 解析默认活动参考帧数
         self.num_ref_idx_l0_default_active_minus1 = self.stream.read_ue()
         self.num_ref_idx_l1_default_active_minus1 = self.stream.read_ue()
@@ -256,7 +268,8 @@ class NAL():
                 pic_scaling_list_present_flag = []
                 # scaling_list = []
                 for i in range(6 + ((self.sps.chroma_format_idc != 3) * 2) * self.transform_8x8_mode_flag):
-                    pic_scaling_list_present_flag.append(self.stream.read_bits(1))
+                    pic_scaling_list_present_flag.append(
+                        self.stream.read_bits(1))
                     if pic_scaling_list_present_flag[i]:
                         pass
                         # if i < 6:
@@ -273,7 +286,7 @@ class NAL():
         # self.stream.rbsp_trailing_bits()
 
     def slice_header(self):
-        ## 动态给的
+        # 动态给的
         self.idr_pic_flag = 1 if self.nal_unit_type == NalUnitType.IDR else 0
         ##
         self.first_mb_in_slice = self.stream.read_ue()
@@ -281,18 +294,21 @@ class NAL():
         self.pic_parameter_set_id = self.stream.read_ue()
         if self.sps.separate_colour_plane_flag:
             self.colour_plane_id = self.stream.read_bits(2)
-        self.frame_num = self.stream.read_bits(self.sps.log2_max_frame_num_minus4 + 4)
+        self.frame_num = self.stream.read_bits(
+            self.sps.log2_max_frame_num_minus4 + 4)
         self.field_pic_flag = 0
         self.MbaffFrameFlag = 0
         if not self.sps.frame_mbs_only_flag:
             self.field_pic_flag = self.stream.read_bits(1)
             if self.field_pic_flag:
                 self.bottom_field_flag = self.stream.read_bits(1)
-                self.MbaffFrameFlag = 1 if self.sps.mb_adaptive_frame_field_flag and (not self.field_pic_flag) else 0
+                self.MbaffFrameFlag = 1 if self.sps.mb_adaptive_frame_field_flag and (
+                    not self.field_pic_flag) else 0
         if self.idr_pic_flag:
             self.idr_pic_id = self.stream.read_ue()
         if self.sps.pic_order_cnt_type == 0:
-            self.pic_order_cnt_lsb = self.stream.read_bits(self.sps.log2_max_pic_order_cnt_lsb_minus4 + 4)
+            self.pic_order_cnt_lsb = self.stream.read_bits(
+                self.sps.log2_max_pic_order_cnt_lsb_minus4 + 4)
             if self.pps.bottom_field_pic_order_in_frame_present_flag and not getattr(self, 'field_pic_flag', False):
                 self.delta_pic_order_cnt_bottom = self.stream.read_se()
         if self.sps.pic_order_cnt_type == 1 and not self.delta_pic_order_always_zero_flag:
@@ -313,8 +329,8 @@ class NAL():
             self.ref_pic_list_mvc_modification()
         else:
             self.ref_pic_list_modification()
-        if (self.pps.weighted_pred_flag == 1  and self.slice_type in [SliceType.P, SliceType.SP]) or \
-           (self.pps.weighted_bipred_idc == 1 and self.slice_type ==  SliceType.B):  # pred_weight_table
+        if (self.pps.weighted_pred_flag == 1 and self.slice_type in [SliceType.P, SliceType.SP]) or \
+           (self.pps.weighted_bipred_idc == 1 and self.slice_type == SliceType.B):  # pred_weight_table
             self.pred_weight_table()
         if self.nal_ref_idc != 0:  # dec_ref_pic_marking
             self.dec_ref_pic_marking()
@@ -332,9 +348,12 @@ class NAL():
                 self.slice_alpha_c0_offset_div2 = self.stream.read_se()
                 self.slice_beta_offset_div2 = self.stream.read_se()
         if self.pps.num_slice_groups_minus1 > 0 and 3 <= self.pps.slice_group_map_type <= 5:
-            pic_size = (self.sps.pic_width_in_mbs_minus1 + 1) * (self.sps.pic_height_in_map_units_minus1 + 1)
-            max = (pic_size + self.pps.slice_group_change_rate_minus1) // (self.pps.slice_group_change_rate_minus1 + 1) 
-            self.slice_group_change_cycle = self.stream.read_bits(math.ceil(math.log2(max + 1)))
+            pic_size = (self.sps.pic_width_in_mbs_minus1 + 1) * \
+                (self.sps.pic_height_in_map_units_minus1 + 1)
+            max = (pic_size + self.pps.slice_group_change_rate_minus1) // (
+                self.pps.slice_group_change_rate_minus1 + 1)
+            self.slice_group_change_cycle = self.stream.read_bits(
+                math.ceil(math.log2(max + 1)))
 
     def slice_data(self):
         self.SliceQPY = 26 + self.pps.pic_init_qp_minus26 + self.slice_qp_delta
@@ -342,33 +361,35 @@ class NAL():
         if self.pps.entropy_coding_mode_flag:
             while not self.stream.byte_aligned():
                 if 1 != self.stream.read_bits(1):
-                    raise('slice_data cabac_alignment_one_bit')
-            #=========初始化cabac参数
-            self.stream.cabac_init_context_variables(self.slice_type, self.cabac_init_idc, self.SliceQPY)
+                    raise ('slice_data cabac_alignment_one_bit')
+            # =========初始化cabac参数
+            self.stream.cabac_init_context_variables(
+                self.slice_type, self.cabac_init_idc, self.SliceQPY)
             self.stream.cabac_inti_arithmetic_decoding_engine()
-            #=========
-        self.CurrMbAddr = self.first_mb_in_slice * ( 1 + self.MbaffFrameFlag )
+            # =========
+        self.CurrMbAddr = self.first_mb_in_slice * (1 + self.MbaffFrameFlag)
         moreDataFlag = 1
         prevMbSkipped = 0
 
         moreDataFlag = 1
         prevMbSkipped = 0
-        self.macroblock: dict[int,MacroBlock] = {}
+        self.macroblock: dict[int, MacroBlock] = {}
         while True:
-            if self.slice_type not in [SliceType.I, SliceType.SI ]:
-                 raise("SliceType" + self.slice_type)
-            if moreDataFlag :
+            if self.slice_type not in [SliceType.I, SliceType.SI]:
+                raise ("SliceType" + self.slice_type)
+            if moreDataFlag:
                 if self.MbaffFrameFlag and \
-                    (self.CurrMbAddr % 2 == 0 or \
-                    (self.CurrMbAddr % 2 == 1 and prevMbSkipped )
-                ) :
-                    raise('MbaffFrameFlag error')
-                self.macroblock[self.CurrMbAddr] = MacroBlock(self, self.sps, self.pps, self.stream)
+                    (self.CurrMbAddr % 2 == 0 or
+                     (self.CurrMbAddr % 2 == 1 and prevMbSkipped)
+                     ):
+                    raise ('MbaffFrameFlag error')
+                self.macroblock[self.CurrMbAddr] = MacroBlock(
+                    self, self.sps, self.pps, self.stream)
                 # print(self.macroblock[self.CurrMbAddr].__dict__)
                 exit(0)
                 return
 
-    def slice_layer_without_partitioning_rbsp(self): 
+    def slice_layer_without_partitioning_rbsp(self):
         '处理图像数据'
         self.slice_header()
         self.slice_data()
@@ -381,7 +402,7 @@ class NAL():
         del attributes["stream"]
         return attributes
 
-    def __init__(self, stream: BitStream, sps:NAL, pps:NAL):
+    def __init__(self, stream: BitStream, sps: NAL, pps: NAL):
         self.sps = sps
         self.pps = pps
         self.stream = stream
@@ -390,16 +411,16 @@ class NAL():
         self.nal_ref_idc = self.stream.read_bits(2)
         self.nal_unit_type = self.stream.read_bits(5)
         'Table 7-1 – NAL unit type codes, syntax element categories, and NAL unit type classes'
-        if self.nal_unit_type ==  NalUnitType.IDR: # 处理图像帧
+        if self.nal_unit_type == NalUnitType.IDR:  # 处理图像帧
             self.slice_layer_without_partitioning_rbsp()
         elif self.nal_unit_type == NalUnitType.SEI:
             # print(json.dumps(self.to_dict(), indent=4))
             return
-        elif self.nal_unit_type == NalUnitType.SPS: # sps 
+        elif self.nal_unit_type == NalUnitType.SPS:  # sps
             self.seq_parameter_set_rbsp()
-        elif self.nal_unit_type == NalUnitType.PPS: # pps 
+        elif self.nal_unit_type == NalUnitType.PPS:  # pps
             self.pic_parameter_set_rbsp()
-        else :
-            print('NO SUPPORT ' , self.nal_unit_type)
+        else:
+            print('NO SUPPORT ', self.nal_unit_type)
             return
         # print(json.dumps(self.to_dict(), indent=4))
