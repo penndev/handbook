@@ -473,7 +473,7 @@ class MacroBlock():
                                            i4x4] = level4x4[i8x8 * 4 + i4x4][i]
             elif self.CodedBlockPatternLuma & (1 << i8x8):
                 self.residual_block(
-                    level8x8[i8x8], 4 * startIdx, 4 * endIdx + 3, 64)
+                    level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64)
             else:
                 for i in range(64):
                     level8x8[i8x8][i] = 0
