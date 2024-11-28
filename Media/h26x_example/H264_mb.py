@@ -442,10 +442,10 @@ class MacroBlock():
 
         # return synElVal
 
-    def residual_block_cavlc():
+    def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
         raise ("residual_block_cavlc")
 
-    def residual_block_cabac(coeffLevel, maxNumCoeff):
+    def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
         raise ("residual_block_cabac")
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx):
