@@ -1,7 +1,7 @@
 # Summary
 
 * [Introduction](README.md)
-* [哲学](Philosophy/README.md)
+* [生活First](Life/README.md)
 
 -----
 * [Application](Application/README.md)
