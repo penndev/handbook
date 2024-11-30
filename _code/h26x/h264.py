@@ -38,6 +38,7 @@ class H264():
         self.chunk_size = 1024
         current_nal_unit = bytearray()
         last_hex = bytearray()
+        
         for hex in self.read_h264():
             if len(last_hex):
                 hex = last_hex + hex
@@ -85,7 +86,7 @@ class H264():
                     readCounter += 3
 
             # 类似处理tcp粘包
-            if hex[readCounter + 1] != 0:
+            if readCounter + 1 < len(hex) and hex[readCounter + 1] != 0:
                 last_hex = bytearray()
                 current_nal_unit = current_nal_unit + \
                     hex[current_nal_unit_start_position:]
@@ -97,6 +98,6 @@ class H264():
 
 
 if __name__ == "__main__":
-    nal = H264("runtime/output.h264")
+    nal = H264("_tmp/out.h264")
     # FILE_OUT = open('rbsp.h264', "wb")
     # FILE_OUT.write(nal.hex)

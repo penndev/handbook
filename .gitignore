@@ -1,4 +1,8 @@
 _book
-node_modules
 runtime
+
+# Node
+node_modules
+
+# Python
 __pycache__

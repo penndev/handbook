@@ -414,8 +414,7 @@ class NAL():
         if self.nal_unit_type == NalUnitType.IDR:  # 处理图像帧
             self.slice_layer_without_partitioning_rbsp()
         elif self.nal_unit_type == NalUnitType.SEI:
-            # print(json.dumps(self.to_dict(), indent=4))
-            return
+            pass
         elif self.nal_unit_type == NalUnitType.SPS:  # sps
             self.seq_parameter_set_rbsp()
         elif self.nal_unit_type == NalUnitType.PPS:  # pps
@@ -423,4 +422,4 @@ class NAL():
         else:
             print('NO SUPPORT ', self.nal_unit_type)
             return
-        # print(json.dumps(self.to_dict(), indent=4))
+        print(json.dumps(self.to_dict(), indent=4))
