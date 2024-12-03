@@ -442,10 +442,22 @@ class MacroBlock():
 
         # return synElVal
 
-    def residual_block_cavlc():
+    def get_coded_block_flag(self):
+        # //9.3.3.1.1.9  ctxIdxInc
+        '''Table 9-11'''
+        if self.pps.entropy_coding_mode_flag != 1:
+            raise ("get_mb_type self.pps.entropy_coding_mode_flag != 1")
+        if self.slice.slice_type != SliceType.I:
+            raise ('transform_size_8x8_flag != SliceType.I')
+        
+        pass
+
+    def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
         raise ("residual_block_cavlc")
 
-    def residual_block_cabac(coeffLevel, maxNumCoeff):
+    def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
+        if maxNumCoeff != 64 and self.sps.chroma_format_idc == 3:
+            coded_block_flag = self.get_coded_block_flag()
         raise ("residual_block_cabac")
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx):

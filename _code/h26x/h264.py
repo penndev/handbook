@@ -98,6 +98,6 @@ class H264():
 
 
 if __name__ == "__main__":
-    nal = H264("_tmp/out.h264")
+    nal = H264("_tmp/baseline.h264")
     # FILE_OUT = open('rbsp.h264', "wb")
     # FILE_OUT.write(nal.hex)
