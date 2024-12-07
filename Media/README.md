@@ -24,7 +24,10 @@
   - Predictive-coded Picture 预测编码图片。
   - Bidirectionally predicted picture 双向预测图片。
 - YCrCb: （Y-Luminance 亮度）（C Chrominance 色度）
-- 采样率 4:2:0(j:a:b) 形容一个以J个像素宽及两个像素高的概念上区域
+
+
+- 色度采样率 4:2:0(j:a:b) 形容一个以J个像素宽及两个像素高的概念上区域
+> 4:2:0 对数据压缩率为 8*(8*3) / 8*(8+4) 所以压缩率为一半。
   - J：水平抽样引用（概念上区域的宽度）。通常为4。
   - a：在J个像素第一行中的色度抽样数目（Cr, Cb）。
   - b：在J个像素第二行中的额外色度抽样数目（Cr, Cb）。

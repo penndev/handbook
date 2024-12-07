@@ -173,6 +173,7 @@ class NAL():
         self.log2_max_frame_num_minus4 = 0
         self.frame_mbs_only_flag = 0
         self.pic_order_cnt_type = 0
+        self.mb_adaptive_frame_field_flag = 0
         if self.profile_idc in (100, 110, 122, 244, 44, 83, 86, 118, 128, 138, 139, 134, 135):
             self.chroma_format_idc = self.stream.read_ue()
             if self.chroma_format_idc == 3:

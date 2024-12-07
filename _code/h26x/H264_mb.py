@@ -452,12 +452,11 @@ class MacroBlock():
         
         pass
 
-    def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
-        raise ("residual_block_cavlc")
-
     def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
         if maxNumCoeff != 64 and self.sps.chroma_format_idc == 3:
+            # 是否存在非零的变换系数
             coded_block_flag = self.get_coded_block_flag()
+
         raise ("residual_block_cabac")
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx):
@@ -493,7 +492,7 @@ class MacroBlock():
 
     def residual(self, startIdx, endIdx):
         if self.pps.entropy_coding_mode_flag != 1:
-            self.residual_block = self.residual_block_cavlc
+            raise ("residual_block_cavlc")
         else:
             self.residual_block = self.residual_block_cabac
 
@@ -506,6 +505,7 @@ class MacroBlock():
             endIdx=endIdx
         )
         print(Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8)
+        exit("i am here ready finish")
 
     def __init__(self, nal_slice: NAL, nal_sps: NAL, nal_pps: NAL, stream: BitStream):
         '''
