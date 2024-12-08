@@ -1,7 +1,9 @@
 var md = require('markdown-it')(),
-    mk = require('@vscode/markdown-it-katex').default;
+    katex = require('@vscode/markdown-it-katex').default,
+    attrs = require('markdown-it-attrs')
 
-md.use(mk);
+md.use(katex)
+md.use(attrs)
 
 module.exports = {
     book: {
@@ -11,7 +13,7 @@ module.exports = {
     hooks: {
         "page:before": function(page) {
             page.content = '<div class="markdown-it">' + md.render(page.content) + '</div>'
-            return page;
-        },
+            return page
+        }
     }
-};
+}
