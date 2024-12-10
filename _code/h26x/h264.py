@@ -1,9 +1,12 @@
-'CODE logic from <T-REC-H.264-202108-I!!PDF-E.pdf>'
+'CODE logic from <T-REC-H.264-202408-I!!PDF-E.pdf>'
+
 
 from typing import Generator
-from h264_nal import NAL
-from h264_define import BitStream
-
+from h264_bs import BitStream
+from h264_sps import SPS
+from h264_pps import PPS
+from h264_slice import SliceHeader
+from h264_define import NalUnitType
 
 class H264():
     '''
@@ -11,13 +14,25 @@ class H264():
     '''
     def nal_unit(self, hex):
         # self.hex += hex # 调试nalu对比字节用 
-        pass
-
-        # nal = NAL(BitStream(hex), sps=self.sps_nalu, pps=self.pps_nalu)
-        # if nal.nal_unit_type == 7:
-        #     self.sps_nalu = nal
-        # if nal.nal_unit_type == 8:
-        #     self.pps_nalu = nal
+        bs = BitStream(hex)
+        forbidden_zero_bit = bs.read_bits(1)
+        if forbidden_zero_bit != 0 :
+            raise("forbidden_zero_bit must zero")
+        # 当前unit重要程序表示，表示是否可丢弃当前数据。
+        nal_ref_idc = bs.read_bits(2)
+        nal_unit_type = bs.read_bits(5)
+        match nal_unit_type:
+            case NalUnitType.IDR:
+                slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
+                print(slice_header.__dict__)
+            case NalUnitType.SPS:
+                self.sps = SPS(bs)
+                print(self.sps.__dict__)
+            case NalUnitType.PPS:
+                self.pps = PPS(bs, self.sps)
+                print(self.pps.__dict__)
+            case _:
+                print(f'not support nal_unit_type: {nal_unit_type}')
 
     def open(self, size) -> Generator[bytearray, None, None]:
         '''
@@ -42,7 +57,12 @@ class H264():
     def __init__(self, filename):
         'filename 输入文件必须是h264文件路径'
         self.filename = filename
+
+        # --------->
         self.hex = bytearray()
+        self.sps:SPS = None
+        self.pps:PPS = None
+        # --------->
         
         current_hex = bytearray() # 当前nalu的数据
         # 掐头移除StartCode [000001|00000001]放置open中
@@ -101,5 +121,5 @@ class H264():
 
 if __name__ == "__main__":
     nal = H264("_tmp/baseline.h264")
-    FILE_OUT = open(nal.filename + 'rbsp', "wb")
-    FILE_OUT.write(nal.hex)
+    # FILE_OUT = open(nal.filename + 'rbsp', "wb")
+    # FILE_OUT.write(nal.hex)

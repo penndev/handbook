@@ -30,5 +30,5 @@
 
 -----
 * [算法](Algo/README.md)
-    * [指数哥伦布编码](Algo/Exp-Golomb-coding.md)
+    * [哥伦布编码](Algo/Golomb-coding.md)
     * [算数编码](Algo/Arithmetic-coding.md)

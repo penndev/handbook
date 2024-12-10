@@ -6,7 +6,7 @@
 
 ---
 
-## 概况查看 {#show}
+# 概况查看 {#show}
 ** 查看已经挂载的文件系统 **
 ```bash
 df -hT
@@ -14,7 +14,7 @@ df -hT
 - `h` --human-readable
 - `T` --print-type
 
-** 查看全部设备的文件系统 ** 
+**查看全部设备的文件系统** 
 ```bash
 lsblk
 lsblk -afp         
@@ -22,7 +22,7 @@ lsblk -afp
 - `a` --all
 - `f` --fs
 - `p` --paths
-** 查看分区表 ** 
+**查看分区表** 
 - `fdisk -l` 查看分区表
 - `parted -l` 查看分区表
 
