@@ -1,4 +1,6 @@
-from enum import Enum
+from _code.h26x.h264_slice_data import SliceData
+from h264_pps import PPS
+from h264_sps import SPS
 from h264_define import SliceType
 
 class BitStream():
@@ -8,9 +10,12 @@ class BitStream():
     def Clip3(value, minVal, maxVal):
         return min(max(value, minVal), maxVal)
 
-    def __init__(self, hex: bytearray) -> None:
+    def __init__(self, hex: bytearray, sps:SPS, pps:PPS) -> None:
         self.hex = hex
         self.position = 0
+        # '当前数据读取流参数应该都放置到bs,bs是全局的
+        self.sps = sps
+        self.pps = pps
 
     # 读取原始字节流基础函数，移动指针
     def read_bits(self, n) -> int:
@@ -88,6 +93,10 @@ class BitStream():
                 self.position = current
                 return False
         return True
+
+    #
+    # ------------------------------------ CABAC ------------------------------------ #
+    #                 
 
     def cabac_getmn(self, ctxIdx: int, cabac_init_idc: int, slice_type: SliceType) -> tuple[int, int]:
         ''' 9[12-24]nm对照表'''
@@ -1267,13 +1276,12 @@ class BitStream():
     def cabac_init_context_variables(self, slice_type, cabac_init_idc, SliceQPY):
         '''
         **9.3.1.1 初始化变量**
-        - pStateIdx
-        - valMPS
+        - pStateIdx 状态ID
+        - valMPS 最大值可能性
         '''
         self.stateIdx = {}
         self.MPSValue = {}
         for ctxIdx in range(1024):
-
             m, n = self.cabac_getmn(ctxIdx, cabac_init_idc, slice_type)
             preCtxState = BitStream.Clip3(
                 1, 126, ((m * BitStream.Clip3(0, 51, SliceQPY)) >> 4) + n)
@@ -1408,3 +1416,34 @@ class BitStream():
             raise '9.3.3.2.4 DecodeTerminate()'
         # '
         return self.cabac_DecodeDecision(ctxIdx)
+
+    def get_mb_type(self, slice:SliceData):
+        
+        if self.pps.entropy_coding_mode_flag != 1:
+            return self.read_ue()
+
+        # Table 9-34 – Syntax elements and associated types of binarization, maxBinIdxCtx, and ctxIdxOffset
+        match slice.header.slice_type:
+            case SliceType.I:
+                maxBinIdxCtx = 6
+                ctxIdxOffset = 3
+            case _:
+                raise 'get_mb_type error'
+
+        '9.3.3.1.1.3'
+        mbAddrA = slice.mbAddrN('A')
+        condTermFlagA = 1
+        if (not mbAddrA) or \
+            (ctxIdxOffset == 0 and mbAddrA.mb_type.name == "SI") or \
+            (ctxIdxOffset == 3 and mbAddrA.mb_type.name == "I_NxN") or \
+                (ctxIdxOffset == 27 and mbAddrA.mb_type.name in ("B_Skip", "B_Direct_16x16")):
+            condTermFlagA = 0
+
+        mbAddrB = slice.mbAddrN('B')
+        condTermFlagB = 1
+        if (not mbAddrB) or \
+            (ctxIdxOffset == 0 and mbAddrB.mb_type.name == "SI") or \
+            (ctxIdxOffset == 3 and mbAddrB.mb_type.name == "I_NxN") or \
+                (ctxIdxOffset == 27 and mbAddrB.mb_type.name in ("B_Skip", "B_Direct_16x16")):
+            condTermFlagB = 0
+        ctxIdxInc = condTermFlagA + condTermFlagB

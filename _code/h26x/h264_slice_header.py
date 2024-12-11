@@ -99,7 +99,8 @@ class SliceHeader:
             '这个属性表示的是当前 Slice 的颜色平面'
         self.frame_num = bs.read_bits(sps.log2_max_frame_num_minus4 + 4)
         '这个属性表示的是当前 Slice 的帧号'
-
+        self.field_pic_flag = 0
+        self.MbaffFrameFlag = 1 if sps.mb_adaptive_frame_field_flag and not self.field_pic_flag else 0
         if not sps.frame_mbs_only_flag:
             self.field_pic_flag = bs.read_bits(1)
             '这个属性表示的是当前 Slice 是否是场帧'
@@ -141,6 +142,8 @@ class SliceHeader:
             self.cabac_init_idc = bs.read_ue()
             '这个属性表示的是 CABAC 初始化的上下文模型'
         self.slice_qp_delta = bs.read_se()
+        self.SliceQPY = 26 + pps.pic_init_qp_minus26 + self.slice_qp_delta
+        '''这个属性表示的是当前 Slice 的量化参数，这个值是由 PPS 中的 pic_init_qp_minus26 和当前 Slice 的 slice_qp_delta 计算得到的'''
         if self.slice_type in [SliceType.SP, SliceType.SI]:
             if self.slice_type == SliceType.SP:
                 self.sp_for_switch_flag = bs.read_bits(1)

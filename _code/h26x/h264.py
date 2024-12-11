@@ -5,7 +5,8 @@ from typing import Generator
 from h264_bs import BitStream
 from h264_sps import SPS
 from h264_pps import PPS
-from h264_slice import SliceHeader
+from h264_slice_header import SliceHeader
+from _code.h26x.h264_slice_data import SliceData, SliceDataCABAC
 from h264_define import NalUnitType
 
 class H264():
@@ -25,6 +26,7 @@ class H264():
             case NalUnitType.IDR:
                 slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
                 print(slice_header.__dict__)
+                SliceData(bs, slice_header)
             case NalUnitType.SPS:
                 self.sps = SPS(bs)
                 print(self.sps.__dict__)
