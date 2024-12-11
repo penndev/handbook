@@ -6,7 +6,7 @@
         <title>文件系统操作 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
-        <meta name="generator" content="HonKit 5.1.4">
+        <meta name="generator" content="@book 5.1.4">
         <meta name="author" content="Penn">
         
         
@@ -412,12 +412,12 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="6.1.1" data-path="../Algo/Exp-Golomb-coding.md">
+        <li class="chapter " data-level="6.1.1" data-path="../Algo/Golomb-coding.html">
             
-                <span>
+                <a href="../Algo/Golomb-coding.html">
             
                     
-                    指数哥伦布编码
+                    哥伦布编码
             
                 </a>
             
@@ -490,7 +490,7 @@
 </li>
 </ul>
 <hr></hr>
-<h2 id="概况查看-show">概况查看 {#show}</h2>
+<h1 id="show">概况查看</h1>
 <p>** 查看已经挂载的文件系统 **</p>
 <pre><code class="language-bash"><span class="hljs-built_in">df</span> -hT
 </code></pre>
@@ -498,7 +498,7 @@
 <li><code>h</code> --human-readable</li>
 <li><code>T</code> --print-type</li>
 </ul>
-<p>** 查看全部设备的文件系统 **</p>
+<p><strong>查看全部设备的文件系统</strong></p>
 <pre><code class="language-bash">lsblk
 lsblk -afp         
 </code></pre>
@@ -506,11 +506,11 @@ lsblk -afp
 <li><code>a</code> --all</li>
 <li><code>f</code> --fs</li>
 <li><code>p</code> --paths
-** 查看分区表 **</li>
+<strong>查看分区表</strong></li>
 <li><code>fdisk -l</code> 查看分区表</li>
 <li><code>parted -l</code> 查看分区表</li>
 </ul>
-<h2 id="分区挂载-mount">分区挂载 {#mount}</h2>
+<h2 id="mount">分区挂载</h2>
 <ul>
 <li><code>mount /dev/sda /home</code> 挂载做好文件系统的硬盘到目录</li>
 <li><code>umount /home</code>   取消挂载</li>
@@ -522,7 +522,7 @@ lsblk -afp
 <blockquote>
 <p>LVM（Logical Volume Manager，逻辑卷管理器）是一种用于在Linux系统中管理磁盘存储空间的软件工具。</p>
 </blockquote>
-<h3 id="lvm合并硬盘并分区-lvmmerge">LVM合并硬盘并分区 {#lvm_merge}</h3>
+<h3 id="lvm_merge">LVM合并硬盘并分区</h3>
 <blockquote>
 <p>目标 将新增的三块硬盘<code>/dev/nvme0n1</code>,<code>/dev/nvme1n1</code>,<code>/dev/nvme2n1</code> 每块8T的硬盘 组合一块挂载到<code>/home</code></p>
 </blockquote>
@@ -560,7 +560,7 @@ mount -a
 </code></pre>
 </li>
 </ol>
-<h3 id="lvm移除分区-lvmremove">LVM移除分区 {#lvm_remove}</h3>
+<h3 id="lvm_remove">LVM移除分区</h3>
 <blockquote>
 <p>如下，目标移除系统的lvm /dev/mapper/centos-root /home 分区</p>
 </blockquote>
@@ -572,7 +572,7 @@ mount -a
 <li>首先移除挂在分区 <code>umount /home</code>, <code>vi /etc/fstab</code> 中的分区信息</li>
 <li><code>lvremove /dev/mapper/centos-home</code> 删除分区</li>
 </ol>
-<h3 id="lvm拓展分区-lvmremove">LVM拓展分区 {#lvm_remove}</h3>
+<h3 id="lvm_remove">LVM拓展分区</h3>
 <ol>
 <li><code>lvextend -l +100%FREE /dev/mapper/centos-root</code> 将所有的剩余空间全部分配给指定的分区</li>
 <li>调整文件系统大小</li>
@@ -607,7 +607,7 @@ mount -a
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"文件系统操作","level":"3.1.2","depth":2,"next":{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]},"previous":{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/FileSystem.md","mtime":"2024-12-06T02:31:48.527Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-06T02:31:53.633Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"文件系统操作","level":"3.1.2","depth":2,"next":{"title":"系统网络操作","level":"3.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]},"previous":{"title":"系统进程注解","level":"3.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/FileSystem.md","mtime":"2024-12-11T08:09:20.690Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-11T08:09:29.161Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

@@ -6,7 +6,7 @@
         <title>算数编码 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
-        <meta name="generator" content="HonKit 5.1.4">
+        <meta name="generator" content="@book 5.1.4">
         <meta name="author" content="Penn">
         
         
@@ -65,7 +65,7 @@
 
     
     
-    <link rel="prev" href="Exp-Golomb-coding.md" />
+    <link rel="prev" href="Golomb-coding.html" />
     
 
     </head>
@@ -410,12 +410,12 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="6.1.1" data-path="Exp-Golomb-coding.md">
+        <li class="chapter " data-level="6.1.1" data-path="Golomb-coding.html">
             
-                <span>
+                <a href="Golomb-coding.html">
             
                     
-                    指数哥伦布编码
+                    哥伦布编码
             
                 </a>
             
@@ -479,7 +479,8 @@
                                 
                                 <div class="markdown-it"><h1 id="算数编码">算数编码</h1>
 <p>算数编码是一种熵编码</p>
-<h2 id="编码示例">编码示例</h2>
+<h2 id="字符串字符编码">字符串字符编码</h2>
+<h3 id="编码示例">编码示例</h3>
 <ul>
 <li>开始编码原始区间<pre><code>示例字符：AABABCABAB
 ----------
@@ -531,7 +532,7 @@ B       =   [0.1686, 0.16868]
 <ul>
 <li>至此 最后的区间<code>[0.1686, 0.16868]</code>已经是最终的编码结果</li>
 </ul>
-<h2 id="解码示例">解码示例</h2>
+<h3 id="解码示例">解码示例</h3>
 <ol>
 <li>[0.1686, 0.16868]在原始区间[0, 0.5]
 第一个字母为 A</li>
@@ -540,8 +541,17 @@ B       =   [0.1686, 0.16868]
 <li>[0.1686, 0.16868]在原始区间[0.125, 0.175] 第二个字母为A</li>
 </ol>
 <p>....依次处理</p>
-<p><strong>解码方必须知道 1.概率分布  2. 流的长度; 不知道1就无法划分区间；不知道2就无法在正确的位置停下来，很有可能一直分下去结果解出来的码超过明文长度</strong></p>
-<p>实现一个私下编解码类</p>
+<p><em>解码方必须知道 1.概率分布  2. 流的长度; 不知道1就无法划分区间；不知道2就无法在正确的位置停下来，很有可能一直分下去结果解出来的码超过明文长度</em></p>
+<h2 id="二进制编码">二进制编码</h2>
+<blockquote>
+<p>二进制算术编码，属于算术编码，但是概率字符只有二进制字符(0,1)。</p>
+</blockquote>
+<p>统计所有字符出现的次数</p>
+<ul>
+<li>MPS (Most Probability Symbol) 多概率符号</li>
+<li>LPS (Low Probability Symbol) 低概率符号</li>
+</ul>
+<p><strong>实现一个私下编解码类</strong></p>
 <h2 id="重新归一化">重新归一化</h2>
 <p>让我们指出与编码程序相关的几个相当明显的考虑因素。
 显然，如果当前区间完全包含在 0 和 ½ 之间，编码结果的当前比特将是零。
@@ -566,7 +576,7 @@ B       =   [0.1686, 0.16868]
 
             
                 
-                <a href="Exp-Golomb-coding.md" class="navigation navigation-prev navigation-unique" aria-label="Previous page: 指数哥伦布编码">
+                <a href="Golomb-coding.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: 哥伦布编码">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
@@ -578,7 +588,7 @@ B       =   [0.1686, 0.16868]
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"算数编码","level":"6.1.2","depth":2,"previous":{"title":"指数哥伦布编码","level":"6.1.1","depth":2,"path":"Algo/Exp-Golomb-coding.md","ref":"Algo/Exp-Golomb-coding.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Algo/Arithmetic-coding.md","mtime":"2024-12-06T02:31:48.527Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-06T02:31:53.633Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"算数编码","level":"6.1.2","depth":2,"previous":{"title":"哥伦布编码","level":"6.1.1","depth":2,"path":"Algo/Golomb-coding.md","ref":"Algo/Golomb-coding.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Algo/Arithmetic-coding.md","mtime":"2024-12-11T08:09:20.686Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-11T08:09:29.161Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
