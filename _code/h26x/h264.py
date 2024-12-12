@@ -6,7 +6,7 @@ from h264_bs import BitStream
 from h264_sps import SPS
 from h264_pps import PPS
 from h264_slice_header import SliceHeader
-from _code.h26x.h264_slice_data import SliceData, SliceDataCABAC
+from h264_slice_data import SliceData
 from h264_define import NalUnitType
 
 class H264():
@@ -15,7 +15,7 @@ class H264():
     '''
     def nal_unit(self, hex):
         # self.hex += hex # 调试nalu对比字节用 
-        bs = BitStream(hex)
+        bs = BitStream(hex, self.sps, self.pps)
         forbidden_zero_bit = bs.read_bits(1)
         if forbidden_zero_bit != 0 :
             raise("forbidden_zero_bit must zero")

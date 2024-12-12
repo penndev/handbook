@@ -1,7 +1,12 @@
-from _code.h26x.h264_slice_data import SliceData
-from h264_pps import PPS
-from h264_sps import SPS
-from h264_define import SliceType
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from h264_slice_mb import MacroBlock
+    from h264_slice_data import SliceData
+    from h264_pps import PPS
+    from h264_sps import SPS
+
+from h264_define import MbType, SliceType
 
 class BitStream():
     '''根据 7.2 Specification of syntax functions, categories, and descriptors 文档定义的数据读取方法'''
@@ -52,13 +57,83 @@ class BitStream():
         else:
             return code_num // 2 + 1
 
-    def read_me(self, chroma_format_idc):
-        ''' 9.1.2 进行数值对照表 对本数据进行说明。 根据codeNum进行表 9-4 对照返回数据。
-            sps.chroma_format_idc  != 0 返回a表 
-            sps.chroma_format_idc  == 0 返回b表 
-        '''
-        codeNum = self.read_ue()
-        raise ('not support me(v)')
+    def read_me(self) -> int:
+        ChromaArrayType1_2 = (
+            (0,  47,   0),
+            (1,  31,   16),
+            (2,  15,   1),
+            (3,  0,   2),
+            (4,  23,   4),
+            (5,  27,   8),
+            (6,  29,   32),
+            (7,  30,   3),
+            (8,  7,   5),
+            (9,  11,   10),
+            (10,  13,   12),
+            (11,  14,   15),
+            (12,  39,   47),
+            (13,  43,   7),
+            (14,  45,   11),
+            (15,  46,   13),
+            (16,  16,   14),
+            (17,  3,   6),
+            (18,  5,   9),
+            (19,  10,   31),
+            (20,  12,   35),
+            (21,  19,   37),
+            (22,  21,   42),
+            (23,  26,   44),
+            (24,  28,   33),
+            (25,  35,   34),
+            (26,  37,   36),
+            (27,  42,   40),
+            (28,  44,   39),
+            (29,  1,   43),
+            (30,  2,   45),
+            (31,  4,   46),
+            (32,  8,   17),
+            (33,  17,   18),
+            (34,  18,   20),
+            (35,  20,   24),
+            (36,  24,   19),
+            (37,  6,   21),
+            (38,  9,   26),
+            (39,  22,   28),
+            (40,  25,   23),
+            (41,  32,   27),
+            (42,  33,   29),
+            (43,  34,   30),
+            (44,  36,   22),
+            (45,  40,   25),
+            (46,  38,   38),
+            (47,  41,   41)
+        )
+
+        ChromaArrayType0_3 = (
+            (0,  15,   0),
+            (1,  0,   1),
+            (2,  7,   2),
+            (3,  11,   4),
+            (4,  13,   8),
+            (5,  14,   3),
+            (6,  3,   5),
+            (7,  5,   10),
+            (8,  10,   12),
+            (9,  12,   15),
+            (10,  1,   7),
+            (11,  2,   11),
+            (12,  4,   13),
+            (13,  8,   14),
+            (14,  6,   6),
+            (15,  9,   9),
+        )
+
+
+        uev = self.read_ue()
+        if self.sps.chroma_format_idc in [1, 2]:
+            return ChromaArrayType1_2[uev]
+        elif self.sps.chroma_format_idc in [0, 3]:
+            return ChromaArrayType0_3[uev]
 
     #
     def read_ae(self):
@@ -1417,33 +1492,350 @@ class BitStream():
         # '
         return self.cabac_DecodeDecision(ctxIdx)
 
-    def get_mb_type(self, slice:SliceData):
-        
-        if self.pps.entropy_coding_mode_flag != 1:
-            return self.read_ue()
-
+    def mb_type(self, slice:SliceData) -> MbType:
         # Table 9-34 – Syntax elements and associated types of binarization, maxBinIdxCtx, and ctxIdxOffset
         match slice.header.slice_type:
             case SliceType.I:
-                maxBinIdxCtx = 6
+                if self.pps.entropy_coding_mode_flag != 1:
+                    synElVal = self.read_ue()
+                    return MbType.I(synElVal)
                 ctxIdxOffset = 3
+                # '9.3.3.1.1.3'
+                mbAddrA = slice.mbAddrN('A')
+                condTermFlagA = 1
+                if (not mbAddrA) or \
+                    (ctxIdxOffset == 0 and mbAddrA.mb_type.name == "SI") or \
+                    (ctxIdxOffset == 3 and mbAddrA.mb_type.name == "I_NxN") or \
+                        (ctxIdxOffset == 27 and mbAddrA.mb_type.name in ("B_Skip", "B_Direct_16x16")):
+                    condTermFlagA = 0
+
+                mbAddrB = slice.mbAddrN('B')
+                condTermFlagB = 1
+                if (not mbAddrB) or \
+                    (ctxIdxOffset == 0 and mbAddrB.mb_type.name == "SI") or \
+                    (ctxIdxOffset == 3 and mbAddrB.mb_type.name == "I_NxN") or \
+                        (ctxIdxOffset == 27 and mbAddrB.mb_type.name in ("B_Skip", "B_Direct_16x16")):
+                    condTermFlagB = 0
+                ctxIdxInc = condTermFlagA + condTermFlagB
+
+                ctxIdx = ctxIdxInc + ctxIdxOffset
+                #9.3.2.5 Table 9-36 – Binarization for macroblock types in I slices
+                # 二值化过程
+                binVal = self.cabac_decode(False, ctxIdx)
+                if binVal == 0:  # 0
+                    synElVal = 0  # I_NxN
+                else:  # 1
+                    ctxIdx = 276
+                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 1
+                    if binVal == 0:  # 10
+                        ctxIdx = ctxIdxOffset + (3 if ctxIdxOffset == 3 else 1)
+                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 2
+                        if binVal == 0:  # 100
+                            ctxIdx = ctxIdxOffset + (4 if ctxIdxOffset == 3 else 2)
+                            binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 3
+                            if binVal == 0:  # 1000
+                                ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 4
+                                if binVal == 0:  # 10000
+                                    ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                    if binVal == 0:  # 100000
+                                        synElVal = 1  # I_16x16_0_0_0
+                                    else:
+                                        synElVal = 2  # I_16x16_1_0_0
+                                else:  # 10001
+                                    ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                    if binVal == 0:  # 100010
+                                        synElVal = 3  # I_16x16_2_0_0
+                                    else:
+                                        synElVal = 4  # I_16x16_3_0_0
+                            else:  # 1001
+                                ctxIdx = ctxIdxOffset + (5 if ctxIdxOffset == 3 else 2)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 4
+                                if binVal == 0:  # 10010
+                                    ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                    if binVal == 0:  # 100100
+                                        ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                        if binVal == 0:  # 1001000
+                                            synElVal = 5  # I_16x16_0_1_0
+                                        else:
+                                            synElVal = 6  # I_16x16_1_1_0
+                                    else:  # 100101
+                                        ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                        if binVal == 0:  # 1001010
+                                            synElVal = 7  # I_16x16_2_1_0
+                                        else:
+                                            synElVal = 8  # I_16x16_3_1_0
+                                else:  # 10011
+                                    ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                    if binVal == 0:  # 100110
+                                        ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                        if binVal == 0:  # 1001100
+                                            synElVal = 9  # I_16x16_0_2_0
+                                        else:
+                                            synElVal = 10  # I_16x16_1_2_0
+                                    else:  # 100111
+                                        ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                        if binVal == 0:  # 1001110
+                                            synElVal = 11  # I_16x16_2_2_0
+                                        else:
+                                            synElVal = 12  # I_16x16_3_2_0
+                    else:  # 101
+                        ctxIdx = ctxIdxOffset + (4 if ctxIdxOffset == 3 else 2)
+                        binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 3
+                        if binVal == 0:  # 1010
+                            ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                            binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 4
+                            if binVal == 0:  # 10100
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                if binVal == 0:  # 101000
+                                    synElVal = 13  # I_16x16_0_0_1
+                                else:
+                                    synElVal = 14  # I_16x16_1_0_1
+                            else:  # 10101
+                                ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                if binVal == 0:  # 101010
+                                    synElVal = 15  # I_16x16_2_0_1
+                                else:
+                                    synElVal = 16  # I_16x16_3_0_1
+                        else:  # 1011
+                            ctxIdx = ctxIdxOffset + (5 if ctxIdxOffset == 3 else 2)
+                            binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 4
+                            if binVal == 0:  # 10110
+                                ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                                if binVal == 0:  # 101100
+                                    ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                    if binVal == 0:  # 1011000
+                                        synElVal = 17  # I_16x16_0_1_1
+                                    else:
+                                        synElVal = 18  # I_16x16_1_1_1
+                                else:  # 101101
+                                    ctxIdx = ctxIdxOffset + (7 if ctxIdxOffset == 3 else 3)
+                                    binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 6
+                                    if binVal == 0:  # 1011010
+                                        synElVal = 19  # I_16x16_2_1_1
+                                    else:
+                                        synElVal = 20  # I_16x16_3_1_1
+                            else:  # 10111
+                                ctxIdx = ctxIdxOffset + (6 if ctxIdxOffset == 3 else 3)
+                                binVal = self.cabac_decode(False, ctxIdx)  # binIdx = 5
+                return MbType.I(synElVal)
             case _:
                 raise 'get_mb_type error'
 
-        '9.3.3.1.1.3'
-        mbAddrA = slice.mbAddrN('A')
-        condTermFlagA = 1
-        if (not mbAddrA) or \
-            (ctxIdxOffset == 0 and mbAddrA.mb_type.name == "SI") or \
-            (ctxIdxOffset == 3 and mbAddrA.mb_type.name == "I_NxN") or \
-                (ctxIdxOffset == 27 and mbAddrA.mb_type.name in ("B_Skip", "B_Direct_16x16")):
-            condTermFlagA = 0
+    def transform_size_8x8_flag(self):
+        match slice.header.slice_type:
+            case SliceType.I:
+                if self.pps.entropy_coding_mode_flag != 1:
+                    return self.read_bits(1)
+                # 数据来源 Table 9-34 – Syntax elements and associated types of binarization, maxBinIdxCtx, and ctxIdxOffset
+                ctxIdxOffset = 399
+                # ctxIdxInc 推导过程 '9.3.3.1.1.3'
+                mbAddrA = slice.mbAddrN('A')
+                condTermFlagA = 1
+                if not mbAddrA or \
+                        mbAddrA.transform_size_8x8_flag == 0:
+                    condTermFlagA = 0
+                mbAddrB = slice.mbAddrN('B')
+                condTermFlagB = 1
+                if not mbAddrB or \
+                        mbAddrB.transform_size_8x8_flag == 0:
+                    condTermFlagB = 0
+                ctxIdxInc = condTermFlagA + condTermFlagB
 
-        mbAddrB = slice.mbAddrN('B')
+                ctxIdx = ctxIdxInc + ctxIdxOffset
+                return self.cabac_decode(False, ctxIdx)
+            case _:
+                raise 'transform_size_8x8_flag'
+
+
+        ctxIdxOffset = 399
+        # 6.4.8.1
+        # 9.3.3.1.1.10 ctxIdxInc 推导过程
+        mbAddrA = self.slice.macroblock.get(self.slice.CurrMbAddr-1)
+        condTermFlagA = 1
+        if not mbAddrA or \
+                mbAddrA.transform_size_8x8_flag == 0:
+            condTermFlagA = 0
+        mbAddrB = self.slice.macroblock.get(self.slice.CurrMbAddr-1)
         condTermFlagB = 1
-        if (not mbAddrB) or \
-            (ctxIdxOffset == 0 and mbAddrB.mb_type.name == "SI") or \
-            (ctxIdxOffset == 3 and mbAddrB.mb_type.name == "I_NxN") or \
-                (ctxIdxOffset == 27 and mbAddrB.mb_type.name in ("B_Skip", "B_Direct_16x16")):
+        if not mbAddrB or \
+                mbAddrB.transform_size_8x8_flag == 0:
             condTermFlagB = 0
         ctxIdxInc = condTermFlagA + condTermFlagB
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = bs.cabac_decode(False, ctxIdx)
+        return binVal
+    
+    def mb_qp_delta(self,slice:SliceData) -> int:
+        if self.pps.entropy_coding_mode_flag != 1:
+            return self.read_se()
+        # 
+        ctxIdxOffset = 60
+        ctxIdxInc = 1
+        # 9.3.3.1.1.5
+        prevMbAddr = slice.prevMbAddr()
+        if  prevMbAddr == None or \
+            prevMbAddr.mb_type.name in ("P_Skip", "B_Skip", "I_PCM") or ( \
+                prevMbAddr.mb_type.MbPartPredMode != "Intra_16x16" and \
+                prevMbAddr.CodedBlockPatternChroma == 0 and \
+                prevMbAddr.CodedBlockPatternLuma == 0 ) or \
+            prevMbAddr.mb_qp_delta == 0:
+            ctxIdxInc = 0
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.cabac_decode(False, ctxIdx)
+        # 二值化部分
+        synElVal = 0
+        if binVal == 0:
+            synElVal = 0
+        else:
+            ctxIdx = ctxIdxOffset + 2
+            binVal = self.cabac_decode(False, ctxIdx)
+            binIdx = 1
+            while binVal == 1:
+                ctxIdx = ctxIdxOffset + 3
+                binVal = self.cabac_decode(False, ctxIdx)
+                binIdx += 1
+            if binIdx & 0x01:  # 奇数
+                binIdx = (binIdx + 1) >> 1  # (−1)^(k+1) * Ceil(k÷2)
+            else:  # 偶数
+                binIdx = -(binIdx >> 1)  # (−1)^(k+1) * Ceil(k÷2)
+            synElVal = binIdx
+        return synElVal
+    
+    def intra_chroma_pred_mode(self,slice:SliceData) -> int:
+        if self.pps.entropy_coding_mode_flag != 1:
+            return self.read_ue()
+        ctxIdxOffset = 64
+        # 9.3.3.1.1.8
+        mbAddrA = slice.mbAddrN('A')
+        condTermFlagA = 1
+        if not mbAddrA or \
+                mbAddrA.mb_type.name.I_PCM == 0 or \
+                mbAddrA.intra_chroma_pred_mode == 0:
+            condTermFlagA = 0
+        mbAddrB = slice.mbAddrN('B')
+        condTermFlagB = 1
+        if not mbAddrB or \
+                mbAddrB.mb_type.name.I_PCM == 0 or \
+                mbAddrB.intra_chroma_pred_mode == 0:
+            condTermFlagB = 0
+        ctxIdxInc = condTermFlagA + condTermFlagB
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        # 二值化部分
+        binVal = self.cabac_decode(False, ctxIdx)
+        if binVal == 0:
+            synElVal = 0
+        else:
+            ctxIdx = ctxIdxOffset + 3  # Table 9-39
+            binVal = self.cabac_decode(False, ctxIdx)
+        if binVal == 0:  # //10
+            synElVal = 1
+        else:  # 11
+            ctxIdx = ctxIdxOffset + 3  # Table 9-39
+            binVal = self.cabac_decode(False, ctxIdx)
+        if binVal == 0:  # 110
+            synElVal = 2
+        else:  # 111
+            synElVal = 3  # TU, cMax=3
+        return synElVal
+
+    def coded_block_pattern(self,slice:SliceData, mb: MacroBlock) -> int:
+        if self.pps.entropy_coding_mode_flag != 1:
+            mev = self.read_me()
+            if mb.mb_type.MbPartPredMode in ('Intra_4x4', 'Intra_8x8'):
+                return mev[1]
+            else:
+                return mev[2]
+        
+        def coded_block_pattern_inc (ctxIdxOffset, binIdx):
+            luma8x8BlkIdx = binIdx
+            if ctxIdxOffset == 73:
+                condTermFlagA = 1
+                mbAddrA = slice.mbAddrN('A')
+                if mbAddrA is None or mbAddrA.mb_type.name == 'I_PCM' or (
+                    mbAddrA.mb_type.name not in ('P_Skip', 'B_Skip') and 
+                    ((mbAddrA.CodedBlockPatternLuma >> luma8x8BlkIdx) & 1) != 0
+                ):
+                    condTermFlagA = 0
+                condTermFlagB = 1
+                mbAddrB = slice.mbAddrN('B')
+                if mbAddrB is None or mbAddrB.mb_type.name == 'I_PCM' or (
+                    mbAddrB.mb_type.name not in ('P_Skip', 'B_Skip') and 
+                    ((mbAddrB.CodedBlockPatternLuma >> luma8x8BlkIdx) & 1) != 0
+                ):
+                    condTermFlagB = 0
+                ctxIdxInc = condTermFlagA + 2 * condTermFlagB 
+                return ctxIdxInc
+            elif ctxIdxOffset == 77:
+                mbAddrA = slice.mbAddrN('A')
+                condTermFlagA = 1
+                if mbAddrA is None or mbAddrA.mb_type.name == 'I_PCM' or (
+                    mbAddrA.mb_type.name in ('P_Skip', 'B_Skip') or 
+                    (binIdx == 0 and mbAddrA.CodedBlockPatternChroma == 0) or 
+                    (binIdx == 1 and mbAddrA.CodedBlockPatternChroma != 2)
+                ):
+                    condTermFlagA = 0
+                mbAddrB = slice.mbAddrN('B')
+                condTermFlagB = 1
+                if mbAddrB is None or mbAddrB.mb_type.name == 'I_PCM' or (
+                    mbAddrB.mb_type.name in ('P_Skip', 'B_Skip') or 
+                    (binIdx == 0 and mbAddrB.CodedBlockPatternChroma == 0) or 
+                    (binIdx == 1 and mbAddrB.CodedBlockPatternChroma != 2)
+                ):
+                    condTermFlagB = 0
+                ctxIdxInc = condTermFlagA + 2 * condTermFlagB + (4 if binIdx == 1 else 0)
+                return ctxIdxInc
+        
+        ctxIdxOffset = 73
+        # 第一个 bin
+        binIdx = 0
+        ctxIdxInc = coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma = binVal
+        binIdx = 1
+        ctxIdxInc = coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 1
+        binIdx = 2
+        ctxIdxInc = coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 2
+        binIdx = 3
+        ctxIdxInc = coded_block_pattern_inc(ctxIdxOffset, binIdx)
+        ctxIdx = ctxIdxOffset + ctxIdxInc
+        binVal = self.cabac_decode(False, ctxIdx)
+        CodedBlockPatternLuma += binVal << 3
+        CodedBlockPatternChroma = 0
+        if self.sps.chroma_format_idc not in (1, 3):
+            ctxIdxOffset = 77
+            binIdx = 0
+            ctxIdxInc = coded_block_pattern_inc(ctxIdxOffset, binIdx)
+            ctxIdx = ctxIdxOffset + ctxIdxInc
+            binVal = self.cabac_decode(False, ctxIdx)
+            if binVal == 0:
+                CodedBlockPatternChroma = 0
+            else:
+                CodedBlockPatternChroma = 1
+                binIdx = 1
+                ctxIdxInc = coded_block_pattern_inc(
+                    ctxIdxOffset, binIdx)
+                ctxIdx = ctxIdxOffset + ctxIdxInc
+                binVal = self.cabac_decode(False, ctxIdx)
+                if binVal == 1:
+                    CodedBlockPatternChroma = 2
+        return CodedBlockPatternLuma + CodedBlockPatternChroma * 16

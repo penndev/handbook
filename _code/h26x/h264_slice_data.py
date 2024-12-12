@@ -5,6 +5,13 @@ from h264_slice_header import SliceHeader
 from h264_bs import BitStream
 
 class SliceData:
+
+    def prevMbAddr(self) -> None|MacroBlock:
+        if self.CurrMbAddr < 1:
+            return None
+        else:
+            return self.macroblock[self.CurrMbAddr - 1]
+
     def mbAddrN(self, N:str) -> None|MacroBlock:
         if self.CurrMbAddr != 0:
             raise ("mbAddrN")
