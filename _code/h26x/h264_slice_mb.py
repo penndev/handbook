@@ -24,53 +24,7 @@ class MacroBlock():
 
         raise ("residual_block_cabac")
 
-    def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx):
-        if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
-            self.residual_block(i16x16DClevel, 0, 15, 16)
-        for i8x8 in range(4):
-            if not self.transform_size_8x8_flag or not pps.entropy_coding_mode_flag:
-                for i4x4 in range(4):
-                    if self.CodedBlockPatternLuma & (1 << i8x8):
-                        if self.mb_type.MbPartPredMode == "Intra_16x16":
-                            self.residual_block(
-                                i16x16AClevel[i8x8 * 4 + i4x4], max(0, startIdx - 1), endIdx - 1, 15)
-                        else:
-                            self.residual_block(
-                                level4x4[i8x8 * 4 + i4x4], startIdx, endIdx, 16)
-                    elif self.mb_type.MbPartPredMode == "Intra_16x16":
-                        for i in range(15):
-                            level4x4[i8x8 * 4 + i4x4][i] = 0
-                    else:
-                        for i in range(16):
-                            level4x4[i8x8 * 4 + i4x4][i] = 0
-                    if not pps.entropy_coding_mode_flag and self.transform_size_8x8_flag:
-                        for i in range(16):
-                            level8x8[i8x8][4 * i +
-                                           i4x4] = level4x4[i8x8 * 4 + i4x4][i]
-            elif self.CodedBlockPatternLuma & (1 << i8x8):
-                self.residual_block(
-                    level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64)
-            else:
-                for i in range(64):
-                    level8x8[i8x8][i] = 0
-        return i16x16DClevel, i16x16AClevel, level4x4, level8x8
-
-    def residual(self, startIdx, endIdx):
-        if pps.entropy_coding_mode_flag != 1:
-            raise ("residual_block_cavlc")
-        else:
-            self.residual_block = self.residual_block_cabac
-
-        Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8 = self.residual_luma(
-            i16x16DClevel={},
-            i16x16AClevel={},
-            level4x4={},
-            level8x8={},
-            startIdx=startIdx,
-            endIdx=endIdx
-        )
-        print(Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8)
-        exit("i am here ready finish")
+ 
 
     def __init__(self, bs: BitStream, slice: SliceData):
         '''
@@ -106,9 +60,7 @@ class MacroBlock():
                     self.transform_size_8x8_flag = bs.transform_size_8x8_flag()
             if self.CodedBlockPatternLuma > 0 or self.CodedBlockPatternChroma > 0 or self.mb_type.MbPartPredMode == "Intra_16x16":
                 self.mb_qp_delta = bs.mb_qp_delta(slice)
-                # self.residual(0, 15)
-                print("I am here..")
-                exit('1')
+                self.residual(0, 15)
 
     def mb_pred(self, bs: BitStream, slice: SliceData):
         if self.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16"):
@@ -134,4 +86,55 @@ class MacroBlock():
 
         elif self.mb_type.MbPartPredMode != "Direct":
             raise ("self.mb_type.MbPartPredMode != Direct")
+
+    def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, bs:BitStream, slice:SliceData):
+        
+
+    def residual(self, startIdx, endIdx, bs:BitStream, slice:SliceData):
+        if bs.pps.entropy_coding_mode_flag != 1:
+            self.residual_block = self.residual_block_cavlc
+        else:
+            self.residual_block = self.residual_block_cabac
+
+        Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8 = self.residual_luma(
+            i16x16DClevel={},
+            i16x16AClevel={},
+            level4x4={},
+            level8x8={},
+            startIdx=startIdx,
+            endIdx=endIdx
+        )
+        print(Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8)
+        exit("i am here ready finish")
+    
+    def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
+        if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
+            self.residual_block(i16x16DClevel, 0, 15, 16)
+        for i8x8 in range(4):
+            if not self.transform_size_8x8_flag or not bs.pps.entropy_coding_mode_flag:
+                for i4x4 in range(4):
+                    if self.CodedBlockPatternLuma & (1 << i8x8):
+                        if self.mb_type.MbPartPredMode == "Intra_16x16":
+                            self.residual_block(
+                                i16x16AClevel[i8x8 * 4 + i4x4], max(0, startIdx - 1), endIdx - 1, 15)
+                        else:
+                            self.residual_block(
+                                level4x4[i8x8 * 4 + i4x4], startIdx, endIdx, 16)
+                    elif self.mb_type.MbPartPredMode == "Intra_16x16":
+                        for i in range(15):
+                            level4x4[i8x8 * 4 + i4x4][i] = 0
+                    else:
+                        for i in range(16):
+                            level4x4[i8x8 * 4 + i4x4][i] = 0
+                    if not bs.pps.entropy_coding_mode_flag and self.transform_size_8x8_flag:
+                        for i in range(16):
+                            level8x8[i8x8][4 * i +
+                                           i4x4] = level4x4[i8x8 * 4 + i4x4][i]
+            elif self.CodedBlockPatternLuma & (1 << i8x8):
+                self.residual_block(
+                    level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64)
+            else:
+                for i in range(64):
+                    level8x8[i8x8][i] = 0
+        return i16x16DClevel, i16x16AClevel, level4x4, level8x8
 
