@@ -491,42 +491,33 @@
 <li>面向开发者的视频调试工具 https://www.elecard.com/</li>
 <li>MPEG-TS 分析工具 https://www.easyice.cn/</li>
 </ul>
-<p><strong>文档</strong></p>
+<p><strong>编解码文档</strong></p>
 <ul>
-<li>https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.264</li>
-<li>https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.265</li>
+<li><strong>H264</strong> https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.264</li>
+<li><strong>H265</strong> https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.265</li>
 </ul>
 <p><strong>名词说明</strong></p>
 <ul>
 <li>
-<p>时间冗余（帧间编码）：物体存在运动规律，同一个场景存在大量的重复背景元素。</p>
+<p>时间冗余（帧间编码）</p>
+<ul>
+<li>运动预测 物体在影像展示中普遍符合物理运动规律，比如一个球在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">X_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>,<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">Y_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 运动到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">X_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>,<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mn>5</mn></msub></mrow><annotation encoding="application/x-tex">Y_5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的位置，我们可以只编码这个物体的运动距离即可。</li>
+<li>当前帧与上一帧除了球的运动其他都没有变动，存在背景冗余。</li>
+</ul>
 </li>
 <li>
-<p>空间冗余（帧内编码）：物体在图片上存在大量重复的元素。</p>
+<p>空间冗余（帧内编码）：物体在图片上存在大量重复的元素,比如一个黑色的正方形，大部分区域在颜色表达上基本一致。</p>
 </li>
 <li>
-<p>GOP(I-&gt;P-&gt;B-I)：Gropu of Pictures 动起来的图片就是视频。</p>
+<p>GOP (I-&gt;P-&gt;B-I)：Group of Pictures 动起来的图片就是视频。</p>
 <ul>
 <li>Intra-coded picture 帧内编码图片。</li>
 <li>Predictive-coded Picture 预测编码图片。</li>
 <li>Bidirectionally predicted picture 双向预测图片。</li>
 </ul>
 </li>
-<li>
-<p>YCrCb: （Y-Luminance 亮度）（C Chrominance 色度）</p>
-</li>
-<li>
-<p>色度采样率 4:2:0(j:a:b) 形容一个以J个像素宽及两个像素高的概念上区域</p>
-</li>
 </ul>
-<blockquote>
-<p>4:2:0 对数据压缩率为 8*(8<em>3) / 8</em>(8+4) 所以压缩率为一半。</p>
-</blockquote>
-<ul>
-<li>J：水平抽样引用（概念上区域的宽度）。通常为4。</li>
-<li>a：在J个像素第一行中的色度抽样数目（Cr, Cb）。</li>
-<li>b：在J个像素第二行中的额外色度抽样数目（Cr, Cb）。</li>
-</ul>
+<p>176 144</p>
 </div>
                                 
                                 </section>
@@ -554,7 +545,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"音视频媒体","level":"5.1","depth":1,"next":{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},"previous":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"articles":[{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},{"title":"H264","level":"5.1.2","depth":2,"path":"Media/H264.md","ref":"Media/H264.md","articles":[]},{"title":"MPEG2-TS分析","level":"5.1.3","depth":2,"path":"Media/MPEG2-TS.md","ref":"Media/MPEG2-TS.md","articles":[]}],"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Media/README.md","mtime":"2024-12-11T08:09:20.690Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-11T08:09:29.161Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"音视频媒体","level":"5.1","depth":1,"next":{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},"previous":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"articles":[{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},{"title":"H264","level":"5.1.2","depth":2,"path":"Media/H264.md","ref":"Media/H264.md","articles":[]},{"title":"MPEG2-TS分析","level":"5.1.3","depth":2,"path":"Media/MPEG2-TS.md","ref":"Media/MPEG2-TS.md","articles":[]}],"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Media/README.md","mtime":"2024-12-15T14:10:35.885Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-15T14:10:41.408Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
