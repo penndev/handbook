@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>音视频媒体 · 随记手册</title>
+        <title>YUV采样与编码 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="@book 5.1.4">
@@ -64,10 +64,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="FFmpeg.md" />
+    <link rel="next" href="rtmp.md" />
     
     
-    <link rel="prev" href="../Internet/Ethernet.html" />
+    <link rel="prev" href="MPEG2-TS.html" />
     
 
     </head>
@@ -333,7 +333,7 @@
         
         
     
-        <li class="chapter active" data-level="5.1" data-path="./">
+        <li class="chapter " data-level="5.1" data-path="./">
             
                 <a href="./">
             
@@ -386,7 +386,7 @@
             
         </li>
     
-        <li class="chapter " data-level="5.1.4" data-path="yuv.html">
+        <li class="chapter active" data-level="5.1.4" data-path="yuv.html">
             
                 <a href="yuv.html">
             
@@ -493,7 +493,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >音视频媒体</a>
+        <a href=".." >YUV采样与编码</a>
     </h1>
 </div>
 
@@ -505,55 +505,68 @@
                             
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><blockquote>
-<p>视频 音频 图片分析</p>
+                                <div class="markdown-it"><h1 id="yuv">YUV</h1>
+<blockquote>
+<p>YUV也叫YCrCb 是一种颜色编码方法</p>
 </blockquote>
 <ul>
 <li>
-<p><a href="yuv.html">YUV采样与编码</a></p>
-</li>
-<li>
-<p><a href="rtmp.md">rtmp与flv</a></p>
-</li>
-</ul>
-<p><strong>编解码文档</strong></p>
+<p>YCrCb(YUV) 描述如下:</p>
 <ul>
-<li><strong>H264</strong> https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.264</li>
-<li><strong>H265</strong> https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.265</li>
-</ul>
-<p><strong>分析工具</strong></p>
+<li>Y-Luminance 亮度(灰度)</li>
+<li>Chrominance 色度
 <ul>
-<li>SpecialVH264 NAL分析工具
-<ul>
-<li>源码 https://github.com/leixiaohua1020/h264_analysis</li>
-<li>下载 https://sourceforge.net/projects/h264streamanalysis/files/binary/</li>
+<li>Cr(U) <strong>r</strong> red红色</li>
+<li>Cb(V) <strong>b</strong> blue蓝色</li>
 </ul>
 </li>
-<li>YUV Player 工具 https://github.com/Tee0125/yuvplayer</li>
-<li>面向开发者的视频调试工具 https://www.elecard.com/</li>
-<li>MPEG-TS 分析工具 https://www.easyice.cn/</li>
-</ul>
-<p><strong>名词说明</strong></p>
-<ul>
-<li>
-<p>时间冗余（帧间编码）</p>
-<ul>
-<li>运动预测 物体在影像展示中普遍符合物理运动规律，比如一个球在 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">X_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>,<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">Y_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 运动到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">X_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>,<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mn>5</mn></msub></mrow><annotation encoding="application/x-tex">Y_5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.2222em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 的位置，我们可以只编码这个物体的运动距离即可。</li>
-<li>当前帧与上一帧除了球的运动其他都没有变动，存在背景冗余。</li>
 </ul>
 </li>
 <li>
-<p>空间冗余（帧内编码）：物体在图片上存在大量重复的元素,比如一个黑色的正方形，大部分区域在颜色表达上基本一致。</p>
+<p>色度采样率 (j:a:b) 形容一个以J个像素宽及两个像素高的概念上区域</p>
+<ul>
+<li>J：水平抽样引用（概念上区域的宽度）通常为4。</li>
+<li>a：在J个像素第一行中的色度抽样数目（Cr, Cb）。</li>
+<li>b：在J个像素第二行中的额外色度抽样数目（Cr, Cb）。</li>
+</ul>
+</li>
+</ul>
+<h2 id="色度采样">色度采样</h2>
+<blockquote>
+<p>人的眼睛对色彩敏感度低于亮度敏感度</p>
+</blockquote>
+<ul>
+<li>
+<p>4:4:4
+<img src="docs/yuv444.jpg" alt="yuv444"></img></p>
+<p>字节流为<code>24</code>个字节<code>8</code>个像素各自展示自己颜色无压缩</p>
 </li>
 <li>
-<p>GOP (I-&gt;P-&gt;B-I)：Group of Pictures 动起来的图片就是视频。</p>
-<ul>
-<li>Intra-coded picture 帧内编码图片。</li>
-<li>Predictive-coded Picture 预测编码图片。</li>
-<li>Bidirectionally predicted picture 双向预测图片。</li>
-</ul>
+<p>4:4:0
+<img src="docs/yuv440.jpg" alt="yuv444"></img></p>
+<p>字节流为<code>16</code>个字节</p>
+</li>
+<li>
+<p>4:2:2
+<img src="docs/yuv422.jpg" alt="yuv422"></img></p>
+<p>字节流为<code>16</code>个字节</p>
+</li>
+<li>
+<p>4:2:0
+<img src="docs/yuv420.jpg" alt="yuv422"></img></p>
+<p>图像字节数为<code>12</code>个字节</p>
+</li>
+<li>
+<p>4:1:1
+<img src="docs/yuv411.jpg" alt="yuv422"></img></p>
+<p>图像字节数为<code>12</code>个字节</p>
 </li>
 </ul>
+<h2 id="存储为文件">存储为文件</h2>
+<pre><code>YUV文件=全部的Y数据+全部的U数据+全部的V数据
+</code></pre>
+<p>一帧图片存储为YUV分为三部分Y+U+V，根据采样率来自动进行匹配到固定的位置。
+不知道是谁规定的YUV数据这样存储，还挺有意思的。</p>
 </div>
                                 
                                 </section>
@@ -565,12 +578,12 @@
 
             
                 
-                <a href="../Internet/Ethernet.html" class="navigation navigation-prev " aria-label="Previous page: Ethernet">
+                <a href="MPEG2-TS.html" class="navigation navigation-prev " aria-label="Previous page: MPEG2-TS分析">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="FFmpeg.md" class="navigation navigation-next " aria-label="Next page: FFmpeg">
+                <a href="rtmp.md" class="navigation navigation-next " aria-label="Next page: rtmp与flv">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -581,7 +594,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"音视频媒体","level":"5.1","depth":1,"next":{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},"previous":{"title":"Ethernet","level":"4.1.4","depth":2,"path":"Internet/Ethernet.md","ref":"Internet/Ethernet.md","articles":[]},"articles":[{"title":"FFmpeg","level":"5.1.1","depth":2,"path":"Media/FFmpeg.md","ref":"Media/FFmpeg.md","articles":[]},{"title":"H264","level":"5.1.2","depth":2,"path":"Media/H264.md","ref":"Media/H264.md","articles":[]},{"title":"MPEG2-TS分析","level":"5.1.3","depth":2,"path":"Media/MPEG2-TS.md","ref":"Media/MPEG2-TS.md","articles":[]},{"title":"YUV采样与编码","level":"5.1.4","depth":2,"path":"Media/yuv.md","ref":"Media/yuv.md","articles":[]},{"title":"rtmp与flv","level":"5.1.5","depth":2,"path":"Media/rtmp.md","ref":"Media/rtmp.md","articles":[]}],"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Media/README.md","mtime":"2024-12-24T07:11:25.217Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-24T07:11:30.187Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"YUV采样与编码","level":"5.1.4","depth":2,"next":{"title":"rtmp与flv","level":"5.1.5","depth":2,"path":"Media/rtmp.md","ref":"Media/rtmp.md","articles":[]},"previous":{"title":"MPEG2-TS分析","level":"5.1.3","depth":2,"path":"Media/MPEG2-TS.md","ref":"Media/MPEG2-TS.md","articles":[]},"dir":"ltr"},"config":{"plugins":["book"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"book":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Media/yuv.md","mtime":"2024-12-24T07:11:25.282Z","type":"markdown"},"gitbook":{"version":"5.1.4","time":"2024-12-24T07:11:30.187Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
