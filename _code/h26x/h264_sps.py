@@ -120,6 +120,7 @@ class SPS():
                             self.scaling_list_8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
                                                            SPS.Default_8x8_Inter
         
+        self.ChromaArrayType = self.chroma_format_idc
         # 亮度和色度的比特深度
         self.BitDepthY = 8 + self.bit_depth_luma_minus8
         self.QpBdOffsetY = 6 * self.bit_depth_luma_minus8

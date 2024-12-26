@@ -88,7 +88,8 @@ class MacroBlock():
             raise ("self.mb_type.MbPartPredMode != Direct")
 
     def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, bs:BitStream, slice:SliceData):
-        
+        bs.get_coeff(coeffLevel)
+
 
     def residual(self, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if bs.pps.entropy_coding_mode_flag != 1:
