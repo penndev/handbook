@@ -88,10 +88,66 @@ class MacroBlock():
             raise ("self.mb_type.MbPartPredMode != Direct")
 
     def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, bs:BitStream, slice:SliceData):
-        bs.get_coeff(coeffLevel)
+        TrailingOnes, TotalCoeff = bs.get_coeff(coeffLevel)
+
+        if TotalCoeff > 0:
+            if TotalCoeff > 10 and TrailingOnes < 3:
+                suffixLength = 1
+            else:
+                suffixLength = 0
+            levelVal = {}
+            for i in range(TotalCoeff):
+                if i < TrailingOnes:
+                    trailing_ones_sign_flag = bs.read_bits(1)
+                    levelVal[i] = 1 - 2 * trailing_ones_sign_flag
+                else:
+                    leading_zero_bits = -1
+                    while True:
+                        leading_zero_bits += 1
+                        b = bs.read_bits(1)  # 假设 self.read_bits(1) 是单个位读取的函数
+                        if b == 1:
+                            break
+                    level_prefix = leading_zero_bits
+                    levelCode = min(15, level_prefix) << suffixLength
+
+                    if level_prefix == 14 and suffixLength == 0:
+                        levelSuffixSize = 4
+                    elif level_prefix >= 15:
+                        levelSuffixSize = level_prefix - 3
+                    else:
+                        levelSuffixSize = suffixLength
+
+                    if suffixLength > 0 or level_prefix >= 14:
+                        if levelSuffixSize > 0:
+                            level_suffix = bs.read_bits(levelSuffixSize)
+                        else:
+                            level_suffix = 0
+                        levelCode += level_suffix
+
+                    if level_prefix >= 15 and suffixLength == 0:
+                        levelCode += 15
+                    if level_prefix >= 16:
+                        levelCode += (1 << (level_prefix - 3)) - 4096
+                    if i == TrailingOnes and TrailingOnes < 3:
+                        levelCode += 2
+                    if levelCode % 2 == 0:
+                        levelVal[i] = (levelCode + 2) >> 1
+                    else:
+                        levelVal[i] = (-levelCode - 1) >> 1
+                    if suffixLength == 0:
+                        suffixLength = 1
+                    if abs(levelVal[i]) > (3 << (suffixLength - 1)) and suffixLength < 6:
+                        suffixLength += 1
+
+            TotalZeros = 0
+            if TotalCoeff < endIdx - startIdx + 1:
+                TotalZeros = getTotalZeros(bs, TotalCoeff - 1, maxNumCoeff);
+            else:
+                TotalZeros = 0
+            # 继续开发
 
 
-    def residual(self, startIdx, endIdx, bs:BitStream, slice:SliceData):
+    def residual(self, startIdx, endIdx, bs: BitStream, slice: SliceData):
         if bs.pps.entropy_coding_mode_flag != 1:
             self.residual_block = self.residual_block_cavlc
         else:
@@ -107,7 +163,7 @@ class MacroBlock():
         )
         print(Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8)
         exit("i am here ready finish")
-    
+
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
             self.residual_block(i16x16DClevel, 0, 15, 16)
@@ -138,4 +194,3 @@ class MacroBlock():
                 for i in range(64):
                     level8x8[i8x8][i] = 0
         return i16x16DClevel, i16x16AClevel, level4x4, level8x8
-

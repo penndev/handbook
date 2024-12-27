@@ -17,6 +17,7 @@ class BitStream():
 
     def __init__(self, hex: bytearray, sps:SPS, pps:PPS) -> None:
         self.hex = hex
+        '''字节流读取的位置'''
         self.position = 0
         # '当前数据读取流参数应该都放置到bs,bs是全局的
         self.sps = sps
@@ -1842,39 +1843,13 @@ class BitStream():
 
     #----------- CAVLC ----------------
 
-    def _coeff_token_nc(self, coeffLevel, slice:SliceData) -> int:
-        '''
-        
-        '''
-
-
-            mbAddrFlagA = 0
-            mbAddrFlagB = 0
-
-            mbAddrA = SliceData.mbAddrN('A')
-            mbAddrB = SliceData.mbAddrN('B')
-
-            BlkIdxA = 0
-            BlkIdxB = 0
-
-            nA = 0
-            nB = 0
-
-            if mbAddrFlagA and mbAddrFlagB: 
-                nC = (nA + nB + 1) >> 1
-            elif mbAddrFlagA and not mbAddrFlagB:
-                nC = nA 
-            elif not mbAddrFlagA and mbAddrFlagB:
-                nC = nB 
-            else:
-                nC = 0
-        return nC
-    
-      
     def get_coeff(self, coeffLevel:str, coeff_token:int, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
         '''
-        coeffLevel: 有很多求职类型
-            - 
+            @param
+            - coeffLevel: 有很多求值类型
+                - ChromaDCLevel
+                - 
+            @return TrailingOnes, TotalCoeff
         '''
         nc = 0
         if coeffLevel == "ChromaDCLevel":
@@ -1907,36 +1882,46 @@ class BitStream():
             
             availableFlagA = False
             availableFlagB = False
-            if not mbAddrA or (
-                mbAddrA.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and
-
-
-            ):
-                pass
-
-
-
-
-            nA = 0
-            nB = 0
-
-            if mbAddrFlagA and mbAddrFlagB: 
-                nc = (nA + nB + 1) >> 1
-            elif mbAddrFlagA and not mbAddrFlagB:
-                nc = nA 
-            elif not mbAddrFlagA and mbAddrFlagB:
-                nc = nB 
+            if not mbAddrA or \
+                (mb.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and self.pps.constrained_intra_pred_flag) and \
+                mbAddrA.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred"):
+                availableFlagA = False
             else:
-                nc = 0
+                availableFlagA = True
+            
+            if not mbAddrB or \
+                (mb.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and self.pps.constrained_intra_pred_flag) and \
+                mbAddrB.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred"):
+                availableFlagB = False
+            else:
+                availableFlagB = True
+            
+            if availableFlagA:
+                if mbAddrA.mb_type.name in ("P_Skip", "B_Skip"):
+                    nA = 0
+                elif mbAddrA.mb_type.name == "I_PCM":
+                    nA = 16
+                else:
+                    raise('未开发')
 
+            if availableFlagB:
+                if mbAddrB.mb_type.name in ("P_Skip", "B_Skip"):
+                    nB = 0
+                elif mbAddrB.mb_type.name == "I_PCM":
+                    nB = 16
+                else:
+                    raise('未开发')
+                
+            if availableFlagA and availableFlagB:
+                nC = (nA + nB + 1) >> 1
+            elif availableFlagA and not availableFlagB:
+                nC = nA
+            elif availableFlagB and not availableFlagA:
+                nC = nB
+            else:
+                nC = 0
 
-
-
-
-        '''
-        coeff_token_length, TrailingOnes, TotalCoeff
-        '''
-
+        coeff_token = self.read_bits(16)
         if (0 <= nC and nC < 2):
             if (coeff_token >> 15) == 1: #(1)b
                 coeff_token_length = 1
@@ -3111,7 +3096,11 @@ class BitStream():
                 coeff_token_length = 11
                 TrailingOnes = 3
                 TotalCoeff = 8
-        return coeff_token_length, TrailingOnes, TotalCoeff
+        
+        self.position -= 16 - coeff_token_length
+        
+
+        return TrailingOnes, TotalCoeff
 
 
     
