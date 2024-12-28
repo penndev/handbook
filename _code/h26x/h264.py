@@ -25,16 +25,16 @@ class H264():
         match nal_unit_type:
             case NalUnitType.IDR:
                 slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
-                print(slice_header.__dict__)
+                # print(slice_header.__dict__)
                 SliceData(bs, slice_header)
             case NalUnitType.SPS:
                 self.sps = SPS(bs)
-                print(self.sps.__dict__)
+                # print(self.sps.__dict__)
             case NalUnitType.PPS:
                 self.pps = PPS(bs, self.sps)
-                print(self.pps.__dict__)
-            case _:
-                print(f'not support nal_unit_type: {nal_unit_type}')
+                # print(self.pps.__dict__)
+            # case _:
+                # print(f'not support nal_unit_type: {nal_unit_type}')
 
     def open(self, size) -> Generator[bytearray, None, None]:
         '''

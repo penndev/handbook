@@ -1843,16 +1843,10 @@ class BitStream():
 
     #----------- CAVLC ----------------
 
-    def get_coeff(self, coeffLevel:str, coeff_token:int, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
-        '''
-            @param
-            - coeffLevel: 有很多求值类型
-                - ChromaDCLevel
-                - 
-            @return TrailingOnes, TotalCoeff
-        '''
+    def get_coeff(self, residualLevel:str, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
+
         nc = 0
-        if coeffLevel == "ChromaDCLevel":
+        if residualLevel == "ChromaDCLevel":
             if self.sps.ChromaArrayType == 1:
                 nc = -1
             elif self.sps.ChromaArrayType == 2:
@@ -1860,24 +1854,32 @@ class BitStream():
             else:
                 nc = 0
         else:
-            if coeffLevel == "Intra16x16DCLevel" :
+            if residualLevel == "Intra16x16DCLevel" :
                 luma4x4BlkIdx = 0
-            if coeffLevel == "CbIntra16x16DCLevel" :
+            if residualLevel == "CbIntra16x16DCLevel" :
                 cb4x4BlkIdx = 0
-            if coeffLevel == "CrIntra16x16DCLevel" :
+            if residualLevel == "CrIntra16x16DCLevel" :
                 cr4x4BlkIdx = 0
 
             mbAddrA = slice.mbAddrN('A')
             mbAddrB = slice.mbAddrN('B')
 
-            if coeffLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-                # 没有理解这里是为了获取什么
+            
+            def InverseRasterScan(a, b, c, d, e):
+                if e == 0:
+                    return (a % (d // b)) * b
+                else:  # e == 1
+                    return (a // (d // b)) * c
+
+
+            if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
+                BlkIdxA = 0
+                BlkIdxB = 0
+            elif residualLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
                 raise('未开发')
-            elif coeffLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
+            elif residualLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):
                 raise('未开发')
-            elif coeffLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):
-                raise('未开发')
-            elif coeffLevel in ("ChromaACLevel"):
+            elif residualLevel in ("ChromaACLevel"):
                 raise('未开发')
             
             availableFlagA = False
@@ -3103,5 +3105,140 @@ class BitStream():
         return TrailingOnes, TotalCoeff
 
 
-    
+    def find_table(self, max_number, length_table, code_table):
+        ret = 0
+        for i in range(max_number):
+            code_len = length_table[i]
+            if code_len == 0:
+                break
 
+            if self.read_bits(code_len) == code_table[i]:
+                ret = i
+                self.read_bits(code_len)
+                break
+        return ret
+
+
+    def get_total_zeros(self, TotalCoeff, maxNumCoeff):
+        
+
+        total_zeros_table_chroma_dc_length_420 = [
+            [1, 2, 3, 3],
+            [1, 2, 2],
+            [1, 1]
+        ]
+
+        # Total Zeros Table Chroma DC Code for 4:2:0 format
+        total_zeros_table_chroma_dc_code_420 = [
+            [1, 1, 1, 0],
+            [1, 1, 0],
+            [1, 0]
+        ]
+
+
+        total_zeros_table_chroma_dc_length_422 = [
+            [1, 3, 3, 4, 4, 4, 5, 5],
+            [3, 2, 3, 3, 3, 3, 3],
+            [3, 3, 2, 2, 3, 3],
+            [3, 2, 2, 2, 3],
+            [2, 2, 2, 2],
+            [2, 2, 1],
+            [1, 1]
+        ]
+
+        # Total Zeros Table Chroma DC Code for 4:2:2 format
+        total_zeros_table_chroma_dc_code_422 = [
+            [1, 2, 3, 2, 3, 1, 1, 0],
+            [0, 1, 1, 4, 5, 6, 7],
+            [0, 1, 1, 2, 6, 7],
+            [6, 0, 1, 2, 7],
+            [0, 1, 2, 3],
+            [0, 1, 1],
+            [0, 1]
+        ]
+    
+            
+        # Total Zeros Table Length
+        total_zeros_table_length = [
+            [1, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9],
+            [3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 6, 6, 6, 6],
+            [4, 3, 3, 3, 4, 4, 3, 3, 4, 5, 5, 6, 5, 6],
+            [5, 3, 4, 4, 3, 3, 3, 4, 3, 4, 5, 5, 5],
+            [4, 4, 4, 3, 3, 3, 3, 3, 4, 5, 4, 5],
+            [6, 5, 3, 3, 3, 3, 3, 3, 4, 3, 6],
+            [6, 5, 3, 3, 3, 2, 3, 4, 3, 6],
+            [6, 4, 5, 3, 2, 2, 3, 3, 6],
+            [6, 6, 4, 2, 2, 3, 2, 5],
+            [5, 5, 3, 2, 2, 2, 4],
+            [4, 4, 3, 3, 1, 3],
+            [4, 4, 2, 1, 3],
+            [3, 3, 1, 2],
+            [2, 2, 1],
+            [1, 1]
+        ]
+
+        # Total Zeros Table Code
+        total_zeros_table_code = [
+            [1, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 1],
+            [7, 6, 5, 4, 3, 5, 4, 3, 2, 3, 2, 3, 2, 1, 0],
+            [5, 7, 6, 5, 4, 3, 4, 3, 2, 3, 2, 1, 1, 0],
+            [3, 7, 5, 4, 6, 5, 4, 3, 3, 2, 2, 1, 0],
+            [5, 4, 3, 7, 6, 5, 4, 3, 2, 1, 1, 0],
+            [1, 1, 7, 6, 5, 4, 3, 2, 1, 1, 0],
+            [1, 1, 5, 4, 3, 3, 2, 1, 1, 0],
+            [1, 1, 1, 3, 3, 2, 2, 1, 0],
+            [1, 0, 1, 3, 2, 1, 1, 1],
+            [1, 0, 1, 3, 2, 1, 1],
+            [0, 1, 1, 2, 1, 3],
+            [0, 1, 1, 1, 1],
+            [0, 1, 1, 1],
+            [0, 1, 1],
+            [0, 1]
+        ]
+
+        TotalZeros = 0
+        if maxNumCoeff == 4:
+            lengthTable = total_zeros_table_chroma_dc_length_420[TotalCoeff]
+            codeTable = total_zeros_table_chroma_dc_code_420[TotalCoeff]
+            TotalZeros = self.find_table(4, lengthTable, codeTable)
+        elif maxNumCoeff == 8:
+            lengthTable = total_zeros_table_chroma_dc_length_422[TotalCoeff]
+            codeTable = total_zeros_table_chroma_dc_code_422[TotalCoeff]
+            TotalZeros = self.find_table(8, lengthTable, codeTable)
+        else:
+            lengthTable = total_zeros_table_length[TotalCoeff]
+            codeTable = total_zeros_table_code[TotalCoeff]
+            TotalZeros = self.find_table(16, lengthTable, codeTable)
+        return TotalZeros
+
+    def get_runbefore(self, zerosLeft):
+
+        runBeforeTableLength = [
+            [1, 1],
+            [1, 2, 2],
+            [2, 2, 2, 2],
+            [2, 2, 2, 3, 3],
+            [2, 2, 3, 3, 3, 3],
+            [2, 3, 3, 3, 3, 3, 3],
+            [3, 3, 3, 3, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        ]
+
+        runBeforeTableCode = [
+            [1, 0],
+            [1, 1, 0],
+            [3, 2, 1, 0],
+            [3, 2, 1, 1, 0],
+            [3, 2, 3, 2, 1, 0],
+            [3, 0, 1, 3, 2, 5, 4],
+            [7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ]
+
+
+        tableLength = runBeforeTableLength[zerosLeft]
+        tableCode = runBeforeTableCode[zerosLeft]
+        print("=======================")
+        print(zerosLeft, tableLength, tableCode)
+        print("=======================")
+        runbefore = self.find_table(15, tableLength, tableCode)
+
+        return runbefore
