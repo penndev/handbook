@@ -32,7 +32,6 @@ class MacroBlock():
             > 什么是宏块。
         '''
         self.mb_type = bs.mb_type(slice)
-        print("self.mb_type", self.mb_type.__dict__)
         self.transform_size_8x8_flag = 0
         if self.mb_type.name == "I_PCM":
             raise ("I_PCM 不经过预测，变换，量化, 直接解码")
@@ -47,9 +46,9 @@ class MacroBlock():
                         self.mb_type.MbPartPredMode = "Intra_8x8"
                 self.mb_pred(bs, slice)
 
-            # 初始化变量
             self.CodedBlockPatternLuma = 0
             self.CodedBlockPatternChroma = 0
+
             if self.mb_type.MbPartPredMode != 'Intra_16x16':
                 self.coded_block_pattern = bs.coded_block_pattern(slice, self)
                 self.CodedBlockPatternLuma = self.coded_block_pattern % 16
@@ -62,9 +61,6 @@ class MacroBlock():
                     self.transform_size_8x8_flag = bs.transform_size_8x8_flag()
             if self.CodedBlockPatternLuma > 0 or self.CodedBlockPatternChroma > 0 or self.mb_type.MbPartPredMode == "Intra_16x16":
                 self.mb_qp_delta = bs.mb_qp_delta(slice)
-                print(self.CodedBlockPatternLuma)
-                print(self.mb_qp_delta)
-                raise('debug')
                 self.residual(0, 15, bs, slice)
 
     def mb_pred(self, bs: BitStream, slice: SliceData):
@@ -73,11 +69,9 @@ class MacroBlock():
                 self.prev_intra4x4_pred_mode_flag = {}
                 self.rem_intra4x4_pred_mode = {}
                 for luma4x4BlkIdx in range(16):
-                    print("luma4x4BlkIdx", luma4x4BlkIdx)
                     self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx] = bs.cabac_decode(False, ctxIdx=68) if bs.pps.entropy_coding_mode_flag else bs.read_bits(1)
                     if not self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
-                        self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else bs.read_bits(1)
-                print("self.prev_intra4x4_pred_mode_flag", self.prev_intra4x4_pred_mode_flag) 
+                        self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else bs.read_bits(3)
             if self.mb_type.MbPartPredMode == "Intra_8x8":
                 if slice.header.slice_type == SliceType.SI:
                     raise ("Table 9-11 mb_pred prev_intra8x8_pred_mode_flag no")
@@ -86,11 +80,9 @@ class MacroBlock():
                 for luma8x8BlkIdx in range(4):
                     self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = bs.cabac_decode(False, ctxIdx=68) if bs.pps.entropy_coding_mode_flag else  bs.read_bits(1)
                     if not self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
-                        self.rem_intra8x8_pred_mode[luma8x8BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else  bs.read_bits(1)
+                        self.rem_intra8x8_pred_mode[luma8x8BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else  bs.read_bits(3)
             if bs.sps.chroma_format_idc in (1, 2):
                 self.intra_chroma_pred_mode = bs.intra_chroma_pred_mode(slice)
-                print("self.intra_chroma_pred_mode", self.intra_chroma_pred_mode)
-
         elif self.mb_type.MbPartPredMode != "Direct":
             raise ("self.mb_type.MbPartPredMode != Direct")
 
@@ -163,7 +155,7 @@ class MacroBlock():
                 if zerosLeft > 0: 
                     runbeforeVlcIdx = zerosLeft - 1 if zerosLeft <= 6 else 6
                     runVal[i] = bs.get_runbefore( runbeforeVlcIdx) 
-                else: 
+                else:
                     runVal[i] = 0
                 zerosLeft -= runVal[i]
 
@@ -173,6 +165,7 @@ class MacroBlock():
                 coeffNum += runVal[i] + 1
                 coeffLevel[startIdx + coeffNum] = levelVal[i]
         return coeffLevel
+    
     def residual(self, startIdx, endIdx, bs: BitStream, slice: SliceData):
         if bs.pps.entropy_coding_mode_flag != 1:
             self.residual_block = self.residual_block_cavlc
@@ -191,8 +184,13 @@ class MacroBlock():
             slice=slice
         )
 
-        print(Intra16x16DCLevel, Intra16x16ACLevel, LumaLevel4x4, LumaLevel8x8)
-        exit("i am here ready finish")
+        print(
+            "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
+            "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
+            "LumaLevel4x4", LumaLevel4x4, "\n",
+            "LumaLevel8x8", LumaLevel8x8, "\n",
+        )
+        exit("debug")
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
@@ -204,9 +202,9 @@ class MacroBlock():
                         if self.mb_type.MbPartPredMode == "Intra_16x16":
                             self.residual_block(i16x16AClevel.get(i8x8 * 4 + i4x4), max(0, startIdx - 1), endIdx - 1, 15, "Intra16x16ACLevel", bs, slice)
                         else:
-                            self.residual_block(level4x4.get(i8x8 * 4 + i4x4), startIdx, endIdx, 16, "Intra16x16ACLevel", bs, slice)
+                            level4x4[i8x8 * 4 + i4x4] = self.residual_block(level4x4.get(i8x8 * 4 + i4x4), startIdx, endIdx, 16, "LumaLevel4x4", bs, slice)
                     elif self.mb_type.MbPartPredMode == "Intra_16x16":
-                        for i in range(15):
+                        for i in range(15): 
                             level4x4[i8x8 * 4 + i4x4][i] = 0
                     else:
                         for i in range(16):
@@ -215,7 +213,7 @@ class MacroBlock():
                         for i in range(16):
                             level8x8[i8x8][4 * i + i4x4] = level4x4[i8x8 * 4 + i4x4][i]
             elif self.CodedBlockPatternLuma & (1 << i8x8):
-                self.residual_block( level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64, bs, slice)
+                level8x8[i8x8] = self.residual_block(level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64, bs, slice)
             else:
                 for i in range(64):
                     level8x8[i8x8][i] = 0

@@ -3114,13 +3114,13 @@ class BitStream():
 
             if self.read_bits(code_len) == code_table[i]:
                 ret = i
-                self.read_bits(code_len)
                 break
+            else:
+                self.position -= code_len
         return ret
 
 
     def get_total_zeros(self, TotalCoeff, maxNumCoeff):
-        
 
         total_zeros_table_chroma_dc_length_420 = [
             [1, 2, 3, 3],
@@ -3236,9 +3236,6 @@ class BitStream():
 
         tableLength = runBeforeTableLength[zerosLeft]
         tableCode = runBeforeTableCode[zerosLeft]
-        print("=======================")
-        print(zerosLeft, tableLength, tableCode)
-        print("=======================")
         runbefore = self.find_table(15, tableLength, tableCode)
 
         return runbefore
