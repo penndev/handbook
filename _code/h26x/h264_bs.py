@@ -8,12 +8,21 @@ if TYPE_CHECKING:
 
 from h264_define import MbType, SliceType
 
+
+def InverseRasterScan(a, b, c, d, e):
+    if e == 0:
+        return (a % (d // b)) * b
+    elif e == 1:
+        return (a // (d // b)) * c
+    else:
+        raise('InverseRasterScan error')
+
+def Clip3(value, minVal, maxVal):
+    return min(max(value, minVal), maxVal)
+
+
 class BitStream():
     '''根据 7.2 Specification of syntax functions, categories, and descriptors 文档定义的数据读取方法'''
-
-    @staticmethod
-    def Clip3(value, minVal, maxVal):
-        return min(max(value, minVal), maxVal)
 
     def __init__(self, hex: bytearray, sps:SPS, pps:PPS) -> None:
         self.hex = hex
@@ -1359,8 +1368,7 @@ class BitStream():
         self.MPSValue = {}
         for ctxIdx in range(1024):
             m, n = self.cabac_getmn(ctxIdx, cabac_init_idc, slice_type)
-            preCtxState = BitStream.Clip3(
-                1, 126, ((m * BitStream.Clip3(0, 51, SliceQPY)) >> 4) + n)
+            preCtxState = Clip3(1, 126, ((m * Clip3(0, 51, SliceQPY)) >> 4) + n)
             if preCtxState <= 63:
                 self.stateIdx[ctxIdx] = 63 - preCtxState
                 self.MPSValue[ctxIdx] = 0
@@ -1843,38 +1851,36 @@ class BitStream():
 
     #----------- CAVLC ----------------
 
-    def get_coeff(self, residualLevel:str, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
 
-        nc = 0
+    def get_coeff(self, residualLevel:str, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
+        nC = 0
         if residualLevel == "ChromaDCLevel":
             if self.sps.ChromaArrayType == 1:
-                nc = -1
+                nC = -1
             elif self.sps.ChromaArrayType == 2:
-                nc = -2
+                nC = -2
             else:
-                nc = 0
+                nC = 0
         else:
-            if residualLevel == "Intra16x16DCLevel" :
+            luma4x4BlkIdx = mb.luma4x4BlkIdx
+            if residualLevel == "Intra16x16DCLevel":
                 luma4x4BlkIdx = 0
-            if residualLevel == "CbIntra16x16DCLevel" :
+            if residualLevel == "CbIntra16x16DCLevel":
                 cb4x4BlkIdx = 0
-            if residualLevel == "CrIntra16x16DCLevel" :
+            if residualLevel == "CrIntra16x16DCLevel":
                 cr4x4BlkIdx = 0
+
 
             mbAddrA = slice.mbAddrN('A')
             mbAddrB = slice.mbAddrN('B')
 
-            
-            def InverseRasterScan(a, b, c, d, e):
-                if e == 0:
-                    return (a % (d // b)) * b
-                else:  # e == 1
-                    return (a // (d // b)) * c
-
 
             if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-                BlkIdxA = 0
-                BlkIdxB = 0
+
+                x = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 0 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 0 )
+                y = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 1 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 1 )
+                print("luma4x4BlkIdx->", luma4x4BlkIdx, "    x->",x,"    y->", y)
+   
             elif residualLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
                 raise('未开发')
             elif residualLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):

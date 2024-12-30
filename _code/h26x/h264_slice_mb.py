@@ -17,6 +17,9 @@ class MacroBlock():
             raise ('transform_size_8x8_flag != SliceType.I')
         pass
 
+
+
+
     def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
         if maxNumCoeff != 64 and sps.chroma_format_idc == 3:
             # 是否存在非零的变换系数
@@ -86,6 +89,8 @@ class MacroBlock():
         elif self.mb_type.MbPartPredMode != "Direct":
             raise ("self.mb_type.MbPartPredMode != Direct")
 
+
+
     def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, residualLevel:str, bs:BitStream, slice:SliceData):
         '''
             @param coeffLevel: 变换系数用于解析的作用说明
@@ -94,6 +99,9 @@ class MacroBlock():
             coeffLevel = {}
 
         TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
+
+        # print("TrailingOnes->", TrailingOnes, "    TotalCoeff->", TotalCoeff)
+
         if TotalCoeff > 0:
             if TotalCoeff > 10 and TrailingOnes < 3:
                 suffixLength = 1
@@ -180,7 +188,7 @@ class MacroBlock():
             startIdx=startIdx,
             endIdx=endIdx,
 
-            bs=bs, 
+            bs=bs,
             slice=slice
         )
 
@@ -202,6 +210,7 @@ class MacroBlock():
                         if self.mb_type.MbPartPredMode == "Intra_16x16":
                             self.residual_block(i16x16AClevel.get(i8x8 * 4 + i4x4), max(0, startIdx - 1), endIdx - 1, 15, "Intra16x16ACLevel", bs, slice)
                         else:
+                            self.luma4x4BlkIdx = i8x8 * 4 + i4x4
                             level4x4[i8x8 * 4 + i4x4] = self.residual_block(level4x4.get(i8x8 * 4 + i4x4), startIdx, endIdx, 16, "LumaLevel4x4", bs, slice)
                     elif self.mb_type.MbPartPredMode == "Intra_16x16":
                         for i in range(15): 
