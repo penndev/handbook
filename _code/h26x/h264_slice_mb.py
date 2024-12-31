@@ -29,11 +29,18 @@ class MacroBlock():
 
  
 
-    def __init__(self, bs: BitStream, slice: SliceData):
+    def __init__(self, bs: BitStream, slice: SliceData, ):
         '''
             **处理宏块数据**
             > 什么是宏块。
         '''
+
+        slice.macroblock[slice.CurrMbAddr] = self
+
+        self.luma4x4BlkIdx = 0 # 4x4块索引 其他类需要引用判断当前索引位置
+        self.luma4x4BlkIdxTotalCoeff = {} # 保存全局状态，让他们引用
+
+
         self.mb_type = bs.mb_type(slice)
         self.transform_size_8x8_flag = 0
         if self.mb_type.name == "I_PCM":
@@ -90,7 +97,6 @@ class MacroBlock():
             raise ("self.mb_type.MbPartPredMode != Direct")
 
 
-
     def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, residualLevel:str, bs:BitStream, slice:SliceData):
         '''
             @param coeffLevel: 变换系数用于解析的作用说明
@@ -99,7 +105,7 @@ class MacroBlock():
             coeffLevel = {}
 
         TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
-
+        self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = TotalCoeff
         # print("TrailingOnes->", TrailingOnes, "    TotalCoeff->", TotalCoeff)
 
         if TotalCoeff > 0:

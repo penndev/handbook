@@ -148,6 +148,11 @@ class SPS():
         '是以宏块为单位的图像宽度'
         self.pic_height_in_map_units_minus1 = bs.read_ue()
         '是以条块为单位的图像高度'
+
+        ## 逻辑条件
+        self.PicWidthInMbs = self.pic_width_in_mbs_minus1 + 1
+        ## 逻辑条件 end
+
         self.mb_adaptive_frame_field_flag = 0
         '是否是帧场自适应'
         self.frame_mbs_only_flag = bs.read_bits(1)

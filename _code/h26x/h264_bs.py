@@ -1870,16 +1870,30 @@ class BitStream():
             if residualLevel == "CrIntra16x16DCLevel":
                 cr4x4BlkIdx = 0
 
-
-            mbAddrA = slice.mbAddrN('A')
-            mbAddrB = slice.mbAddrN('B')
-
+            mbAddrA = None
+            mbAddrB = None
 
             if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
 
                 x = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 0 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 0 )
                 y = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 1 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 1 )
-                print("luma4x4BlkIdx->", luma4x4BlkIdx, "    x->",x,"    y->", y)
+
+                luma4x4BlkIdxA = luma4x4BlkIdxB = None
+
+                mbAddrA, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x -1, y, 16, 16)
+                if mbAddrA:
+                    luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+
+                print("mbAddrA->", mbAddrA, "    xW->", xW, "    yW->", yW )
+
+                mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y -1, 16, 16)
+                if mbAddrB:
+                    luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+
+                BlkIdxA = luma4x4BlkIdxA
+                BlkIdxB = luma4x4BlkIdxB
+
+                # print("BlkIdxA->", BlkIdxA, "    BlkIdxB->", BlkIdxB )
    
             elif residualLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
                 raise('未开发')
@@ -1888,8 +1902,12 @@ class BitStream():
             elif residualLevel in ("ChromaACLevel"):
                 raise('未开发')
             
+
+            
             availableFlagA = False
             availableFlagB = False
+
+
             if not mbAddrA or \
                 (mb.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and self.pps.constrained_intra_pred_flag) and \
                 mbAddrA.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred"):
@@ -1910,7 +1928,10 @@ class BitStream():
                 elif mbAddrA.mb_type.name == "I_PCM":
                     nA = 16
                 else:
-                    raise('未开发')
+                    if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
+                        nA = mbAddrA.luma4x4BlkIdxTotalCoeff[BlkIdxA]
+                    else:
+                        raise('未开发')
 
             if availableFlagB:
                 if mbAddrB.mb_type.name in ("P_Skip", "B_Skip"):
@@ -1918,7 +1939,10 @@ class BitStream():
                 elif mbAddrB.mb_type.name == "I_PCM":
                     nB = 16
                 else:
-                    raise('未开发')
+                    if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
+                        nB = mbAddrB.luma4x4BlkIdxTotalCoeff[BlkIdxB]
+                    else:
+                        raise('未开发')
                 
             if availableFlagA and availableFlagB:
                 nC = (nA + nB + 1) >> 1
