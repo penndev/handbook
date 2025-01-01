@@ -39,6 +39,10 @@ class MacroBlock():
 
         self.luma4x4BlkIdx = 0 # 4x4块索引 其他类需要引用判断当前索引位置
         self.luma4x4BlkIdxTotalCoeff = {} # 保存全局状态，让他们引用
+        
+        self.iCbCr = None
+        self.chroma4x4BlkIdx = 0
+        self.chroma4x4BlkIdxTotalCoeff = {}
 
 
         self.mb_type = bs.mb_type(slice)
@@ -62,7 +66,7 @@ class MacroBlock():
             if self.mb_type.MbPartPredMode != 'Intra_16x16':
                 self.coded_block_pattern = bs.coded_block_pattern(slice, self)
                 self.CodedBlockPatternLuma = self.coded_block_pattern % 16
-                self.CodedBlockPatternChroma = self.coded_block_pattern / 16
+                self.CodedBlockPatternChroma = self.coded_block_pattern // 16
                 if self.CodedBlockPatternLuma > 0 and \
                         bs.pps.transform_8x8_mode_flag and \
                         self.mb_type.name != "I_NxN" and \
@@ -105,8 +109,12 @@ class MacroBlock():
             coeffLevel = {}
 
         TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
+        # 如何验证是那个呢？全都给
         self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = TotalCoeff
-        # print("TrailingOnes->", TrailingOnes, "    TotalCoeff->", TotalCoeff)
+        if self.iCbCr != None: 
+
+            self.chroma4x4BlkIdxTotalCoeff[self.iCbCr][self.chroma4x4BlkIdx] = TotalCoeff
+            print("self.iCbCr", self.iCbCr, "    self.chroma4x4BlkIdx->", self.chroma4x4BlkIdx, "   TotalCoeff", TotalCoeff)
 
         if TotalCoeff > 0:
             if TotalCoeff > 10 and TrailingOnes < 3:
@@ -198,11 +206,58 @@ class MacroBlock():
             slice=slice
         )
 
-        print(
+        print( "",
             "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
             "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
             "LumaLevel4x4", LumaLevel4x4, "\n",
             "LumaLevel8x8", LumaLevel8x8, "\n",
+        )
+        ChromaDCLevel = {}
+        ChromaACLevel = {}
+        if bs.sps.chroma_format_idc in (1, 2):
+            NumC8x8 = 4 // (bs.sps.SubWidthC * bs.sps.SubHeightC)
+            for iCbCr in range(2):
+                if (self.CodedBlockPatternChroma & 3) and startIdx == 0:
+                    ChromaDCLevel[iCbCr] = self.residual_block(
+                                            ChromaDCLevel.get(iCbCr), 
+                                            0, 
+                                            4 * NumC8x8 - 1, 
+                                            4 * NumC8x8, 
+                                            "ChromaDCLevel", 
+                                            bs, 
+                                            slice,
+                                        )
+                else:
+                    ChromaDCLevel[iCbCr] = {}
+                    for i in range(4 * NumC8x8):
+                        ChromaDCLevel[iCbCr][i] = 0
+            
+            for iCbCr in range(2):
+                ChromaACLevel[iCbCr] = {}
+                self.iCbCr = iCbCr
+                self.chroma4x4BlkIdxTotalCoeff[iCbCr] = {}
+                for i8x8 in range(NumC8x8):
+                    for i4x4 in range(4):
+                        if self.CodedBlockPatternChroma & 2:
+                            self.chroma4x4BlkIdx = i8x8 * 4 + i4x4
+                            ChromaACLevel[iCbCr][i8x8 * 4+ i4x4] = self.residual_block(
+                                                                        ChromaACLevel[iCbCr].get(i8x8 * 4+ i4x4), 
+                                                                        max(0, startIdx - 1), 
+                                                                        endIdx - 1, 
+                                                                        15, 
+                                                                        "ChromaACLevel", 
+                                                                        bs, 
+                                                                        slice,
+                                                                    )
+                        else:
+                            for i in range(15):
+                                ChromaACLevel[iCbCr][i8x8 * 4 + i4x4][i] = 0
+
+        elif bs.sps.ChromaArrayType == 3:
+            raise ("未支持")
+
+        print( "",
+            "ChromaDCLevel", ChromaDCLevel, "\n", "ChromaACLevel", ChromaACLevel, "\n",
         )
         exit("debug")
 

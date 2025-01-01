@@ -1852,7 +1852,7 @@ class BitStream():
     #----------- CAVLC ----------------
 
 
-    def get_coeff(self, residualLevel:str, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
+    def get_coeff(self, residualLevel:dict, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
         nC = 0
         if residualLevel == "ChromaDCLevel":
             if self.sps.ChromaArrayType == 1:
@@ -1863,6 +1863,7 @@ class BitStream():
                 nC = 0
         else:
             luma4x4BlkIdx = mb.luma4x4BlkIdx
+
             if residualLevel == "Intra16x16DCLevel":
                 luma4x4BlkIdx = 0
             if residualLevel == "CbIntra16x16DCLevel":
@@ -1884,8 +1885,6 @@ class BitStream():
                 if mbAddrA:
                     luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
 
-                print("mbAddrA->", mbAddrA, "    xW->", xW, "    yW->", yW )
-
                 mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y -1, 16, 16)
                 if mbAddrB:
                     luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
@@ -1900,9 +1899,26 @@ class BitStream():
             elif residualLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):
                 raise('未开发')
             elif residualLevel in ("ChromaACLevel"):
-                raise('未开发')
-            
+                x = InverseRasterScan( mb.chroma4x4BlkIdx, 4, 4, 8, 0 )
+                y = InverseRasterScan( mb.chroma4x4BlkIdx, 4, 4, 8, 1 )
 
+                maxW = self.sps.MbWidthC
+                maxH = self.sps.MbHeightC
+
+                chroma4x4BlkIdxA = chroma4x4BlkIdxB = None
+
+                mbAddrA, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x -1, y, maxW, maxH)
+                if mbAddrA:
+                    chroma4x4BlkIdxA = 2 * (yW // 4) + (xW // 4)
+
+                mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y -1, maxW, maxH)
+                if mbAddrB:
+                    chroma4x4BlkIdxB = 2 * (yW // 4) + (xW // 4)
+
+                BlkIdxA = chroma4x4BlkIdxA
+                BlkIdxB = chroma4x4BlkIdxB
+            else:
+                raise('未匹配到' + residualLevel)
             
             availableFlagA = False
             availableFlagB = False
@@ -1930,6 +1946,8 @@ class BitStream():
                 else:
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
                         nA = mbAddrA.luma4x4BlkIdxTotalCoeff[BlkIdxA]
+                    elif residualLevel in ("ChromaACLevel"):
+                        nA = mbAddrA.chroma4x4BlkIdxTotalCoeff[mbAddrA.iCbCr][BlkIdxA]
                     else:
                         raise('未开发')
 
@@ -1941,6 +1959,8 @@ class BitStream():
                 else:
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
                         nB = mbAddrB.luma4x4BlkIdxTotalCoeff[BlkIdxB]
+                    elif residualLevel in ("ChromaACLevel"):
+                        nB = mbAddrB.chroma4x4BlkIdxTotalCoeff[mbAddrB.iCbCr][BlkIdxB]
                     else:
                         raise('未开发')
                 

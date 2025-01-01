@@ -121,6 +121,24 @@ class SPS():
                                                            SPS.Default_8x8_Inter
         
         self.ChromaArrayType = self.chroma_format_idc
+        self.SubWidthC = None
+        self.SubHeightC = None
+        if self.chroma_format_idc == 1:
+            self.SubWidthC = 2
+            self.SubHeightC = 2
+        elif self.chroma_format_idc == 2:
+            self.SubWidthC = 2
+            self.SubHeightC = 1
+        elif self.chroma_format_idc == 3:
+            self.SubWidthC = 1
+            self.SubHeightC = 1
+
+        self.MbWidthC = 16 // self.SubWidthC
+        self.MbHeightC = 16 // self.SubHeightC
+
+        # Table 6-1 – SubWidthC, and SubHeightC values derived from chroma_format_idc and separate_colour_plane_flag
+
+
         # 亮度和色度的比特深度
         self.BitDepthY = 8 + self.bit_depth_luma_minus8
         self.QpBdOffsetY = 6 * self.bit_depth_luma_minus8
