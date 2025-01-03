@@ -169,6 +169,8 @@ class BitStream():
 
     def rbsp_trailing_bits(self):
         '''rbsp_trailing_bits 如果失败返回False并还原postion'''
+        if self.position < len(self.hex) * 8 - 8 :
+            return False
         current = self.position
         if self.read_bits(1) != 1:
             self.position = current
@@ -1885,6 +1887,8 @@ class BitStream():
                 if mbAddrA:
                     luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
 
+
+
                 mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y -1, 16, 16)
                 if mbAddrB:
                     luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
@@ -1893,7 +1897,6 @@ class BitStream():
                 BlkIdxB = luma4x4BlkIdxB
 
                 # print("BlkIdxA->", BlkIdxA, "    BlkIdxB->", BlkIdxB )
-   
             elif residualLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
                 raise('未开发')
             elif residualLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):
@@ -1924,6 +1927,8 @@ class BitStream():
             availableFlagB = False
 
 
+
+
             if not mbAddrA or \
                 (mb.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and self.pps.constrained_intra_pred_flag) and \
                 mbAddrA.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred"):
@@ -1938,6 +1943,8 @@ class BitStream():
             else:
                 availableFlagB = True
             
+            nA = nB = None
+
             if availableFlagA:
                 if mbAddrA.mb_type.name in ("P_Skip", "B_Skip"):
                     nA = 0
@@ -1945,9 +1952,10 @@ class BitStream():
                     nA = 16
                 else:
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-                        nA = mbAddrA.luma4x4BlkIdxTotalCoeff[BlkIdxA]
+                        # print("mbAddrA.luma4x4BlkIdxTotalCoeff", mbAddrA.luma4x4BlkIdxTotalCoeff, BlkIdxA, mbAddrA.CurrMbAddr)
+                        nA = mbAddrA.luma4x4BlkIdxTotalCoeff.get(BlkIdxA, 0)
                     elif residualLevel in ("ChromaACLevel"):
-                        nA = mbAddrA.chroma4x4BlkIdxTotalCoeff[mbAddrA.iCbCr][BlkIdxA]
+                        nA = mbAddrA.chroma4x4BlkIdxTotalCoeff.get(mbAddrA.iCbCr, {}).get(BlkIdxA, 0)
                     else:
                         raise('未开发')
 
@@ -1958,12 +1966,15 @@ class BitStream():
                     nB = 16
                 else:
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-                        nB = mbAddrB.luma4x4BlkIdxTotalCoeff[BlkIdxB]
+                        nB = mbAddrB.luma4x4BlkIdxTotalCoeff.get(BlkIdxB, 0)
                     elif residualLevel in ("ChromaACLevel"):
-                        nB = mbAddrB.chroma4x4BlkIdxTotalCoeff[mbAddrB.iCbCr][BlkIdxB]
+                        nB = mbAddrB.chroma4x4BlkIdxTotalCoeff.get(mbAddrB.iCbCr, {}).get(BlkIdxB, 0)
                     else:
                         raise('未开发')
                 
+
+
+
             if availableFlagA and availableFlagB:
                 nC = (nA + nB + 1) >> 1
             elif availableFlagA and not availableFlagB:
@@ -1972,6 +1983,8 @@ class BitStream():
                 nC = nB
             else:
                 nC = 0
+
+
 
         coeff_token = self.read_bits(16)
         if (0 <= nC and nC < 2):
@@ -3151,6 +3164,8 @@ class BitStream():
         
         self.position -= 16 - coeff_token_length
         
+
+
 
         return TrailingOnes, TotalCoeff
 

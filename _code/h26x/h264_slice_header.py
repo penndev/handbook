@@ -100,7 +100,9 @@ class SliceHeader:
         self.frame_num = bs.read_bits(sps.log2_max_frame_num_minus4 + 4)
         '这个属性表示的是当前 Slice 的帧号'
         self.field_pic_flag = 0
-        self.MbaffFrameFlag = 1 if sps.mb_adaptive_frame_field_flag and not self.field_pic_flag else 0
+
+
+
         if not sps.frame_mbs_only_flag:
             self.field_pic_flag = bs.read_bits(1)
             '这个属性表示的是当前 Slice 是否是场帧'
@@ -158,3 +160,18 @@ class SliceHeader:
             max = (pic_size + pps.slice_group_change_rate_minus1) // (pps.slice_group_change_rate_minus1 + 1)
             self.slice_group_change_cycle = bs.read_bits(math.ceil(math.log2(max + 1)))
 
+
+        # 逻辑变量
+        self.MbaffFrameFlag = 1 if sps.mb_adaptive_frame_field_flag and not self.field_pic_flag else 0
+
+        self.PicHeightInMbs = bs.sps.FrameHeightInMbs / ( 1 + self.field_pic_flag ) 
+        self.PicSizeInMbs = bs.sps.PicWidthInMbs * self.PicHeightInMbs
+        
+
+
+        
+        # if bs.pps.num_slice_groups_minus1 == 0:
+        #     for i in range(bs.sps.PicSizeInMapUnits):
+        #          self.mapUnitToSliceGroupMap[i] = 0
+
+        # 逻辑变量 end

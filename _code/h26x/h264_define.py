@@ -39,11 +39,14 @@ class SliceType(Enum):
 class MbType():
     NA = -1
 
-    def __init__(self, mb_type, NameOfMbType, MbPartPredMode, NumMbPart=-1):
+    def __init__(self, mb_type, NameOfMbType, MbPartPredMode, NumMbPart=None, Intra16x16PredMode=None, CodedBlockPatternChroma=None, CodedBlockPatternLuma=None):
         self.mb_type = mb_type
         self.name = NameOfMbType
         self.MbPartPredMode = MbPartPredMode
         self.NumMbPart = NumMbPart
+        self.Intra16x16PredMode = Intra16x16PredMode
+        self.CodedBlockPatternChroma = CodedBlockPatternChroma
+        self.CodedBlockPatternLuma = CodedBlockPatternLuma
 
     @staticmethod
     def I(mb_type) -> Self:
@@ -52,6 +55,8 @@ class MbType():
         '''
         if mb_type == 0:
             return MbType(mb_type, "I_NxN", "Intra_4x4")
+        elif mb_type == 5:
+            return MbType(mb_type, "I_16x16_0_1_0", "Intra_16x16", None, 0, 1, 0)
         else:
-            raise ("MbType i mb_type" + str(mb_type))
+            raise Exception("MbType i mb_type" + str(mb_type))
 

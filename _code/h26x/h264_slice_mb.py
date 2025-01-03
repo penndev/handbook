@@ -34,8 +34,11 @@ class MacroBlock():
             **处理宏块数据**
             > 什么是宏块。
         '''
+        self.slice = slice
 
         slice.macroblock[slice.CurrMbAddr] = self
+
+        self.CurrMbAddr = slice.CurrMbAddr
 
         self.luma4x4BlkIdx = 0 # 4x4块索引 其他类需要引用判断当前索引位置
         self.luma4x4BlkIdxTotalCoeff = {} # 保存全局状态，让他们引用
@@ -46,6 +49,7 @@ class MacroBlock():
 
 
         self.mb_type = bs.mb_type(slice)
+        print("self.mb_type->", self.mb_type.mb_type)
         self.transform_size_8x8_flag = 0
         if self.mb_type.name == "I_PCM":
             raise ("I_PCM 不经过预测，变换，量化, 直接解码")
@@ -60,8 +64,8 @@ class MacroBlock():
                         self.mb_type.MbPartPredMode = "Intra_8x8"
                 self.mb_pred(bs, slice)
 
-            self.CodedBlockPatternLuma = 0
-            self.CodedBlockPatternChroma = 0
+            self.CodedBlockPatternLuma = self.mb_type.CodedBlockPatternLuma
+            self.CodedBlockPatternChroma = self.mb_type.CodedBlockPatternChroma
 
             if self.mb_type.MbPartPredMode != 'Intra_16x16':
                 self.coded_block_pattern = bs.coded_block_pattern(slice, self)
@@ -108,13 +112,17 @@ class MacroBlock():
         if not coeffLevel:
             coeffLevel = {}
 
-        TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
-        # 如何验证是那个呢？全都给
-        self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = TotalCoeff
-        if self.iCbCr != None: 
+        # if self.luma4x4BlkIdx == 2:
+        #     print("bs.position before-> ", bs.position % 2048 )
 
+        TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
+
+        # if self.luma4x4BlkIdx == 2:
+        #     print("bs.position after->", bs.position  % 2048)
+        if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
+            self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = TotalCoeff        
+        if self.iCbCr != None:
             self.chroma4x4BlkIdxTotalCoeff[self.iCbCr][self.chroma4x4BlkIdx] = TotalCoeff
-            print("self.iCbCr", self.iCbCr, "    self.chroma4x4BlkIdx->", self.chroma4x4BlkIdx, "   TotalCoeff", TotalCoeff)
 
         if TotalCoeff > 0:
             if TotalCoeff > 10 and TrailingOnes < 3:
@@ -206,17 +214,13 @@ class MacroBlock():
             slice=slice
         )
 
-        print( "",
-            "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
-            "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
-            "LumaLevel4x4", LumaLevel4x4, "\n",
-            "LumaLevel8x8", LumaLevel8x8, "\n",
-        )
         ChromaDCLevel = {}
         ChromaACLevel = {}
         if bs.sps.chroma_format_idc in (1, 2):
             NumC8x8 = 4 // (bs.sps.SubWidthC * bs.sps.SubHeightC)
             for iCbCr in range(2):
+                if self.CurrMbAddr == 16:
+                    print(" >>>>>>>>>>>>>1 ChromaDCLevel->", ChromaDCLevel, iCbCr, self.CodedBlockPatternChroma)
                 if (self.CodedBlockPatternChroma & 3) and startIdx == 0:
                     ChromaDCLevel[iCbCr] = self.residual_block(
                                             ChromaDCLevel.get(iCbCr), 
@@ -227,10 +231,13 @@ class MacroBlock():
                                             bs, 
                                             slice,
                                         )
+                    
+                    if self.CurrMbAddr == 16:
+                        print(" >>>>>>>>>>>>> ChromaDCLevel->", ChromaDCLevel, iCbCr)
                 else:
                     ChromaDCLevel[iCbCr] = {}
-                    for i in range(4 * NumC8x8):
-                        ChromaDCLevel[iCbCr][i] = 0
+                    # for i in range(4 * NumC8x8):
+                    #     ChromaDCLevel[iCbCr][i] = 0
             
             for iCbCr in range(2):
                 ChromaACLevel[iCbCr] = {}
@@ -250,35 +257,45 @@ class MacroBlock():
                                                                         slice,
                                                                     )
                         else:
-                            for i in range(15):
-                                ChromaACLevel[iCbCr][i8x8 * 4 + i4x4][i] = 0
+                            ChromaACLevel[iCbCr][i8x8 * 4 + i4x4] = {}
+                            # for i in range(15):
+                            #     ChromaACLevel[iCbCr][i8x8 * 4 + i4x4][i] = 0
 
         elif bs.sps.ChromaArrayType == 3:
             raise ("未支持")
 
         print( "",
-            "ChromaDCLevel", ChromaDCLevel, "\n", "ChromaACLevel", ChromaACLevel, "\n",
+            "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
+            "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
+            "LumaLevel4x4", LumaLevel4x4, "\n",
+            "LumaLevel8x8", LumaLevel8x8, "\n",
+            "ChromaDCLevel", ChromaDCLevel, "\n",
+            "ChromaACLevel", ChromaACLevel, "\n",
         )
-        exit("debug")
+        # print("self.luma4x4BlkIdxTotalCoeff", self.luma4x4BlkIdxTotalCoeff)
+
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
-            self.residual_block(i16x16DClevel, 0, 15, 16, "Intra16x16DCLevel", bs, slice)
+            i16x16DClevel = self.residual_block(i16x16DClevel, 0, 15, 16, "Intra16x16DCLevel", bs, slice)
         for i8x8 in range(4):
             if not self.transform_size_8x8_flag or not bs.pps.entropy_coding_mode_flag:
                 for i4x4 in range(4):
                     if self.CodedBlockPatternLuma & (1 << i8x8):
                         if self.mb_type.MbPartPredMode == "Intra_16x16":
-                            self.residual_block(i16x16AClevel.get(i8x8 * 4 + i4x4), max(0, startIdx - 1), endIdx - 1, 15, "Intra16x16ACLevel", bs, slice)
+                            i16x16AClevel[i8x8 * 4 + i4x4] = self.residual_block(i16x16AClevel.get(i8x8 * 4 + i4x4), max(0, startIdx - 1), endIdx - 1, 15, "Intra16x16ACLevel", bs, slice)
                         else:
-                            self.luma4x4BlkIdx = i8x8 * 4 + i4x4
+                            self.luma4x4BlkIdx = i8x8 * 4 + i4x4               
                             level4x4[i8x8 * 4 + i4x4] = self.residual_block(level4x4.get(i8x8 * 4 + i4x4), startIdx, endIdx, 16, "LumaLevel4x4", bs, slice)
+
                     elif self.mb_type.MbPartPredMode == "Intra_16x16":
-                        for i in range(15): 
-                            level4x4[i8x8 * 4 + i4x4][i] = 0
+                        level4x4[i8x8 * 4 + i4x4] = {}
+                        # for i in range(15): 
+                        #     level4x4[i8x8 * 4 + i4x4][i] = 0
                     else:
-                        for i in range(16):
-                            level4x4[i8x8 * 4 + i4x4][i] = 0
+                        level4x4[i8x8 * 4 + i4x4] = {}
+                        # for i in range(16):
+                        #     level4x4[i8x8 * 4 + i4x4][i] = 0
                     if not bs.pps.entropy_coding_mode_flag and self.transform_size_8x8_flag:
                         for i in range(16):
                             level8x8[i8x8][4 * i + i4x4] = level4x4[i8x8 * 4 + i4x4][i]
