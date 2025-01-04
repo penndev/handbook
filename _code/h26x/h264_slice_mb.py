@@ -49,7 +49,6 @@ class MacroBlock():
 
 
         self.mb_type = bs.mb_type(slice)
-        print("self.mb_type->", self.mb_type.mb_type)
         self.transform_size_8x8_flag = 0
         if self.mb_type.name == "I_PCM":
             raise ("I_PCM 不经过预测，变换，量化, 直接解码")
@@ -104,7 +103,6 @@ class MacroBlock():
         elif self.mb_type.MbPartPredMode != "Direct":
             raise ("self.mb_type.MbPartPredMode != Direct")
 
-
     def residual_block_cavlc(self, coeffLevel, startIdx, endIdx, maxNumCoeff, residualLevel:str, bs:BitStream, slice:SliceData):
         '''
             @param coeffLevel: 变换系数用于解析的作用说明
@@ -112,13 +110,8 @@ class MacroBlock():
         if not coeffLevel:
             coeffLevel = {}
 
-        # if self.luma4x4BlkIdx == 2:
-        #     print("bs.position before-> ", bs.position % 2048 )
-
         TrailingOnes, TotalCoeff = bs.get_coeff(residualLevel, self, slice)
 
-        # if self.luma4x4BlkIdx == 2:
-        #     print("bs.position after->", bs.position  % 2048)
         if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
             self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = TotalCoeff        
         if self.iCbCr != None:
@@ -138,7 +131,7 @@ class MacroBlock():
                     leading_zero_bits = -1
                     while True:
                         leading_zero_bits += 1
-                        b = bs.read_bits(1)  # 假设 self.read_bits(1) 是单个位读取的函数
+                        b = bs.read_bits(1)
                         if b == 1:
                             break
                     level_prefix = leading_zero_bits
@@ -219,8 +212,6 @@ class MacroBlock():
         if bs.sps.chroma_format_idc in (1, 2):
             NumC8x8 = 4 // (bs.sps.SubWidthC * bs.sps.SubHeightC)
             for iCbCr in range(2):
-                if self.CurrMbAddr == 16:
-                    print(" >>>>>>>>>>>>>1 ChromaDCLevel->", ChromaDCLevel, iCbCr, self.CodedBlockPatternChroma)
                 if (self.CodedBlockPatternChroma & 3) and startIdx == 0:
                     ChromaDCLevel[iCbCr] = self.residual_block(
                                             ChromaDCLevel.get(iCbCr), 
@@ -231,14 +222,11 @@ class MacroBlock():
                                             bs, 
                                             slice,
                                         )
-                    
-                    if self.CurrMbAddr == 16:
-                        print(" >>>>>>>>>>>>> ChromaDCLevel->", ChromaDCLevel, iCbCr)
                 else:
                     ChromaDCLevel[iCbCr] = {}
                     # for i in range(4 * NumC8x8):
                     #     ChromaDCLevel[iCbCr][i] = 0
-            
+
             for iCbCr in range(2):
                 ChromaACLevel[iCbCr] = {}
                 self.iCbCr = iCbCr
@@ -264,16 +252,14 @@ class MacroBlock():
         elif bs.sps.ChromaArrayType == 3:
             raise ("未支持")
 
-        print( "",
-            "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
-            "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
-            "LumaLevel4x4", LumaLevel4x4, "\n",
-            "LumaLevel8x8", LumaLevel8x8, "\n",
-            "ChromaDCLevel", ChromaDCLevel, "\n",
-            "ChromaACLevel", ChromaACLevel, "\n",
-        )
-        # print("self.luma4x4BlkIdxTotalCoeff", self.luma4x4BlkIdxTotalCoeff)
-
+        # print( "",
+        #     "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
+        #     "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
+        #     "LumaLevel4x4", LumaLevel4x4, "\n",
+        #     "LumaLevel8x8", LumaLevel8x8, "\n",
+        #     "ChromaDCLevel", ChromaDCLevel, "\n",
+        #     "ChromaACLevel", ChromaACLevel, "\n",
+        # )
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":

@@ -34,10 +34,14 @@ class BitStream():
 
     # 读取原始字节流基础函数，移动指针
     def read_bits(self, n) -> int:
-        '从字节流 返回n位无符号整数 大字节序列'
+        '从字节流 返回n位无符号整数 大字节序列 如果字节超出则贪婪读取'
         value = 0  # 用于存储读取的值
         while n > 0:
             byte_pos = self.position // 8  # 当前字节的位置
+            # 单次读取太多数据。刚好超过边界的处理方式。
+            if byte_pos >= len(self.hex):
+                value = value << n
+                break
             bit_offset = self.position % 8  # 当前字节的位偏移量
             remaining_bits_in_byte = 8 - bit_offset  # 当前字节剩余可用位数
             # 计算当前读取的位数，取 n 和剩余位数的最小值
@@ -1473,8 +1477,6 @@ class BitStream():
             33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
             49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 62, 63
         )
-        # print(self.stateIdx)
-        # print("cabac_DecodeDecision ctxIdx", ctxIdx, )
         pStateIdx = self.stateIdx[ctxIdx]
         qCodIRangeIdx = (self.codIRange >> 6) & 3
         codIRangeLPS = rangeTabLPS[pStateIdx][qCodIRangeIdx]
@@ -1895,8 +1897,6 @@ class BitStream():
 
                 BlkIdxA = luma4x4BlkIdxA
                 BlkIdxB = luma4x4BlkIdxB
-
-                # print("BlkIdxA->", BlkIdxA, "    BlkIdxB->", BlkIdxB )
             elif residualLevel in ("CbIntra16x16DCLevel", "CbIntra16x16ACLevel", "CbLevel4x4"):
                 raise('未开发')
             elif residualLevel in ("CrIntra16x16DCLevel", "CrIntra16x16ACLevel", "CrLevel4x4"):
@@ -1922,13 +1922,9 @@ class BitStream():
                 BlkIdxB = chroma4x4BlkIdxB
             else:
                 raise('未匹配到' + residualLevel)
-            
+
             availableFlagA = False
             availableFlagB = False
-
-
-
-
             if not mbAddrA or \
                 (mb.mb_type.MbPartPredMode in ("Intra_4x4", "Intra_8x8", "Intra_16x16") and self.pps.constrained_intra_pred_flag) and \
                 mbAddrA.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred"):
@@ -1952,10 +1948,9 @@ class BitStream():
                     nA = 16
                 else:
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-                        # print("mbAddrA.luma4x4BlkIdxTotalCoeff", mbAddrA.luma4x4BlkIdxTotalCoeff, BlkIdxA, mbAddrA.CurrMbAddr)
                         nA = mbAddrA.luma4x4BlkIdxTotalCoeff.get(BlkIdxA, 0)
                     elif residualLevel in ("ChromaACLevel"):
-                        nA = mbAddrA.chroma4x4BlkIdxTotalCoeff.get(mbAddrA.iCbCr, {}).get(BlkIdxA, 0)
+                        nA = mbAddrA.chroma4x4BlkIdxTotalCoeff.get(mb.iCbCr, {}).get(BlkIdxA, 0)
                     else:
                         raise('未开发')
 
@@ -1968,12 +1963,9 @@ class BitStream():
                     if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
                         nB = mbAddrB.luma4x4BlkIdxTotalCoeff.get(BlkIdxB, 0)
                     elif residualLevel in ("ChromaACLevel"):
-                        nB = mbAddrB.chroma4x4BlkIdxTotalCoeff.get(mbAddrB.iCbCr, {}).get(BlkIdxB, 0)
+                        nB = mbAddrB.chroma4x4BlkIdxTotalCoeff.get(mb.iCbCr, {}).get(BlkIdxB, 0)
                     else:
                         raise('未开发')
-                
-
-
 
             if availableFlagA and availableFlagB:
                 nC = (nA + nB + 1) >> 1
@@ -1983,10 +1975,13 @@ class BitStream():
                 nC = nB
             else:
                 nC = 0
+        
 
 
-
+        oldPosition = self.position
         coeff_token = self.read_bits(16)
+        self.position = oldPosition
+
         if (0 <= nC and nC < 2):
             if (coeff_token >> 15) == 1: #(1)b
                 coeff_token_length = 1
@@ -3161,14 +3156,8 @@ class BitStream():
                 coeff_token_length = 11
                 TrailingOnes = 3
                 TotalCoeff = 8
-        
-        self.position -= 16 - coeff_token_length
-        
-
-
-
+        self.position += coeff_token_length
         return TrailingOnes, TotalCoeff
-
 
     def find_table(self, max_number, length_table, code_table):
         ret = 0
@@ -3183,7 +3172,6 @@ class BitStream():
             else:
                 self.position -= code_len
         return ret
-
 
     def get_total_zeros(self, TotalCoeff, maxNumCoeff):
 
