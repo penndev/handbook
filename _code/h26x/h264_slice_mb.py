@@ -6,6 +6,22 @@ if TYPE_CHECKING:
 from h264_define import SliceType
 from h264_bs import BitStream
 
+
+def InverseRasterScan(value:dict[int, int]) -> list[list[int]]:
+    # zigzag_order = [
+    #     0, 1, 5, 6,
+    #     2, 4, 7, 12,
+    #     3, 8, 11, 13,
+    #     9, 10, 14, 15
+    # ]
+    return [
+        [value.get(0, 0), value.get(1, 0), value.get(5, 0), value.get(6, 0)],
+        [value.get(2, 0), value.get(4, 0), value.get(7, 0), value.get(12, 0)],
+        [value.get(3, 0), value.get(8, 0), value.get(11, 0), value.get(13, 0)],
+        [value.get(9, 0), value.get(10, 0), value.get(14, 0), value.get(15, 0)]
+    ]
+
+
 class MacroBlock():
 
     def get_coded_block_flag(self):
@@ -17,17 +33,8 @@ class MacroBlock():
             raise ('transform_size_8x8_flag != SliceType.I')
         pass
 
-
-
-
     def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
-        if maxNumCoeff != 64 and sps.chroma_format_idc == 3:
-            # 是否存在非零的变换系数
-            coded_block_flag = self.get_coded_block_flag()
-
         raise ("residual_block_cabac")
-
- 
 
     def __init__(self, bs: BitStream, slice: SliceData, ):
         '''
@@ -252,6 +259,14 @@ class MacroBlock():
         elif bs.sps.ChromaArrayType == 3:
             raise ("未支持")
 
+
+        self.Intra16x16DCLevel = Intra16x16DCLevel
+        self.Intra16x16ACLevel = Intra16x16ACLevel
+        self.LumaLevel4x4 = LumaLevel4x4
+        self.LumaLevel8x8 = LumaLevel8x8
+        self.ChromaDCLevel = ChromaDCLevel
+        self.ChromaACLevel = ChromaACLevel
+
         # print( "",
         #     "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
         #     "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
@@ -291,3 +306,38 @@ class MacroBlock():
                 for i in range(64):
                     level8x8[i8x8][i] = 0
         return i16x16DClevel, i16x16AClevel, level4x4, level8x8
+
+
+    # def ddct(self):
+    #     sMbFlag = False
+    #     if self.slice.header.slice_type == SliceType.SI or \
+    #     (self.slice.header.slice_type == SliceType.SP and self.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred")):
+    #         sMbFlag = True
+    #     if sMbFlag:
+    #         qP = self.slice.QSY
+    #     else:
+    #         qP = self.QP1Y
+
+    #     # 旁路模式
+    #     if self.TransformBypassModeFlag:
+    #         raise ("TransformBypassModeFlag")
+        
+    #     d = { {}, {}, {}, {}, }
+    #     for i in range(4):
+    #         for j in range(4):
+    #             if i == 0 and j == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
+    #                 d[0][0] = self.LumaLevel4x4Zigzag[0][0]
+    #             else :
+    #                 if qP >= 24:
+    #                    d[i][j] = (self.LumaLevel4x4Zigzag[i][j] * LevelScale4x4[qP % 6][i][j]) << (qP / 6 - 4)
+    #                 else: # //if (qP < 24)
+    #                     d[i][j] = (self.LumaLevel4x4Zigzag[i][j] * LevelScale4x4[qP % 6][i][j] + static_cast<int>(std::pow(2, 3 - qP / 6))) >> (4 - qP / 6)
+                    
+
+
+
+
+    # def Parse(self):
+    #     if self.mb_type.MbPartPredMode == "Intra_4x4":
+    #         for luma4x4BlkIdx in self.LumaLevel4x4:
+    #             self.LumaLevel4x4Zigzag = InverseRasterScan(self.LumaLevel4x4[luma4x4BlkIdx])

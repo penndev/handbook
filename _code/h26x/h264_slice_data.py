@@ -4,6 +4,11 @@ from h264_slice_mb import MacroBlock
 from h264_slice_header import SliceHeader
 from h264_bs import BitStream
 
+
+
+
+
+
 class SliceData:
 
     def prevMbAddr(self) -> None|MacroBlock:
@@ -59,6 +64,21 @@ class SliceData:
         # exit(0)
         return i
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def __init__(self, bs:BitStream, slice_header:SliceHeader):
         self.bs = bs
         self.header = slice_header
@@ -89,7 +109,12 @@ class SliceData:
                 # self.macroblock[self.CurrMbAddr] = MacroBlock(bs, self)
                 print("self.CurrMbAddr", self.CurrMbAddr)
                 MacroBlock(bs, self)
-            # exit(0)
+            
+            ### 尝试解码
+            self.luma()
+            ###
+
+
             if not bs.pps.entropy_coding_mode_flag:
                 moreDataFlag = bs.more_rbsp_data()
             else:
