@@ -83,6 +83,8 @@ class SliceData:
         self.bs = bs
         self.header = slice_header
 
+        self.QPY_prev = 0
+
         if bs.pps.entropy_coding_mode_flag:
             while not bs.byte_aligned():
                 if 1 != bs.read_bits(1):
@@ -109,10 +111,7 @@ class SliceData:
                 # self.macroblock[self.CurrMbAddr] = MacroBlock(bs, self)
                 print("self.CurrMbAddr", self.CurrMbAddr)
                 MacroBlock(bs, self)
-            
-            ### 尝试解码
-            self.luma()
-            ###
+                self.macroblock[self.CurrMbAddr].Parse()
 
 
             if not bs.pps.entropy_coding_mode_flag:

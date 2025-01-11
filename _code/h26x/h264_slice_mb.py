@@ -42,6 +42,7 @@ class MacroBlock():
             > 什么是宏块。
         '''
         self.slice = slice
+        self.bs = bs
 
         slice.macroblock[slice.CurrMbAddr] = self
 
@@ -308,36 +309,91 @@ class MacroBlock():
         return i16x16DClevel, i16x16AClevel, level4x4, level8x8
 
 
-    # def ddct(self):
-    #     sMbFlag = False
-    #     if self.slice.header.slice_type == SliceType.SI or \
-    #     (self.slice.header.slice_type == SliceType.SP and self.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred")):
-    #         sMbFlag = True
-    #     if sMbFlag:
-    #         qP = self.slice.QSY
-    #     else:
-    #         qP = self.QP1Y
 
-    #     # 旁路模式
-    #     if self.TransformBypassModeFlag:
-    #         raise ("TransformBypassModeFlag")
-        
-    #     d = { {}, {}, {}, {}, }
-    #     for i in range(4):
-    #         for j in range(4):
-    #             if i == 0 and j == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
-    #                 d[0][0] = self.LumaLevel4x4Zigzag[0][0]
-    #             else :
-    #                 if qP >= 24:
-    #                    d[i][j] = (self.LumaLevel4x4Zigzag[i][j] * LevelScale4x4[qP % 6][i][j]) << (qP / 6 - 4)
-    #                 else: # //if (qP < 24)
-    #                     d[i][j] = (self.LumaLevel4x4Zigzag[i][j] * LevelScale4x4[qP % 6][i][j] + static_cast<int>(std::pow(2, 3 - qP / 6))) >> (4 - qP / 6)
-                    
+    def Parse(self):
+        self.QPY = (self.slice.QPY_prev + self.mb_qp_delta + 52 + 2 * self.bs.sps.QpBdOffsetY ) % (52 + self.bs.sps.QpBdOffsetY) - self.bs.sps.QpBdOffsetY
+        self.slice.QPY_prev = self.QPY
+        self.QP1Y = self.QPY + self.bs.sps.QpBdOffsetY
+        if self.bs.sps.qpprime_y_zero_transform_bypass_flag and self.QP1Y == 0:
+            self.TransformBypassModeFlag = True
+        else:
+            self.TransformBypassModeFlag = False
 
 
 
 
-    # def Parse(self):
-    #     if self.mb_type.MbPartPredMode == "Intra_4x4":
-    #         for luma4x4BlkIdx in self.LumaLevel4x4:
-    #             self.LumaLevel4x4Zigzag = InverseRasterScan(self.LumaLevel4x4[luma4x4BlkIdx])
+        LevelScale4x4 = {}
+
+
+        if self.mb_type.MbPartPredMode == "Intra_4x4":
+            for luma4x4BlkIdx in self.LumaLevel4x4:
+                # z形编码
+                self.LumaLevel4x4Zigzag = InverseRasterScan(self.LumaLevel4x4[luma4x4BlkIdx])
+
+                self.LumaDataInfo()
+
+
+    def scaling(self):
+        v =  {
+            {10, 16, 13},
+            {11, 18, 14},
+            {13, 20, 16},
+            {14, 23, 18},
+            {16, 25, 20},
+            {18, 29, 23},
+        }
+
+
+
+
+    def scalingTransformProcess(self, c) -> dict[int, int]:
+        qP = self.QP1Y
+
+
+        # 量化过程  
+        d = [[0 for _ in range(4)] for _ in range(4)]
+        for i in range(4):
+            for j in range(4):
+                if i == 0 and j == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
+                    d[i][j] = c[i][j]
+                else:
+                    if qP >= 24:
+                        d[i][j] = (c[i][j] * LevelScale4x4[qP % 6][i][j]) << (qP // 6 - 4)
+                    else: # //if (qP < 24)
+                        d[i][j] = (c[i][j] * LevelScale4x4[qP % 6][i][j] + int(pow(2, 3 - qP // 6))) >> (4 - qP // 6)
+
+        # 初始化矩阵
+        f = [[0 for _ in range(4)] for _ in range(4)]
+        h = [[0 for _ in range(4)] for _ in range(4)]
+        r = [[0 for _ in range(4)] for _ in range(4)]
+
+        # 1维反变换：处理每行（水平的）变换
+        for i in range(4):
+            ei0 = d[i][0] + d[i][2]
+            ei1 = d[i][0] - d[i][2]
+            ei2 = (d[i][1] >> 1) - d[i][3]
+            ei3 = d[i][1] + (d[i][3] >> 1)
+
+            f[i][0] = ei0 + ei3
+            f[i][1] = ei1 + ei2
+            f[i][2] = ei1 - ei2
+            f[i][3] = ei0 - ei3
+
+        # 1维反变换：处理每列（纵向）变换
+        for j in range(4):
+            g0j = f[0][j] + f[2][j]
+            g1j = f[0][j] - f[2][j]
+            g2j = (f[1][j] >> 1) - f[3][j]
+            g3j = f[1][j] + (f[3][j] >> 1)
+
+            h[0][j] = g0j + g3j
+            h[1][j] = g1j + g2j
+            h[2][j] = g1j - g2j
+            h[3][j] = g0j - g3j
+
+        # 最终结果计算
+        for i in range(4):
+            for j in range(4):
+                r[i][j] = (h[i][j] + 32) >> 6
+
+        return r
