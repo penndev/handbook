@@ -81,8 +81,8 @@ class SPS():
         self.qpprime_y_zero_transform_bypass_flag = 0
         self.seq_scaling_matrix_present_flag = 0
         # self.
-        self.scaling_list_4x4 = {}
-        self.scaling_list_8x8 = {}
+        self.ScalingList4x4 = {}
+        self.ScalingList8x8 = {}
         # 默认赋值完成
         
         if self.profile_idc in (100, 110, 122, 244, 44, 83, 86, 118, 128, 138, 139, 134, 135):
@@ -101,23 +101,23 @@ class SPS():
                     seq_scaling_list_present_flag[i] = bs.read_bits(1)
                     if seq_scaling_list_present_flag[i]:
                         if i < 6:
-                            self.scaling_list_4x4[i],
+                            self.ScalingList4x4[i],
                             useDefaultScalingMatrixFlag = self.scaling_list(bs, 16)
                             if useDefaultScalingMatrixFlag:
-                                self.scaling_list_4x4[i] = SPS.Default_4x4_Intra if i in (0,1,2) else \
+                                self.ScalingList4x4[i] = SPS.Default_4x4_Intra if i in (0,1,2) else \
                                                            SPS.Default_4x4_Inter
                         else:
-                            self.scaling_list_8x8[i],
+                            self.ScalingList8x8[i],
                             useDefaultScalingMatrixFlag = self.scaling_list(bs, 64)
                             if useDefaultScalingMatrixFlag:
-                                self.scaling_list_8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
+                                self.ScalingList8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
                                                            SPS.Default_8x8_Inter
                     else:
                         if i < 6:
-                            self.scaling_list_4x4[i] = SPS.Default_4x4_Intra if i in (0,1,2) else \
+                            self.ScalingList4x4[i] = SPS.Default_4x4_Intra if i in (0,1,2) else \
                                                            SPS.Default_4x4_Inter
                         else:
-                            self.scaling_list_8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
+                            self.ScalingList8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
                                                            SPS.Default_8x8_Inter
         
         self.ChromaArrayType = self.chroma_format_idc

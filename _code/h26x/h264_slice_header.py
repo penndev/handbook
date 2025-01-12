@@ -146,10 +146,12 @@ class SliceHeader:
         self.slice_qp_delta = bs.read_se()
         self.SliceQPY = 26 + pps.pic_init_qp_minus26 + self.slice_qp_delta
         '''这个属性表示的是当前 Slice 的量化参数，这个值是由 PPS 中的 pic_init_qp_minus26 和当前 Slice 的 slice_qp_delta 计算得到的'''
+        self.slice_qs_delta = 0
         if self.slice_type in [SliceType.SP, SliceType.SI]:
             if self.slice_type == SliceType.SP:
                 self.sp_for_switch_flag = bs.read_bits(1)
             self.slice_qs_delta = bs.read_se()
+        
         if pps.deblocking_filter_control_present_flag:
             self.disable_deblocking_filter_idc = bs.read_ue()
             if self.disable_deblocking_filter_idc != 1:
@@ -168,10 +170,12 @@ class SliceHeader:
         self.PicSizeInMbs = bs.sps.PicWidthInMbs * self.PicHeightInMbs
         
 
+        # //QSY 的值用于解码 mb_type 等SI 的SI 条带的所有宏块以及预测模式为帧间的SP 条带的所有宏块。
+        self.QSY = 26 + pps.pic_init_qs_minus26 + self.slice_qs_delta
+        
+        
+        # 
+        if not sps.seq_scaling_matrix_present_flag and not pps.pic_scaling_matrix_present_flag:
+            pass # ScalingList4x4 =
 
         
-        # if bs.pps.num_slice_groups_minus1 == 0:
-        #     for i in range(bs.sps.PicSizeInMapUnits):
-        #          self.mapUnitToSliceGroupMap[i] = 0
-
-        # 逻辑变量 end

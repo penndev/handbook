@@ -6,14 +6,8 @@ if TYPE_CHECKING:
 from h264_define import SliceType
 from h264_bs import BitStream
 
-
-def InverseRasterScan(value:dict[int, int]) -> list[list[int]]:
-    # zigzag_order = [
-    #     0, 1, 5, 6,
-    #     2, 4, 7, 12,
-    #     3, 8, 11, 13,
-    #     9, 10, 14, 15
-    # ]
+# 8.5.5 变换系数反扫描
+def ZScans4x4(value:dict[int, int]) -> list[list[int]]:
     return [
         [value.get(0, 0), value.get(1, 0), value.get(5, 0), value.get(6, 0)],
         [value.get(2, 0), value.get(4, 0), value.get(7, 0), value.get(12, 0)],
@@ -259,15 +253,12 @@ class MacroBlock():
 
         elif bs.sps.ChromaArrayType == 3:
             raise ("未支持")
-
-
         self.Intra16x16DCLevel = Intra16x16DCLevel
         self.Intra16x16ACLevel = Intra16x16ACLevel
         self.LumaLevel4x4 = LumaLevel4x4
         self.LumaLevel8x8 = LumaLevel8x8
         self.ChromaDCLevel = ChromaDCLevel
         self.ChromaACLevel = ChromaACLevel
-
         # print( "",
         #     "Intra16x16DCLevel", Intra16x16DCLevel, "\n", 
         #     "Intra16x16ACLevel", Intra16x16ACLevel, "\n",
@@ -314,41 +305,86 @@ class MacroBlock():
         self.QPY = (self.slice.QPY_prev + self.mb_qp_delta + 52 + 2 * self.bs.sps.QpBdOffsetY ) % (52 + self.bs.sps.QpBdOffsetY) - self.bs.sps.QpBdOffsetY
         self.slice.QPY_prev = self.QPY
         self.QP1Y = self.QPY + self.bs.sps.QpBdOffsetY
+
         if self.bs.sps.qpprime_y_zero_transform_bypass_flag and self.QP1Y == 0:
             self.TransformBypassModeFlag = True
         else:
             self.TransformBypassModeFlag = False
 
-
-
-
-        LevelScale4x4 = {}
-
+        print("self.bs.sps.ScalingList4x4->", self.bs.sps.ScalingList4x4)
+        print("self.bs.pps.ScalingList4x4->", self.bs.pps.ScalingList4x4)
+        exit(0)
 
         if self.mb_type.MbPartPredMode == "Intra_4x4":
             for luma4x4BlkIdx in self.LumaLevel4x4:
                 # z形编码
-                self.LumaLevel4x4Zigzag = InverseRasterScan(self.LumaLevel4x4[luma4x4BlkIdx])
-
-                self.LumaDataInfo()
+                self.LumaLevel4x4Zigzag = ZScans4x4(self.LumaLevel4x4[luma4x4BlkIdx])
 
 
-    def scaling(self):
-        v =  {
-            {10, 16, 13},
-            {11, 18, 14},
-            {13, 20, 16},
-            {14, 23, 18},
-            {16, 25, 20},
-            {18, 29, 23},
-        }
+    # 
+    def LevelScale4x4(self):
+        v4x4 = [
+            [10, 16, 13],
+            [11, 18, 14],
+            [13, 20, 16],
+            [14, 23, 18],
+            [16, 25, 20],
+            [18, 29, 23],
+        ]
 
+        # 假设 weightScale4x4 和 LevelScale4x4 是已经定义的 4x4 矩阵
+        weightScale4x4 = [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10, 11, 12],
+            [13, 14, 15, 16]
+        ]
 
+        LevelScale4x4 = [[[0 for _ in range(4)] for _ in range(4)] for _ in range(6)]
 
+        # normAdjust4x4
+        for m in range(6):
+            for i in range(4):
+                for j in range(4):
+                    if i % 2 == 0 and j % 2 == 0:
+                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][0]
+                    elif i % 2 == 1 and j % 2 == 1:
+                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][1]
+                    else:
+                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][2]
 
-    def scalingTransformProcess(self, c) -> dict[int, int]:
-        qP = self.QP1Y
+        # 输出结果以便检查
+        for m in range(6):
+            for i in range(4):
+                for j in range(4):
+                    print(f"LevelScale4x4[{m}][{i}][{j}] = {LevelScale4x4[m][i][j]}")
 
+    def scalingTransformProcess(self, c, isLuam) -> dict[int, int]:
+        '''
+            isLuam: 是否是luma亮度相关，亮度相关是不同的处理方式
+        '''
+        bitDepth = 0
+        if isLuam:
+            bitDepth = self.bs.sps.BitDepthY
+        else:
+            bitDepth = self.bs.sps.BitDepthC
+
+        sMbFlag = 0
+        if self.mb_type.MbPartPredMode == "SI" or (self.mb_type.MbPartPredMode == "SP"):
+            sMbFlag = 1
+        
+        qP = 0
+        if isLuam and sMbFlag:
+            qP = self.slice.header.QSY
+        elif isLuam and not sMbFlag:
+            qP = self.QP1Y
+        elif not isLuam and not sMbFlag:
+            raise("未实现")
+        else:
+            raise("未实现")
+
+        if self.TransformBypassModeFlag:
+            raise("未实现")
 
         # 量化过程  
         d = [[0 for _ in range(4)] for _ in range(4)]
