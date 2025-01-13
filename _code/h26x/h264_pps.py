@@ -68,6 +68,7 @@ class PPS():
 
         self.ScalingList4x4 = {}
         self.ScalingList8x8 = {}
+        self.pic_scaling_matrix_present_flag = 0
         if bs.more_rbsp_data():
             self.transform_8x8_mode_flag = bs.read_bits(1)
             self.pic_scaling_matrix_present_flag = bs.read_bits(1)

@@ -174,8 +174,15 @@ class SliceHeader:
         self.QSY = 26 + pps.pic_init_qs_minus26 + self.slice_qs_delta
         
         
-        # 
+        self.ScalingList4x4 = {}
+        self.ScalingList8x8 = {}
         if not sps.seq_scaling_matrix_present_flag and not pps.pic_scaling_matrix_present_flag:
-            pass # ScalingList4x4 =
-
-        
+            for i in range(12) :
+                if i < 6:
+                    self.ScalingList4x4[i] = {i: 16 for i in range(16)}
+                else:
+                    self.ScalingList8x8[i] = {i: 16 for i in range(64)}
+        if sps.seq_scaling_matrix_present_flag:
+            self.ScalingList4x4, self.ScalingList8x8 = sps.ScalingList4x4, sps.ScalingList8x8
+        if pps.pic_scaling_matrix_present_flag:
+            self.ScalingList4x4, self.ScalingList8x8 = pps.ScalingList4x4, pps.ScalingList8x8

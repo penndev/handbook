@@ -311,18 +311,26 @@ class MacroBlock():
         else:
             self.TransformBypassModeFlag = False
 
-        print("self.bs.sps.ScalingList4x4->", self.bs.sps.ScalingList4x4)
-        print("self.bs.pps.ScalingList4x4->", self.bs.pps.ScalingList4x4)
-        exit(0)
+        # print("self.bs.sps.ScalingList4x4->", self.bs.sps.ScalingList4x4)
+        # print("self.bs.pps.ScalingList4x4->", self.bs.pps.ScalingList4x4)
+        # exit(0)
 
         if self.mb_type.MbPartPredMode == "Intra_4x4":
             for luma4x4BlkIdx in self.LumaLevel4x4:
                 # z形编码
+                self.Scaling(0) # 0 为亮度
                 self.LumaLevel4x4Zigzag = ZScans4x4(self.LumaLevel4x4[luma4x4BlkIdx])
-
-
+                self.LumaLevel4x4Scaling = self.scalingTransformProcess(self.LumaLevel4x4Zigzag, True)
+                print("self.LumaLevel4x4Scaling", self.LumaLevel4x4Scaling)
     # 
-    def LevelScale4x4(self):
+    def Scaling(self, iYCbCr:int):
+
+        mbIsInterFlag = False
+        if self.mb_type.MbPartPredMode in ("Pred_L0","Pred_L1","BiPred_L0_L1"):
+            mbIsInterFlag = True
+
+        weightScale4x4 = ZScans4x4(self.slice.header.ScalingList4x4[iYCbCr + (3 if mbIsInterFlag else 0)])
+
         v4x4 = [
             [10, 16, 13],
             [11, 18, 14],
@@ -332,32 +340,17 @@ class MacroBlock():
             [18, 29, 23],
         ]
 
-        # 假设 weightScale4x4 和 LevelScale4x4 是已经定义的 4x4 矩阵
-        weightScale4x4 = [
-            [1, 2, 3, 4],
-            [5, 6, 7, 8],
-            [9, 10, 11, 12],
-            [13, 14, 15, 16]
-        ]
-
-        LevelScale4x4 = [[[0 for _ in range(4)] for _ in range(4)] for _ in range(6)]
-
+        self.LevelScale4x4 = [[[0 for _ in range(4)] for _ in range(4)] for _ in range(6)]
         # normAdjust4x4
         for m in range(6):
             for i in range(4):
                 for j in range(4):
                     if i % 2 == 0 and j % 2 == 0:
-                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][0]
+                        self.LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][0]
                     elif i % 2 == 1 and j % 2 == 1:
-                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][1]
+                        self.LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][1]
                     else:
-                        LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][2]
-
-        # 输出结果以便检查
-        for m in range(6):
-            for i in range(4):
-                for j in range(4):
-                    print(f"LevelScale4x4[{m}][{i}][{j}] = {LevelScale4x4[m][i][j]}")
+                        self.LevelScale4x4[m][i][j] = weightScale4x4[i][j] * v4x4[m][2]
 
     def scalingTransformProcess(self, c, isLuam) -> dict[int, int]:
         '''
@@ -394,9 +387,9 @@ class MacroBlock():
                     d[i][j] = c[i][j]
                 else:
                     if qP >= 24:
-                        d[i][j] = (c[i][j] * LevelScale4x4[qP % 6][i][j]) << (qP // 6 - 4)
+                        d[i][j] = (c[i][j] * self.LevelScale4x4[qP % 6][i][j]) << (qP // 6 - 4)
                     else: # //if (qP < 24)
-                        d[i][j] = (c[i][j] * LevelScale4x4[qP % 6][i][j] + int(pow(2, 3 - qP // 6))) >> (4 - qP // 6)
+                        d[i][j] = (c[i][j] * self.LevelScale4x4[qP % 6][i][j] + int(pow(2, 3 - qP // 6))) >> (4 - qP // 6)
 
         # 初始化矩阵
         f = [[0 for _ in range(4)] for _ in range(4)]
