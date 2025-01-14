@@ -64,26 +64,11 @@ class SliceData:
         # exit(0)
         return i
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def __init__(self, bs:BitStream, slice_header:SliceHeader):
         self.bs = bs
         self.header = slice_header
 
-        self.QPY_prev = 0
+        self.QPY_prev = slice_header.SliceQPY # 逻辑计算
 
         if bs.pps.entropy_coding_mode_flag:
             while not bs.byte_aligned():

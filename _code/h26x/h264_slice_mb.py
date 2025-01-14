@@ -302,26 +302,33 @@ class MacroBlock():
 
 
     def Parse(self):
+        print("HELLO->", self.slice.QPY_prev, self.mb_qp_delta, self.bs.sps.QpBdOffsetY)
+
         self.QPY = (self.slice.QPY_prev + self.mb_qp_delta + 52 + 2 * self.bs.sps.QpBdOffsetY ) % (52 + self.bs.sps.QpBdOffsetY) - self.bs.sps.QpBdOffsetY
         self.slice.QPY_prev = self.QPY
         self.QP1Y = self.QPY + self.bs.sps.QpBdOffsetY
+
 
         if self.bs.sps.qpprime_y_zero_transform_bypass_flag and self.QP1Y == 0:
             self.TransformBypassModeFlag = True
         else:
             self.TransformBypassModeFlag = False
 
-        # print("self.bs.sps.ScalingList4x4->", self.bs.sps.ScalingList4x4)
-        # print("self.bs.pps.ScalingList4x4->", self.bs.pps.ScalingList4x4)
-        # exit(0)
-
         if self.mb_type.MbPartPredMode == "Intra_4x4":
             for luma4x4BlkIdx in self.LumaLevel4x4:
-                # z形编码
+                
                 self.Scaling(0) # 0 为亮度
+                # z形编码
                 self.LumaLevel4x4Zigzag = ZScans4x4(self.LumaLevel4x4[luma4x4BlkIdx])
+                # 反量化
                 self.LumaLevel4x4Scaling = self.scalingTransformProcess(self.LumaLevel4x4Zigzag, True)
+                # 预测
+                self.Luma4x4Prediction = 
+
+
+                print("self.LumaLevel4x4Zigzag", self.LumaLevel4x4Zigzag)
                 print("self.LumaLevel4x4Scaling", self.LumaLevel4x4Scaling)
+                exit(0)
     # 
     def Scaling(self, iYCbCr:int):
 
@@ -356,12 +363,6 @@ class MacroBlock():
         '''
             isLuam: 是否是luma亮度相关，亮度相关是不同的处理方式
         '''
-        bitDepth = 0
-        if isLuam:
-            bitDepth = self.bs.sps.BitDepthY
-        else:
-            bitDepth = self.bs.sps.BitDepthC
-
         sMbFlag = 0
         if self.mb_type.MbPartPredMode == "SI" or (self.mb_type.MbPartPredMode == "SP"):
             sMbFlag = 1
@@ -372,12 +373,17 @@ class MacroBlock():
         elif isLuam and not sMbFlag:
             qP = self.QP1Y
         elif not isLuam and not sMbFlag:
-            raise("未实现")
+            qP = self.QP1C
         else:
-            raise("未实现")
+            qP = self.QSC
 
         if self.TransformBypassModeFlag:
             raise("未实现")
+
+        # print("self.LevelScale4x4", self.LevelScale4x4)
+        # print("qP", qP, self.slice.header.QSY, self.QP1Y)
+
+
 
         # 量化过程  
         d = [[0 for _ in range(4)] for _ in range(4)]
@@ -426,3 +432,6 @@ class MacroBlock():
                 r[i][j] = (h[i][j] + 32) >> 6
 
         return r
+
+
+
