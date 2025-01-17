@@ -7,19 +7,7 @@ if TYPE_CHECKING:
     from h264_sps import SPS
 
 from h264_define import MbType, SliceType
-
-
-def InverseRasterScan(a, b, c, d, e):
-    if e == 0:
-        return (a % (d // b)) * b
-    elif e == 1:
-        return (a // (d // b)) * c
-    else:
-        raise('InverseRasterScan error')
-
-def Clip3(value, minVal, maxVal):
-    return min(max(value, minVal), maxVal)
-
+from h264_util import InverseRasterScan
 
 class BitStream():
     '''根据 7.2 Specification of syntax functions, categories, and descriptors 文档定义的数据读取方法'''
@@ -1879,7 +1867,6 @@ class BitStream():
             mbAddrB = None
 
             if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
-
                 x = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 0 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 0 )
                 y = InverseRasterScan( luma4x4BlkIdx // 4, 8, 8, 16, 1 ) + InverseRasterScan( luma4x4BlkIdx % 4, 4, 4, 8, 1 )
 

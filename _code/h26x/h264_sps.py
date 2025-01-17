@@ -243,6 +243,8 @@ class SPS():
 
         self.PicWidthInMbs = self.pic_width_in_mbs_minus1 + 1
 
+        self.PicWidthInSamplesL = self.PicWidthInMbs * 16
+
         self.FrameHeightInMbs = ( 2 - self.frame_mbs_only_flag ) * self.PicHeightInMapUnits
 
   

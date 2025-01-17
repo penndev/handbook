@@ -42,6 +42,7 @@ class SliceData:
         yW = (yN + maxH) % maxH
         return mbAddrN, xw, yW
 
+
     def mbAddrN(self, N:str) -> None|MacroBlock:
         '''
         @param N: 用于判断当前宏块是否为N宏块
@@ -69,6 +70,9 @@ class SliceData:
         self.header = slice_header
 
         self.QPY_prev = slice_header.SliceQPY # 逻辑计算
+
+        self.lumaData = {}
+
 
         if bs.pps.entropy_coding_mode_flag:
             while not bs.byte_aligned():
@@ -98,7 +102,6 @@ class SliceData:
                 MacroBlock(bs, self)
                 self.macroblock[self.CurrMbAddr].Parse()
 
-
             if not bs.pps.entropy_coding_mode_flag:
                 moreDataFlag = bs.more_rbsp_data()
             else:
@@ -112,4 +115,12 @@ class SliceData:
             self.CurrMbAddr = self.NextMbAddress( self.CurrMbAddr )
             if not moreDataFlag:
                 break
-        print("结束")
+        # print("====================>", len(self.lumaData[0]))
+        with open("_tmp/dev.yuv", "wb") as file:  # 打开文件以二进制写入模式
+            width = self.bs.sps.PicWidthInSamplesL
+            height = self.header.PicHeightInSamplesL
+            for y in range(int(height)):  # 遍历行
+                for x in range(int(width)):  # 遍历列
+                    # print("x,y", x,y, self.lumaData.get(x,{}).get(y,0))
+                    file.write(bytes([self.lumaData.get(x,{}).get(y,0)]))  # 将字节写入文件
+     

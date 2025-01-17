@@ -168,7 +168,8 @@ class SliceHeader:
 
         self.PicHeightInMbs = bs.sps.FrameHeightInMbs / ( 1 + self.field_pic_flag ) 
         self.PicSizeInMbs = bs.sps.PicWidthInMbs * self.PicHeightInMbs
-        
+
+        self.PicHeightInSamplesL = self.PicHeightInMbs * 16
 
         # //QSY 的值用于解码 mb_type 等SI 的SI 条带的所有宏块以及预测模式为帧间的SP 条带的所有宏块。
         self.QSY = 26 + pps.pic_init_qs_minus26 + self.slice_qs_delta

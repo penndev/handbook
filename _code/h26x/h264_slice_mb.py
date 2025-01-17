@@ -3,17 +3,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from h264_slice_data import SliceData
 
-from h264_define import SliceType
-from h264_bs import BitStream, InverseRasterScan
+from h264_define import Intra4x4PredMode, Matrix, MbPredMode, SliceType
+from h264_bs import BitStream
 
-# 8.5.5 变换系数反扫描
-def ZScans4x4(value:dict[int, int]) -> list[list[int]]:
-    return [
-        [value.get(0, 0), value.get(1, 0), value.get(5, 0), value.get(6, 0)],
-        [value.get(2, 0), value.get(4, 0), value.get(7, 0), value.get(12, 0)],
-        [value.get(3, 0), value.get(8, 0), value.get(11, 0), value.get(13, 0)],
-        [value.get(9, 0), value.get(10, 0), value.get(14, 0), value.get(15, 0)]
-    ]
+from h264_util import Clip3, InverseRasterScan
+
 
 
 class MacroBlock():
@@ -302,11 +296,8 @@ class MacroBlock():
 
 
     def Parse(self):
-        print("HELLO->", self.slice.QPY_prev, self.mb_qp_delta, self.bs.sps.QpBdOffsetY)
-
         self.Intra4x4PredMode = {}
         self.Intra8x8PredMode = {}
-        self.lumaData = {}
 
         self.QPY = (self.slice.QPY_prev + self.mb_qp_delta + 52 + 2 * self.bs.sps.QpBdOffsetY ) % (52 + self.bs.sps.QpBdOffsetY) - self.bs.sps.QpBdOffsetY
         self.slice.QPY_prev = self.QPY
@@ -319,20 +310,29 @@ class MacroBlock():
             self.TransformBypassModeFlag = False
 
         if self.mb_type.MbPartPredMode == "Intra_4x4":
-            for luma4x4BlkIdx in self.LumaLevel4x4:
-                
-                self.Scaling(0) # 0 为亮度
+            self.scaling(0) # 0 为亮度
+            for luma4x4BlkIdx in range(16):
                 # z形编码
-                self.LumaLevel4x4Zigzag = ZScans4x4(self.LumaLevel4x4[luma4x4BlkIdx])
+                self.LumaLevel4x4Zigzag = MbPredMode.Block4x4ZigzagScan(self.LumaLevel4x4[luma4x4BlkIdx])
                 # 反量化
                 self.LumaLevel4x4Scaling = self.scalingTransformProcess(self.LumaLevel4x4Zigzag, True)
                 # 预测
-                # self.Luma4x4Prediction = self.Intra4x4Prediction(luma4x4BlkIdx, True)
-                self.Intra4x4Prediction(luma4x4BlkIdx, True)
+                self.lumaPredSamples = self.Intra4x4Prediction(luma4x4BlkIdx, True)
+                luma4x4Data = {}
+                for i in range(4):
+                    for j in range(4):
+                        depthY = (1 << self.bs.sps.BitDepthY) - 1
+                        pred = self.lumaPredSamples[luma4x4BlkIdx].get(f"{j}_{i}",0) + self.LumaLevel4x4Scaling[i][j]
+                        luma4x4Data[i*4+j] = Clip3(0, depthY, pred)
+                if self.CurrMbAddr == 9:
+                    print(luma4x4BlkIdx, "luma4x4Data->", luma4x4Data)
+                    print(luma4x4BlkIdx, "self.lumaPredSamples->", self.lumaPredSamples[luma4x4BlkIdx])
+                    print(luma4x4BlkIdx, "self.LumaLevel4x4Scaling->", self.LumaLevel4x4Scaling)
 
-                print("self.LumaLevel4x4Zigzag", self.LumaLevel4x4Zigzag)
-                print("self.LumaLevel4x4Scaling", self.LumaLevel4x4Scaling)
-                exit(0)
+                self.lumaDataMerge(luma4x4Data, luma4x4BlkIdx, "4*4")
+
+    
+        # print("self.CurrMbAddr",self.CurrMbAddr, self.mb_type.MbPartPredMode)
     # 
     def scaling(self, iYCbCr:int):
 
@@ -340,7 +340,7 @@ class MacroBlock():
         if self.mb_type.MbPartPredMode in ("Pred_L0","Pred_L1","BiPred_L0_L1"):
             mbIsInterFlag = True
 
-        weightScale4x4 = ZScans4x4(self.slice.header.ScalingList4x4[iYCbCr + (3 if mbIsInterFlag else 0)])
+        weightScale4x4 = MbPredMode.Block4x4ZigzagScan(self.slice.header.ScalingList4x4[iYCbCr + (3 if mbIsInterFlag else 0)])
 
         v4x4 = [
             [10, 16, 13],
@@ -437,15 +437,115 @@ class MacroBlock():
 
         return r
 
+
+
+
+    # def Intra4x4pred(self, luma4x4BlkIdx, isLuam):
+    #     """
+    #     4x4亮度块预测过程
+    #     """
+    #     xO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
+    #     yO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
+
+    #     # 13个预测样本
+    #     samplesPred4x4L = {
+    #         "x": (-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7),
+    #         "y": (-1,  0,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1)
+    #     }
+
+    #     P = Matrix(-1)
+
+    #     maxW, maxH = (16, 16) if isLuam else (self.bs.sps.MbWidthC, self.bs.sps.MbHeightC)
+
+    #     for i in range(13):
+    #         x = samplesPred4x4L["x"][i]
+    #         y = samplesPred4x4L["y"][i]
+    #         xN = xO + x
+    #         yN = yO + y
+    #         mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(xN, yN, maxW, maxH)
+    #         if  mbAddrN == None or \
+    #             (mbAddrN.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+    #             (self.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag) or \
+    #             (x > 3 and (luma4x4BlkIdx == 3 or luma4x4BlkIdx == 11)):
+    #             pass
+    #         else:
+    #             xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
+    #             yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
+    #             P[x, y] = self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0)
+
+    #     self.Intra4x4predMode(luma4x4BlkIdx, isLuam, xO, yO, maxW, maxH)
+    #     print(self.Intra4x4PredMode)
+
+
+    # def Intra4x4predMode(self, luma4x4BlkIdx, isLuam:bool, x, y, maxW, maxH):
+    #     '''
+    #         4x4块预测模式推导
+    #     '''
+    #     mbAddrA, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x-1, y, maxW, maxH)
+    #     if mbAddrA != None:
+    #         luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+    #     mbAddrB, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x + 0, y + (-1), maxW, maxH)
+    #     if mbAddrB != None:
+    #         luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+
+    #     intraMxMPredModeA = None
+    #     intraMxMPredModeB = None
+
+    #     dcPredModePredictedFlag = 0
+    #     if  mbAddrA == None or mbAddrB == None or \
+    #         (mbAddrA != None and mbAddrA.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+    #         (mbAddrB != None and mbAddrB.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
+    #         dcPredModePredictedFlag = 1
+
+    #     if dcPredModePredictedFlag or \
+    #         (mbAddrA != None and mbAddrA.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")): 
+    #         intraMxMPredModeA = Intra4x4PredMode.Intra_4x4_DC
+    #     else:
+    #         # 根据左侧宏块的模式选择对应的预测模式
+    #         if mbAddrA.mb_type.MbPartPredMode == "Intra_4x4":
+    #             intraMxMPredModeA = mbAddrA.Intra4x4PredMode[luma4x4BlkIdxA]
+    #         else:  # Intra_8x8
+    #             intraMxMPredModeA = mbAddrA.Intra8x8PredMode[luma4x4BlkIdxA >> 2]
+
+    #     # 处理上方相邻宏块的预测模式
+    #     if dcPredModePredictedFlag or \
+    #         (mbAddrB != None and mbAddrB.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
+    #         intraMxMPredModeB = Intra4x4PredMode.Intra_4x4_DC
+    #     else:
+    #         # 根据上方宏块的模式选择对应的预测模式
+    #         if mbAddrB.mb_type.MbPartPredMode == "Intra_4x4":
+    #             intraMxMPredModeB = mbAddrB.Intra4x4PredMode[luma4x4BlkIdxB]
+    #         else:  # Intra_8x8
+    #             intraMxMPredModeB = mbAddrB.Intra8x8PredMode[luma4x4BlkIdxB >> 2]
+
+    #     # 从左侧和上方相邻块的预测模式中选取较小的一个作为预先定义模式
+    #     predIntra4x4PredMode = min(intraMxMPredModeA, intraMxMPredModeB)
+
+    #     # 判断当前块的预测模式
+    #     if self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
+    #         # 如果标志位为 1，则使用预定义模式
+    #         self.Intra4x4PredMode[luma4x4BlkIdx] = predIntra4x4PredMode
+    #     else:
+    #         # 根据 rem_intra4x4_pred_mode 决定预测模式
+    #         # print("predIntra4x4PredMode", predIntra4x4PredMode,intraMxMPredModeA, intraMxMPredModeB )
+    #         if self.rem_intra4x4_pred_mode[luma4x4BlkIdx] < predIntra4x4PredMode:
+    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx]
+    #         else:
+    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
+
+
+
     def Intra4x4Prediction(self, luma4x4BlkIdx:int, isLuam:bool):
         '''
             4x4块预测
         '''
-        referenceCoordinateX = { -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7 }
-        referenceCoordinateY = { -1,  0,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1 }
+
         xO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
         yO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
 
+        referenceCoordinateX = [ -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7 ]
+        referenceCoordinateY = [ -1,  0,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1 ]
+        lumaPredSamples = {}
         # 初始化 samples 数组
         samples = [-1] * 45
 
@@ -453,153 +553,156 @@ class MacroBlock():
         def P(x, y):
             return samples[(y + 1) * 9 + (x + 1)]
 
+        def set_P(x, y, value):
+            index = (y + 1) * 9 + (x + 1)  # 计算索引
+            samples[index] = value  
 
         for i in range(13):
             maxW = 0
             maxH = 0
-
             if isLuam :
                 maxW = maxH = 16
             else:
                 maxH = self.bs.sps.MbHeightC
                 maxW = self.bs.sps.MbWidthC
-
             x = referenceCoordinateX[i]
             y = referenceCoordinateY[i]
-
-
             xN = xO + x
             yN = yO + y
-
             mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(xN, yN, maxW, maxH)
             if mbAddrN == None \
                 or (self.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag) \
                 or (x > 3 and (luma4x4BlkIdx == 3 or luma4x4BlkIdx == 11)):
-                P(x, y) = -1
+                # set_P(x, y, -1)
+                pass
             else:
-                xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
-                yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
-                P(x, y) = self.lumaData[xM + xW][yM + yW]
+                xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
+                yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 1)
+                set_P(x, y, self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0))
+                # print(x,y, xM + xW, yM + yW, P(x, y), self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0))
+                # print(self.slice.lumaData)
+                # exit(0)
 
-            if P[4, -1] < 0 and P[5, -1] < 0 and P[6, -1] < 0 and P[7, -1] < 0 and P[3, -1] >= 0:
-                P[4, -1] = P[3, -1]
-                P[5, -1] = P[3, -1]
-                P[6, -1] = P[3, -1]
-                P[7, -1] = P[3, -1]
-            self.Intra4x4PredictionMode(luma4x4BlkIdx, isLuam)
-
-            Intra4x4PredMode = self.Intra4x4PredMode[luma4x4BlkIdx]
-
-            # 9种预测模型
-            self.lumaPredSamples = {}
-            self.lumaPredSamples[luma4x4BlkIdx] = {}
-            self.lumaPredSamples[luma4x4BlkIdx][x] = {}
-            self.lumaPredSamples[luma4x4BlkIdx][x][y] = 0
-
-            self.lumaPredSamples[luma4x4BlkIdx][x][y] = P(x, -1)
+        # print("luma4x4BlkIdx", luma4x4BlkIdx, samples)
 
 
-            if Intra4x4PredMode == "Intra_4x4_Vertical":  # 垂直
-                if all(P(x, -1) >= 0 for x in range(4)):
+        if P(4, -1) < 0 and P(5, -1) < 0 and P(6, -1) < 0 and P(7, -1) < 0 and P(3, -1) >= 0:
+            set_P(4, -1, P(3, -1))
+            set_P(5, -1, P(3, -1))
+            set_P(6, -1, P(3, -1))
+            set_P(7, -1, P(3, -1))
+        
+        self.Intra4x4PredictionMode(luma4x4BlkIdx, isLuam)
+
+        intra4x4PredMode = self.Intra4x4PredMode[luma4x4BlkIdx]
+
+        if self.slice.CurrMbAddr == 9:
+            print("intra4x4PredMode", intra4x4PredMode)
+
+        # 9种预测模型
+        lumaPredSamples[luma4x4BlkIdx] = {}
+
+        if intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Vertical:  # 垂直
+            if all(P(x, -1) >= 0 for x in range(4)):
+                for y in range(4):
+                    for x in range(4):
+                        lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = P(x, -1)
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Horizontal:  # 水平
+            if all(P(-1, y) >= 0 for y in range(4)):
+                for y in range(4):
+                    for x in range(4):
+                        lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = P(-1, y)
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_DC:  # 均值
+            val = 0
+            if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
+                val = (sum(P(x, -1) for x in range(4)) + sum(P(-1, y) for y in range(4)) + 4) >> 3
+            elif any(P(x, -1) < 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
+                val = (sum(P(-1, y) for y in range(4)) + 2) >> 2
+            elif any(P(-1, y) < 0 for y in range(4)) and all(P(x, -1) >= 0 for x in range(4)):
+                val = (sum(P(x, -1) for x in range(4)) + 2) >> 2
+            else:
+                val = 1 << (self.bs.sps.BitDepthY - 1)
+
+            for x in range(4):
+                for y in range(4):
+                    lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = val
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Diagonal_Down_Left:
+            if all(P(x, -1) >= 0 for x in range(8)):
+                for y in range(4):
+                    for x in range(4):
+                        if x == 3 and y == 3:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(6, -1) + 3 * P(7, -1) + 2) >> 2
+                        else:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(x + y, -1) + 2 * P(x + y + 1, -1) + P(x + y + 2, -1) + 2) >> 2
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Diagonal_Down_Right:
+            if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
+                for y in range(4):
+                    for x in range(4):
+                        if x > y:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(x - y - 2, -1) + 2 * P(x - y - 1, -1) + P(x - y, -1) + 2) >> 2
+                        elif x < y:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(-1, y - x - 2) + 2 * P(-1, y - x - 1) + P(-1, y - x) + 2) >> 2
+                        else:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(0, -1) + 2 * P(-1, -1) + P(-1, 0) + 2) >> 2
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Vertical_Right:
+            if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
+                for y in range(4):
+                    for x in range(4):
+                        zVR = 2 * x - y
+
+                        if zVR in {0, 2, 4, 6}:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 1) >> 1
+                        elif zVR in {1, 3, 5}:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(x - (y >> 1) - 2, -1) + 2 * P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 2) >> 2
+                        elif zVR == -1:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
+                        else:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (P(-1, y - 1) + 2 * P(-1, y - 2) + P(-1, y - 3) + 2) >> 2
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Horizontal_Down:
+                if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)) and P(-1, -1) >= 0:
                     for y in range(4):
                         for x in range(4):
-                            self.lumaPredSamples[luma4x4BlkIdx][x][y] = P(x, -1)
-            elif Intra4x4PredMode == "Intra_4x4_Horizontal":  # 水平
-                if all(P(-1, y) >= 0 for y in range(4)):
-                    for y in range(4):
-                        for x in range(4):
-                            self.lumaPredSamples[luma4x4BlkIdx][x][y] = P(-1, y)
-            elif Intra4x4PredMode == "Intra_4x4_DC":  # 均值
-                val = 0
-                if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
-                    val = (sum(P(x, -1) for x in range(4)) + sum(P(-1, y) for y in range(4)) + 4) >> 3
-                elif any(P(x, -1) < 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
-                    val = (sum(P(-1, y) for y in range(4)) + 2) >> 2
-                elif any(P(-1, y) < 0 for y in range(4)) and all(P(x, -1) >= 0 for x in range(4)):
-                    val = (sum(P(x, -1) for x in range(4)) + 2) >> 2
-                else:
-                    val = 1 << (self.bs.sps.BitDepthY - 1)
-
-                for x in range(4):
-                    for y in range(4):
-                        self.lumaPredSamples[luma4x4BlkIdx][x][y] = val
-            elif Intra4x4PredMode == "Intra_4x4_Diagonal_Down_Left":
-                if all(P(x, -1) >= 0 for x in range(8)):
-                    for y in range(4):
-                        for x in range(4):
-                            if x == 3 and y == 3:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(6, -1) + 3 * P(7, -1) + 2) >> 2
+                            zHD = 2 * y - x
+                            if zHD in [0, 2, 4, 6]:
+                                lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                    P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 1) >> 1
+                            elif zHD in [1, 3, 5]:
+                                lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                    P(-1, y - (x >> 1) - 2) + 2 * P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 2) >> 2
+                            elif zHD == -1:
+                                lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                    P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
                             else:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(x + y, -1) + 2 * P(x + y + 1, -1) + P(x + y + 2, -1) + 2) >> 2
-            elif Intra4x4PredMode == "Intra_4x4_Diagonal_Down_Right":
-                if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
-                    for y in range(4):
-                        for x in range(4):
-                            if x > y:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(x - y - 2, -1) + 2 * P(x - y - 1, -1) + P(x - y, -1) + 2) >> 2
-                            elif x < y:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(-1, y - x - 2) + 2 * P(-1, y - x - 1) + P(-1, y - x) + 2) >> 2
-                            else:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(0, -1) + 2 * P(-1, -1) + P(-1, 0) + 2) >> 2
-            elif Intra4x4PredMode == "Intra_4x4_Vertical_Right":
-                if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)):
-                    for y in range(4):
-                        for x in range(4):
-                            zVR = 2 * x - y
+                                lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                    P(x - 1, -1) + 2 * P(x - 2, -1) + P(x - 3, -1) + 2) >> 2
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Vertical_Left:
+            if all(P(x, -1) >= 0 for x in range(8)):
+                for y in range(4):
+                    for x in range(4):
+                        if y in [0, 2]:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                P(x + (y >> 1), -1) + P(x + (y >> 1) + 1, -1) + 1) >> 1
+                        else:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                P(x + (y >> 1), -1) + 2 * P(x + (y >> 1) + 1, -1) + P(x + (y >> 1) + 2, -1) + 2) >> 2
+        elif intra4x4PredMode == Intra4x4PredMode.Intra_4x4_Horizontal_Up:
+            if all(P(-1, y) >= 0 for y in range(4)):
+                for y in range(4):
+                    for x in range(4):
+                        zHU = x + 2 * y
+                        if zHU in [0, 2, 4]:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                P(-1, y + (x >> 1)) + P(-1, y + (x >> 1) + 1) + 1) >> 1
+                        elif zHU in [1, 3]:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                P(-1, y + (x >> 1)) + 2 * P(-1, y + (x >> 1) + 1) + P(-1, y + (x >> 1) + 2) + 2) >> 2
+                        elif zHU == 5:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = (
+                                P(-1, 2) + 3 * P(-1, 3) + 2) >> 2
+                        else:
+                            lumaPredSamples[luma4x4BlkIdx][f"{x}_{y}"] = P(-1, 3)
 
-                            if zVR in {0, 2, 4, 6}:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 1) >> 1
-                            elif zVR in {1, 3, 5}:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(x - (y >> 1) - 2, -1) + 2 * P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 2) >> 2
-                            elif zVR == -1:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
-                            else:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (P(-1, y - 1) + 2 * P(-1, y - 2) + P(-1, y - 3) + 2) >> 2
-            elif Intra4x4PredMode == "Intra_4x4_Horizontal_Down":
-                    if all(P(x, -1) >= 0 for x in range(4)) and all(P(-1, y) >= 0 for y in range(4)) and P(-1, -1) >= 0:
-                        for y in range(4):
-                            for x in range(4):
-                                zHD = 2 * y - x
-                                if zHD in [0, 2, 4, 6]:
-                                    self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                        P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 1) >> 1
-                                elif zHD in [1, 3, 5]:
-                                    self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                        P(-1, y - (x >> 1) - 2) + 2 * P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 2) >> 2
-                                elif zHD == -1:
-                                    self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                        P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
-                                else:
-                                    self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                        P(x - 1, -1) + 2 * P(x - 2, -1) + P(x - 3, -1) + 2) >> 2
-            elif Intra4x4PredMode == "Intra_4x4_Vertical_Left":
-                if all(P(x, -1) >= 0 for x in range(8)):
-                    for y in range(4):
-                        for x in range(4):
-                            if y in [0, 2]:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                    P(x + (y >> 1), -1) + P(x + (y >> 1) + 1, -1) + 1) >> 1
-                            else:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                    P(x + (y >> 1), -1) + 2 * P(x + (y >> 1) + 1, -1) + P(x + (y >> 1) + 2, -1) + 2) >> 2
-            elif Intra4x4PredMode == "Intra_4x4_Horizontal_Up":
-                if all(P(-1, y) >= 0 for y in range(4)):
-                    for y in range(4):
-                        for x in range(4):
-                            zHU = x + 2 * y
-                            if zHU in [0, 2, 4]:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                    P(-1, y + (x >> 1)) + P(-1, y + (x >> 1) + 1) + 1) >> 1
-                            elif zHU in [1, 3]:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                    P(-1, y + (x >> 1)) + 2 * P(-1, y + (x >> 1) + 1) + P(-1, y + (x >> 1) + 2) + 2) >> 2
-                            elif zHU == 5:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = (
-                                    P(-1, 2) + 3 * P(-1, 3) + 2) >> 2
-                            else:
-                                self.lumaPredSamples[luma4x4BlkIdx][x][y] = P(-1, 3)
-
-
+        return lumaPredSamples
 
             
         # 4x4块预测
@@ -609,39 +712,31 @@ class MacroBlock():
         '''
             4x4块预测模式
         '''
-        # 	//计算当前亮度块左上角亮度样点距离当前宏块左上角亮度样点的相对位置
         x = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
         y = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
-        maxW = maxH = 0
-        if isLuam :
-            maxW = maxH = 16
-        else:
+        maxW = maxH = 16
+        if not isLuam :
             maxH = self.bs.sps.MbHeightC
             maxW = self.bs.sps.MbWidthC
-        
         mbAddrA, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x-1, y, maxW, maxH)
         if mbAddrA != None:
             luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
-
         mbAddrB, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x + 0, y + (-1), maxW, maxH)
         if mbAddrB != None:
             luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
 
-
-        dcPredModePredictedFlag = False
-
-        # 判断帧内编码宏块是否受到帧间编码宏块的限制
-        if mbAddrA == None or \
-            mbAddrB == None :
-            dcPredModePredictedFlag = True
-
         intraMxMPredModeA = None
         intraMxMPredModeB = None
 
-        # 处理左侧相邻宏块的预测模式
+        dcPredModePredictedFlag = 0
+        if  mbAddrA == None or mbAddrB == None or \
+            (mbAddrA != None and mbAddrA.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+            (mbAddrB != None and mbAddrB.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
+            dcPredModePredictedFlag = 1
+
         if dcPredModePredictedFlag or \
             (mbAddrA != None and mbAddrA.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")): 
-            intraMxMPredModeA = "Intra_4x4_DC"
+            intraMxMPredModeA = 2
         else:
             # 根据左侧宏块的模式选择对应的预测模式
             if mbAddrA.mb_type.MbPartPredMode == "Intra_4x4":
@@ -652,7 +747,7 @@ class MacroBlock():
         # 处理上方相邻宏块的预测模式
         if dcPredModePredictedFlag or \
             (mbAddrB != None and mbAddrB.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
-            intraMxMPredModeB = "Intra_4x4_DC"
+            intraMxMPredModeB = 2
         else:
             # 根据上方宏块的模式选择对应的预测模式
             if mbAddrB.mb_type.MbPartPredMode == "Intra_4x4":
@@ -669,7 +764,35 @@ class MacroBlock():
             self.Intra4x4PredMode[luma4x4BlkIdx] = predIntra4x4PredMode
         else:
             # 根据 rem_intra4x4_pred_mode 决定预测模式
+            # print("predIntra4x4PredMode", predIntra4x4PredMode,intraMxMPredModeA, intraMxMPredModeB )
             if self.rem_intra4x4_pred_mode[luma4x4BlkIdx] < predIntra4x4PredMode:
                 self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx]
             else:
                 self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
+
+
+    def lumaDataMerge(self, luma4x4Data, luma4x4BlkIdx, mode):
+        xP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
+        yP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicHeightInMapUnits * 16, 1)
+
+        xO = 0
+        yO = 0
+        nE = 0
+        if mode == "16*16":
+            nE = 16
+        elif mode == "4*4":
+            xO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
+            yO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
+            nE = 4
+        else: #//8*8
+            xO = InverseRasterScan(luma4x4BlkIdx, 8, 8, 16, 0)
+            yO = InverseRasterScan(luma4x4BlkIdx, 8, 8, 16, 1)
+            nE = 8
+        for i in range(nE):
+            for j in range(nE):
+                if (xP + xO + j) not in self.slice.lumaData:
+                    self.slice.lumaData[xP + xO + j] = {}
+                self.slice.lumaData[xP + xO + j][yP + yO + i] = luma4x4Data[i * nE + j]
+
+
+
