@@ -324,13 +324,48 @@ class MacroBlock():
                         depthY = (1 << self.bs.sps.BitDepthY) - 1
                         pred = self.lumaPredSamples[luma4x4BlkIdx].get(f"{j}_{i}",0) + self.LumaLevel4x4Scaling[i][j]
                         luma4x4Data[i*4+j] = Clip3(0, depthY, pred)
-                if self.CurrMbAddr == 9:
-                    print(luma4x4BlkIdx, "luma4x4Data->", luma4x4Data)
-                    print(luma4x4BlkIdx, "self.lumaPredSamples->", self.lumaPredSamples[luma4x4BlkIdx])
-                    print(luma4x4BlkIdx, "self.LumaLevel4x4Scaling->", self.LumaLevel4x4Scaling)
+                # if self.CurrMbAddr == 9:
+                #     print(luma4x4BlkIdx, "luma4x4Data->", luma4x4Data)
+                    # print(luma4x4BlkIdx, "self.lumaPredSamples->", self.lumaPredSamples[luma4x4BlkIdx])
+                    # print(luma4x4BlkIdx, "self.LumaLevel4x4Scaling->", self.LumaLevel4x4Scaling)
 
                 self.lumaDataMerge(luma4x4Data, luma4x4BlkIdx, "4*4")
+        elif self.mb_type.MbPartPredMode == "Intra_16x16":
+            self.scaling(0) # 0 为亮度
+            c = MbPredMode.Block4x4ZigzagScan(self.Intra16x16DCLevel)
+            # 开始反量化
+            dcY = self.scalingTransformProcess16x16(c, True)
 
+            dcYToLuma = [
+                dcY[0][0], dcY[0][1], dcY[1][0], dcY[1][1],
+                dcY[0][2], dcY[0][3], dcY[1][2], dcY[1][3],
+                dcY[2][0], dcY[2][1], dcY[3][0], dcY[3][1],
+                dcY[2][2], dcY[2][3], dcY[3][2], dcY[3][3]
+            ] 
+            rMb = [[0 for _ in range(16)] for _ in range(16)]
+            for _4x4BlkIdx in range(16):
+                lumaList = {}
+                lumaList[0] = dcYToLuma[_4x4BlkIdx]
+                for k in range(16):
+                    lumaList[k] = self.Intra16x16ACLevel.get(_4x4BlkIdx,{}).get(k - 1, 0)
+                c = MbPredMode.Block4x4ZigzagScan(lumaList)
+                r = self.scalingTransformProcess(c, True)
+                xO = InverseRasterScan(_4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(_4x4BlkIdx % 4, 4, 4, 8, 0)
+                yO = InverseRasterScan(_4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(_4x4BlkIdx % 4, 4, 4, 8, 1)
+                for i in range(4):
+                    for j in range(4):
+                        rMb[xO + j][yO + i] = r[i][j]
+            # self.luma16x16PredSamples = 
+            self.Intra16x16Prediction()
+            
+            luma16x16Data = {}
+            for i in range(16):
+                for j in range(16):
+                    luma16x16Data[i*16+j] = Clip3(0, (1 << self.bs.sps.BitDepthY) - 1, self.luma16x16PredSamples.get(f"{i}_{j}",0) + rMb[j][i])
+
+            self.lumaDataMerge(luma16x16Data, 0, "16*16")
+        else :
+            print("=============>",self.mb_type.MbPartPredMode) 
     
         # print("self.CurrMbAddr",self.CurrMbAddr, self.mb_type.MbPartPredMode)
     # 
@@ -438,6 +473,40 @@ class MacroBlock():
         return r
 
 
+    def scalingTransformProcess16x16(self, c, isLuam) -> dict[int, int]:
+            qP = 0
+            if isLuam:
+                qP = self.QP1Y
+            else:
+                qP = self.QP1C
+                
+            a = [[0 for _ in range(4)] for _ in range(4)]
+            g = [[0 for _ in range(4)] for _ in range(4)]
+            f = [[0 for _ in range(4)] for _ in range(4)]
+            dcY = [[0 for _ in range(4)] for _ in range(4)]
+            
+            # 计算 g = a * c
+            for i in range(4):
+                for j in range(4):
+                    for k in range(4):
+                        g[i][j] += a[i][k] * c[k][j]
+
+            # 计算 f = g * a
+            for i in range(4):
+                for j in range(4):
+                    for k in range(4):
+                        f[i][j] += g[i][k] * a[k][j]
+
+            # 根据 qP 的值计算 dcY
+            if qP >= 36:
+                for i in range(4):
+                    for j in range(4):
+                        dcY[i][j] = (f[i][j] * self.LevelScale4x4[qP % 6][0][0]) << (qP // 6 - 6)
+            else:
+                for i in range(4):
+                    for j in range(4):
+                        dcY[i][j] = (f[i][j] * self.LevelScale4x4[qP % 6][0][0] + (1 << (5 - qP // 6))) >> (6 - qP // 6)
+            return dcY
 
 
     # def Intra4x4pred(self, luma4x4BlkIdx, isLuam):
@@ -582,6 +651,8 @@ class MacroBlock():
                 # print(x,y, xM + xW, yM + yW, P(x, y), self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0))
                 # print(self.slice.lumaData)
                 # exit(0)
+                # if self.slice.CurrMbAddr == 9:
+                #     print(luma4x4BlkIdx, x, y, xM + xW, yM + yW, self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0))
 
         # print("luma4x4BlkIdx", luma4x4BlkIdx, samples)
 
@@ -596,8 +667,10 @@ class MacroBlock():
 
         intra4x4PredMode = self.Intra4x4PredMode[luma4x4BlkIdx]
 
-        if self.slice.CurrMbAddr == 9:
-            print("intra4x4PredMode", intra4x4PredMode)
+        # if self.slice.CurrMbAddr == 9:
+            # print("samples", samples)
+            # print("intra4x4PredMode", luma4x4BlkIdx, intra4x4PredMode)
+
 
         # 9种预测模型
         lumaPredSamples[luma4x4BlkIdx] = {}
@@ -770,10 +843,89 @@ class MacroBlock():
             else:
                 self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
 
+    def Intra16x16Prediction(self, isLuam:bool = True):
+        # Relative coordinates to the top-left corner
+
+        reference_coordinate_x = [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 ]
+        reference_coordinate_y = [ -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 ]
+
+        p = [-1] * (17 * 17)
+        def P(x, y):
+            return p[(y + 1) * 17 + (x + 1)]
+
+        def set_p(x, y, value):
+            p[(y + 1) * 17 + (x + 1)] = value
+        
+        for i in range(33):
+            max_w = 16 if isLuam else self.bs.sps.MbWidthC
+            max_h = 16 if isLuam else self.bs.sps.MbHeightC
+
+            x = reference_coordinate_x[i]
+            y = reference_coordinate_y[i]
+           
+            mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x, y, max_w, max_h, )
+
+            if (mbAddrN == None or
+                (mbAddrN.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or
+                (mbAddrN.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag)):
+                set_p(x, y, -1)
+            else:
+                xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
+                yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
+                set_p(x, y, self.slice.lumaData[xM + xW][yM + yW])
+                if self.CurrMbAddr == 78:
+                    print(x, y, xM + xW, yM + yW, int(self.slice.lumaData[xM + xW][yM + yW]))
+
+        Intra16x16PredMode = self.mb_type.Intra16x16PredMode
+
+        self.luma16x16PredSamples = {}
+
+        if Intra16x16PredMode == 0:  # 垂直
+            if all(P(x, -1) >= 0 for x in range(16)):
+                for y in range(16):
+                    for x in range(16):
+                        self.luma16x16PredSamples[f"{x}_{y}"] = P(x, -1)
+        elif Intra16x16PredMode == 1:  # 水平
+            if all(P(-1, y) >= 0 for y in range(16)):
+                for y in range(16):
+                    for x in range(16):
+                        self.luma16x16PredSamples[f"{x}_{y}"] = P(-1, y)
+        elif Intra16x16PredMode == 2:  # 四舍五入求均值
+            val = 0
+
+            if all(P(x, -1) >= 0 for x in range(16)) and all(P(-1, y) >= 0 for y in range(16)):
+                val = (sum(P(x, -1) for x in range(16)) + sum(P(-1, y) for y in range(16)) + 16) >> 5
+
+            elif not all(P(x, -1) >= 0 for x in range(16)) and all(P(-1, y) >= 0 for y in range(16)):
+                val = (sum(P(-1, y) for y in range(16)) + 8) >> 4
+
+            elif all(P(x, -1) >= 0 for x in range(16)) and not all(P(-1, y) >= 0 for y in range(16)):
+                val = (sum(P(x, -1) for x in range(16)) + 8) >> 4
+
+            else:
+                val = 1 << (self.bs.sps.BitDepthY - 1)
+
+            for x in range(16):
+                for y in range(16):
+                    self.luma16x16PredSamples[f"{x}_{y}"] = val
+        elif Intra16x16PredMode == 3:  # 平面预测
+            if all(P(x, -1) >= 0 for x in range(16)) and all(P(-1, y) >= 0 for y in range(16)):
+                H = sum((x + 1) * (P(8 + x, -1) - P(6 - x, -1)) for x in range(8))
+                V = sum((y + 1) * (P(-1, 8 + y) - P(-1, 6 - y)) for y in range(8))
+
+                a = 16 * (P(-1, 15) + P(15, -1))
+                b = (5 * H + 32) >> 6
+                c = (5 * V + 32) >> 6
+
+                for y in range(16):
+                    for x in range(16):
+                        self.luma16x16PredSamples[f"{x}_{y}"] = Clip3(
+                            0, (1 << self.bs.sps.BitDepthY) - 1, (a + b * (x - 7) + c * (y - 7) + 16) >> 5
+                        )
 
     def lumaDataMerge(self, luma4x4Data, luma4x4BlkIdx, mode):
         xP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
-        yP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicHeightInMapUnits * 16, 1)
+        yP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 1)
 
         xO = 0
         yO = 0
@@ -792,6 +944,10 @@ class MacroBlock():
             for j in range(nE):
                 if (xP + xO + j) not in self.slice.lumaData:
                     self.slice.lumaData[xP + xO + j] = {}
+                # if self.slice.CurrMbAddr == 9:
+                #     print(f"===> {j} {xP} {xO} {i} {yP} {yO} {i * nE + j}")
+                if xP + xO + j == 15 and yP + yO + i == 112:
+                    raise BaseException(self.CurrMbAddr)
                 self.slice.lumaData[xP + xO + j][yP + yO + i] = luma4x4Data[i * nE + j]
 
 
