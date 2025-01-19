@@ -335,18 +335,19 @@ class MacroBlock():
             c = MbPredMode.Block4x4ZigzagScan(self.Intra16x16DCLevel)
             # 开始反量化
             dcY = self.scalingTransformProcess16x16(c, True)
-
             dcYToLuma = [
                 dcY[0][0], dcY[0][1], dcY[1][0], dcY[1][1],
                 dcY[0][2], dcY[0][3], dcY[1][2], dcY[1][3],
                 dcY[2][0], dcY[2][1], dcY[3][0], dcY[3][1],
                 dcY[2][2], dcY[2][3], dcY[3][2], dcY[3][3]
             ] 
+                    #    Intra16x16DCLevel
+
             rMb = [[0 for _ in range(16)] for _ in range(16)]
             for _4x4BlkIdx in range(16):
                 lumaList = {}
                 lumaList[0] = dcYToLuma[_4x4BlkIdx]
-                for k in range(16):
+                for k in range(1, 16):
                     lumaList[k] = self.Intra16x16ACLevel.get(_4x4BlkIdx,{}).get(k - 1, 0)
                 c = MbPredMode.Block4x4ZigzagScan(lumaList)
                 r = self.scalingTransformProcess(c, True)
@@ -356,14 +357,17 @@ class MacroBlock():
                     for j in range(4):
                         rMb[xO + j][yO + i] = r[i][j]
             # self.luma16x16PredSamples = 
+            # if self.CurrMbAddr == 77:
             self.Intra16x16Prediction()
             
             luma16x16Data = {}
             for i in range(16):
                 for j in range(16):
-                    luma16x16Data[i*16+j] = Clip3(0, (1 << self.bs.sps.BitDepthY) - 1, self.luma16x16PredSamples.get(f"{i}_{j}",0) + rMb[j][i])
+                    luma16x16Data[i*16+j] = Clip3(0, (1 << self.bs.sps.BitDepthY) - 1, self.luma16x16PredSamples.get(f"{j}_{i}",0) + rMb[j][i])
 
             self.lumaDataMerge(luma16x16Data, 0, "16*16")
+            # for i in range(16):
+            #     print("self.luma16x16PredSamples", self.luma16x16PredSamples[i])
         else :
             print("=============>",self.mb_type.MbPartPredMode) 
     
@@ -480,7 +484,12 @@ class MacroBlock():
             else:
                 qP = self.QP1C
                 
-            a = [[0 for _ in range(4)] for _ in range(4)]
+            a = [
+                [1,1,1,1],
+                [1,1,-1,-1],
+                [1,-1,-1,1],
+                [1,-1,1,-1],
+            ]
             g = [[0 for _ in range(4)] for _ in range(4)]
             f = [[0 for _ in range(4)] for _ in range(4)]
             dcY = [[0 for _ in range(4)] for _ in range(4)]
@@ -497,6 +506,7 @@ class MacroBlock():
                     for k in range(4):
                         f[i][j] += g[i][k] * a[k][j]
 
+            print("qP", qP)
             # 根据 qP 的值计算 dcY
             if qP >= 36:
                 for i in range(4):
@@ -873,8 +883,8 @@ class MacroBlock():
                 xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
                 yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
                 set_p(x, y, self.slice.lumaData[xM + xW][yM + yW])
-                if self.CurrMbAddr == 78:
-                    print(x, y, xM + xW, yM + yW, int(self.slice.lumaData[xM + xW][yM + yW]))
+                # if self.CurrMbAddr == 77:
+                #     print(x, y, xM + xW, yM + yW, int(self.slice.lumaData[xM + xW][yM + yW]))
 
         Intra16x16PredMode = self.mb_type.Intra16x16PredMode
 
@@ -946,8 +956,8 @@ class MacroBlock():
                     self.slice.lumaData[xP + xO + j] = {}
                 # if self.slice.CurrMbAddr == 9:
                 #     print(f"===> {j} {xP} {xO} {i} {yP} {yO} {i * nE + j}")
-                if xP + xO + j == 15 and yP + yO + i == 112:
-                    raise BaseException(self.CurrMbAddr)
+                # if xP + xO + j == 15 and yP + yO + i == 112:
+                #     raise BaseException(self.CurrMbAddr)
                 self.slice.lumaData[xP + xO + j][yP + yO + i] = luma4x4Data[i * nE + j]
 
 
