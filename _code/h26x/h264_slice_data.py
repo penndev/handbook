@@ -72,6 +72,8 @@ class SliceData:
         self.QPY_prev = slice_header.SliceQPY # 逻辑计算
 
         self.lumaData = {}
+        self.chromaCbData = {}
+        self.chromaCrData = {}
 
 
         if bs.pps.entropy_coding_mode_flag:
@@ -121,6 +123,11 @@ class SliceData:
             height = self.header.PicHeightInSamplesL
             for y in range(int(height)):  # 遍历行
                 for x in range(int(width)):  # 遍历列
-                    # print("x,y", x,y, self.lumaData.get(x,{}).get(y,0))
                     file.write(bytes([self.lumaData.get(x,{}).get(y,0)]))  # 将字节写入文件
-     
+            for y in range(int(height/2)):  # 遍历行
+                for x in range(int(width/2)):  # 遍历列
+                    file.write(bytes([self.chromaCbData.get(x,{}).get(y,0)]))  # 将字节写入文件
+            # for y in range(int(height/2)):  # 遍历行
+            #     for x in range(int(width/2)):  # 遍历列
+            #         file.write(bytes([self.chromaCrData.get(x,{}).get(y,0)]))  # 将字节写入文件
+            

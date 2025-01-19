@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from h264_slice_data import SliceData
 
-from h264_define import Intra4x4PredMode, Matrix, MbPredMode, SliceType
+from h264_define import ChromaType, Intra4x4PredMode, MbPredMode, SliceType
 from h264_bs import BitStream
 
 from h264_util import Clip3, InverseRasterScan
@@ -294,7 +294,6 @@ class MacroBlock():
         return i16x16DClevel, i16x16AClevel, level4x4, level8x8
 
 
-
     def Parse(self):
         self.Intra4x4PredMode = {}
         self.Intra8x8PredMode = {}
@@ -330,6 +329,8 @@ class MacroBlock():
                     # print(luma4x4BlkIdx, "self.LumaLevel4x4Scaling->", self.LumaLevel4x4Scaling)
 
                 self.lumaDataMerge(luma4x4Data, luma4x4BlkIdx, "4*4")
+            self.ChromaResidualProcess(ChromaType.Blue)
+            self.ChromaResidualProcess(ChromaType.Red)
         elif self.mb_type.MbPartPredMode == "Intra_16x16":
             self.scaling(0) # 0 为亮度
             c = MbPredMode.Block4x4ZigzagScan(self.Intra16x16DCLevel)
@@ -366,13 +367,11 @@ class MacroBlock():
                     luma16x16Data[i*16+j] = Clip3(0, (1 << self.bs.sps.BitDepthY) - 1, self.luma16x16PredSamples.get(f"{j}_{i}",0) + rMb[j][i])
 
             self.lumaDataMerge(luma16x16Data, 0, "16*16")
-            # for i in range(16):
-            #     print("self.luma16x16PredSamples", self.luma16x16PredSamples[i])
+            self.ChromaResidualProcess(ChromaType.Blue)
+            self.ChromaResidualProcess(ChromaType.Red)
         else :
-            print("=============>",self.mb_type.MbPartPredMode) 
+            print("=============>",self.mb_type.MbPartPredMode)
     
-        # print("self.CurrMbAddr",self.CurrMbAddr, self.mb_type.MbPartPredMode)
-    # 
     def scaling(self, iYCbCr:int):
 
         mbIsInterFlag = False
@@ -422,18 +421,16 @@ class MacroBlock():
 
         if self.TransformBypassModeFlag:
             raise("未实现")
-
-        # print("self.LevelScale4x4", self.LevelScale4x4)
-        # print("qP", qP, self.slice.header.QSY, self.QP1Y)
-
+        
 
 
         # 量化过程  
         d = [[0 for _ in range(4)] for _ in range(4)]
         for i in range(4):
             for j in range(4):
-                if i == 0 and j == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
-                    d[i][j] = c[i][j]
+                if i == 0 and j == 0 and \
+                    (self.mb_type.MbPartPredMode == "Intra_16x16" or not isLuam ):
+                    d[0][0] = c[0][0]
                 else:
                     if qP >= 24:
                         d[i][j] = (c[i][j] * self.LevelScale4x4[qP % 6][i][j]) << (qP // 6 - 4)
@@ -476,7 +473,6 @@ class MacroBlock():
 
         return r
 
-
     def scalingTransformProcess16x16(self, c, isLuam) -> dict[int, int]:
             qP = 0
             if isLuam:
@@ -506,7 +502,6 @@ class MacroBlock():
                     for k in range(4):
                         f[i][j] += g[i][k] * a[k][j]
 
-            print("qP", qP)
             # 根据 qP 的值计算 dcY
             if qP >= 36:
                 for i in range(4):
@@ -517,102 +512,6 @@ class MacroBlock():
                     for j in range(4):
                         dcY[i][j] = (f[i][j] * self.LevelScale4x4[qP % 6][0][0] + (1 << (5 - qP // 6))) >> (6 - qP // 6)
             return dcY
-
-
-    # def Intra4x4pred(self, luma4x4BlkIdx, isLuam):
-    #     """
-    #     4x4亮度块预测过程
-    #     """
-    #     xO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
-    #     yO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
-
-    #     # 13个预测样本
-    #     samplesPred4x4L = {
-    #         "x": (-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7),
-    #         "y": (-1,  0,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1)
-    #     }
-
-    #     P = Matrix(-1)
-
-    #     maxW, maxH = (16, 16) if isLuam else (self.bs.sps.MbWidthC, self.bs.sps.MbHeightC)
-
-    #     for i in range(13):
-    #         x = samplesPred4x4L["x"][i]
-    #         y = samplesPred4x4L["y"][i]
-    #         xN = xO + x
-    #         yN = yO + y
-    #         mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(xN, yN, maxW, maxH)
-    #         if  mbAddrN == None or \
-    #             (mbAddrN.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
-    #             (self.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag) or \
-    #             (x > 3 and (luma4x4BlkIdx == 3 or luma4x4BlkIdx == 11)):
-    #             pass
-    #         else:
-    #             xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
-    #             yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
-    #             P[x, y] = self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0)
-
-    #     self.Intra4x4predMode(luma4x4BlkIdx, isLuam, xO, yO, maxW, maxH)
-    #     print(self.Intra4x4PredMode)
-
-
-    # def Intra4x4predMode(self, luma4x4BlkIdx, isLuam:bool, x, y, maxW, maxH):
-    #     '''
-    #         4x4块预测模式推导
-    #     '''
-    #     mbAddrA, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x-1, y, maxW, maxH)
-    #     if mbAddrA != None:
-    #         luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
-    #     mbAddrB, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x + 0, y + (-1), maxW, maxH)
-    #     if mbAddrB != None:
-    #         luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
-
-    #     intraMxMPredModeA = None
-    #     intraMxMPredModeB = None
-
-    #     dcPredModePredictedFlag = 0
-    #     if  mbAddrA == None or mbAddrB == None or \
-    #         (mbAddrA != None and mbAddrA.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
-    #         (mbAddrB != None and mbAddrB.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
-    #         dcPredModePredictedFlag = 1
-
-    #     if dcPredModePredictedFlag or \
-    #         (mbAddrA != None and mbAddrA.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")): 
-    #         intraMxMPredModeA = Intra4x4PredMode.Intra_4x4_DC
-    #     else:
-    #         # 根据左侧宏块的模式选择对应的预测模式
-    #         if mbAddrA.mb_type.MbPartPredMode == "Intra_4x4":
-    #             intraMxMPredModeA = mbAddrA.Intra4x4PredMode[luma4x4BlkIdxA]
-    #         else:  # Intra_8x8
-    #             intraMxMPredModeA = mbAddrA.Intra8x8PredMode[luma4x4BlkIdxA >> 2]
-
-    #     # 处理上方相邻宏块的预测模式
-    #     if dcPredModePredictedFlag or \
-    #         (mbAddrB != None and mbAddrB.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
-    #         intraMxMPredModeB = Intra4x4PredMode.Intra_4x4_DC
-    #     else:
-    #         # 根据上方宏块的模式选择对应的预测模式
-    #         if mbAddrB.mb_type.MbPartPredMode == "Intra_4x4":
-    #             intraMxMPredModeB = mbAddrB.Intra4x4PredMode[luma4x4BlkIdxB]
-    #         else:  # Intra_8x8
-    #             intraMxMPredModeB = mbAddrB.Intra8x8PredMode[luma4x4BlkIdxB >> 2]
-
-    #     # 从左侧和上方相邻块的预测模式中选取较小的一个作为预先定义模式
-    #     predIntra4x4PredMode = min(intraMxMPredModeA, intraMxMPredModeB)
-
-    #     # 判断当前块的预测模式
-    #     if self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
-    #         # 如果标志位为 1，则使用预定义模式
-    #         self.Intra4x4PredMode[luma4x4BlkIdx] = predIntra4x4PredMode
-    #     else:
-    #         # 根据 rem_intra4x4_pred_mode 决定预测模式
-    #         # print("predIntra4x4PredMode", predIntra4x4PredMode,intraMxMPredModeA, intraMxMPredModeB )
-    #         if self.rem_intra4x4_pred_mode[luma4x4BlkIdx] < predIntra4x4PredMode:
-    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx]
-    #         else:
-    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
-
-
 
     def Intra4x4Prediction(self, luma4x4BlkIdx:int, isLuam:bool):
         '''
@@ -790,7 +689,6 @@ class MacroBlock():
             
         # 4x4块预测
 
-
     def Intra4x4PredictionMode(self, luma4x4BlkIdx, isLuam:bool):
         '''
             4x4块预测模式
@@ -933,6 +831,301 @@ class MacroBlock():
                             0, (1 << self.bs.sps.BitDepthY) - 1, (a + b * (x - 7) + c * (y - 7) + 16) >> 5
                         )
 
+    def ChromaPrediction(self, chroma):
+        MbWidthC = self.bs.sps.MbWidthC
+        MbHeightC = self.bs.sps.MbHeightC
+
+        maxSamplesVal = MbWidthC + MbHeightC + 1
+        referenceCoordinateX = {}
+        referenceCoordinateY = {}
+
+        # 第一个 for 循环
+        for i in range(-1, MbHeightC):
+            referenceCoordinateX[i + 1] = -1
+            referenceCoordinateY[i + 1] = i
+
+        # 第二个 for 循环
+        for i in range(MbWidthC):
+            referenceCoordinateX[MbHeightC + 1 + i] = i
+            referenceCoordinateY[MbHeightC + 1 + i] = -1
+        
+        # 初始化 samples 数组
+        samples = [-1] * (MbWidthC + 1) * (MbHeightC + 1)
+        # 定义 P(x, y) 函数
+        def P(x, y):
+            return samples[(y + 1) * 9 + (x + 1)]
+        def set_P(x, y, value):
+            index = (y + 1) * 9 + (x + 1)  # 计算索引
+            samples[index] = value  
+
+        for i in range(maxSamplesVal):
+            x = referenceCoordinateX[i]
+            y = referenceCoordinateY[i]
+
+            mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x, y, MbWidthC, MbHeightC)
+
+            if mbAddrN == None or \
+			(mbAddrN.mb_type.isInterProd and self.bs.pps.constrained_intra_pred_flag) or \
+			(mbAddrN.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag and self.slice.header.slice_type != SliceType.SI):
+                pass
+            else:
+                xL = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
+                yL = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
+                xM = (xL >> 4) * MbWidthC
+                yM = ((yL >> 4) * MbHeightC) + (yL % 2)
+                if chroma == ChromaType.Blue:
+                    set_P(x, y, self.slice.chromaCbData.get(xM + xW,{}).get(yM + yW,0))
+                else:
+                    set_P(x, y, self.slice.chromaCrData.get(xM + xW,{}).get(yM + yW,0))
+
+        self.chromaPredSamples = [[0 for _ in range(16)] for _ in range(8)]
+
+        # print(self.intra_chroma_pred_mode)
+
+        if self.intra_chroma_pred_mode == 0:
+            for chroma4x4BlkIdx in range(1 << (self.bs.sps.ChromaArrayType + 1)):
+                xO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 0)
+                yO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 1)
+
+                val = 0
+                if (xO == 0 and yO == 0) or (xO > 0 and yO > 0):
+                    if (P(0 + xO, -1) >= 0 and P(1 + xO, -1) >= 0 and P(2 + xO, -1) >= 0 and P(3 + xO, -1) >= 0 and
+                        P(-1, 0 + yO) >= 0 and P(-1, 1 + yO) >= 0 and P(-1, 2 + yO) >= 0 and P(-1, 3 + yO) >= 0):
+                        val = (P(0 + xO, -1) + P(1 + xO, -1) + P(2 + xO, -1) + P(3 + xO, -1) +
+                            P(-1, 0 + yO) + P(-1, 1 + yO) + P(-1, 2 + yO) + P(-1, 3 + yO) + 4) >> 3
+                    elif not (P(0 + xO, -1) >= 0 and P(1 + xO, -1) >= 0 and P(2 + xO, -1) >= 0 and P(3 + xO, -1) >= 0) and \
+                        (P(-1, 0 + yO) >= 0 and P(-1, 1 + yO) >= 0 and P(-1, 2 + yO) >= 0 and P(-1, 3 + yO) >= 0):
+                        val = (P(-1, 0 + yO) + P(-1, 1 + yO) + P(-1, 2 + yO) + P(-1, 3 + yO) + 2) >> 2
+                    elif (P(0 + xO, -1) > 0 and P(1 + xO, -1) > 0 and P(2 + xO, -1) > 0 and P(3 + xO, -1) > 0) and \
+                        not (P(-1, 0 + yO) > 0 and P(-1, 1 + yO) > 0 and P(-1, 2 + yO) > 0 and P(-1, 3 + yO) > 0):
+                        val = (P(0 + xO, -1) + P(1 + xO, -1) + P(2 + xO, -1) + P(3 + xO, -1) + 2) >> 2
+                    else:
+                        val = (1 << (self.bs.sps.BitDepthC - 1))
+                elif xO > 0 and yO == 0:
+                    if P(0 + xO, -1) >= 0 and P(1 + xO, -1) >= 0 and P(2 + xO, -1) >= 0 and P(3 + xO, -1) >= 0:
+                        val = (P(0 + xO, -1) + P(1 + xO, -1) + P(2 + xO, -1) + P(3 + xO, -1) + 2) >> 2
+                    elif P(-1, 0 + yO) >= 0 and P(-1, 1 + yO) >= 0 and P(-1, 2 + yO) >= 0 and P(-1, 3 + yO) > 0:
+                        val = (P(-1, 0 + yO) + P(-1, 1 + yO) + P(-1, 2 + yO) + P(-1, 3 + yO) + 2) >> 2
+                    else:
+                        val = (1 << (self.bs.sps.BitDepthC - 1))
+                elif xO == 0 and yO > 0:
+                    if P(-1, 0 + yO) >= 0 and P(-1, 1 + yO) >= 0 and P(-1, 2 + yO) >= 0 and P(-1, 3 + yO) > 0:
+                        val = (P(-1, 0 + yO) + P(-1, 1 + yO) + P(-1, 2 + yO) + P(-1, 3 + yO) + 2) >> 2
+                    elif P(0 + xO, -1) >= 0 and P(1 + xO, -1) >= 0 and P(2 + xO, -1) >= 0 and P(3 + xO, -1) > 0:
+                        val = (P(0 + xO, -1) + P(1 + xO, -1) + P(2 + xO, -1) + P(3 + xO, -1) + 2) >> 2
+                    else:
+                        val = (1 << (self.bs.sps.BitDepthC - 1))
+                for y in range(4):
+                    for x in range(4):
+                        self.chromaPredSamples[x + xO][y + yO] = val
+        elif self.intra_chroma_pred_mode == 1:
+            flag = 1
+            for y in range(MbHeightC):
+                if P(-1, y) < 0:
+                    flag = 0
+                    break
+            if flag:
+                for y in range(MbHeightC):
+                    for x in range(MbWidthC):
+                        self.chromaPredSamples[x][y] = P(-1, y)
+        elif self.intra_chroma_pred_mode == 2:
+            flag = 1
+            for y in range(MbHeightC):
+                if P(x, -1) < 0:
+                    flag = 0
+                    break
+            if flag:
+                for y in range(MbHeightC):
+                    for x in range(MbWidthC):
+                        self.chromaPredSamples[x][y] = P(x, -1)
+        elif self.intra_chroma_pred_mode == 3:
+            flag = 1
+            for y in range(MbHeightC):
+                if P(-1, y) < 0:
+                    flag = 0
+                    break
+            if flag:
+
+                xCF = 4 if self.bs.sps.ChromaArrayType == 3 else 0
+                yCF = 4 if self.bs.sps.ChromaArrayType != 1 else 0
+                H = 0
+                V = 0
+                for x1 in range(4 + xCF):
+                    H += (x1 + 1) * (P(4 + xCF + x1, -1) - P(2 + xCF - x1, -1))
+                for y1 in range(4 + yCF):
+                    V += (y1 + 1) * (P(-1, 4 + yCF + y1) - P(-1, 2 + yCF - y1))
+                a = 16 * (P(-1, MbHeightC - 1) + P(MbWidthC - 1, -1))
+                b = ((34 - 29 * (self.bs.sps.ChromaArrayType == 3)) * H + 32) >> 6
+                c = ((34 - 29 * (self.bs.sps.ChromaArrayType != 1)) * V + 32) >> 6
+
+                # 填充 chromaPredSamples
+                for y in range(MbHeightC):
+                    for x in range(MbWidthC):
+                        self.chromaPredSamples[x][y] = Clip3(
+                            0, (1 << self.bs.sps.BitDepthC) - 1,
+                            (a + b * (x - 3 - xCF) + c * (y - 3 - yCF) + 16) >> 5
+                        )
+
+    def ChromaDCProcess(self, c, MbWidthC, MbHeightC, chroma):
+
+        qPOffset = 0
+        if chroma == ChromaType.Blue:
+            qPOffset = self.bs.pps.chroma_qp_index_offset
+        else:
+            qPOffset = self.bs.pps.second_chroma_qp_index_offset
+        qPI = Clip3(-self.bs.sps.QpBdOffsetC, 51, self.QPY + qPOffset)
+        self.QPC = 0
+        if qPI < 30:
+            self.QPC = qPI
+        else:
+            QPCs = [ 29, 30, 31, 32, 32, 33, 34, 34, 35, 35, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39, 39, 39 ]
+            self.QPC = QPCs[qPI - 30]
+        self.QP1C = self.QPC + self.bs.sps.QpBdOffsetC
+
+
+        # getChromaQuantisationParameters(isChromaCb);
+        qP = self.QP1C
+        dcC = [[0 for _ in range(2)] for _ in range(4)]
+        if self.bs.sps.ChromaArrayType == 1:
+            a = [
+				[1, 1],
+				[1,-1]
+			]
+            g = [[0 for _ in range(2)] for _ in range(2)]
+            f= [[0 for _ in range(2)] for _ in range(2)]
+
+            for i in range(2):
+                for j in range(2):
+                    for k in range(2):
+                        g[i][j] += a[i][k] * c[k][j]
+            for i in range(2):
+                for j in range(2):
+                    for k in range(2):
+                        f[i][j] += g[i][k] * a[k][j]
+            for i in range(2):
+                for j in range(2):
+                    dcC[i][j] = ((f[i][j] * self.LevelScale4x4[qP % 6][0][0]) << (qP // 6)) >> 5
+        elif self.bs.sps.ChromaArrayType == 2:
+            a = [
+				[1,1,1,1],
+				[1,1,-1,-1],
+				[1,-1,-1,1],
+				[1,-1,1,-1],
+			]
+            b = [[ 1,1],[1,-1]]
+            g = [[0 for _ in range(2)] for _ in range(4)]
+            f= [[0 for _ in range(2)] for _ in range(4)]
+            for i in range(4):
+                for j in range(2):
+                    for k in range(4):
+                        g[i][j] += a[i][k] * c[k][j]
+            for i in range(4):
+                for j in range(2):
+                    for k in range(4):
+                        f[i][j] += g[i][k] * b[k][j]
+            qPDc = qP + 3
+            if qPDc >= 36:
+                for i in range(4):
+                    for j in range(2):
+                        dcC[i][j] = (f[i][j] * self.LevelScale4x4[qPDc % 6][0][0]) << (qPDc // 6 - 6)
+            else:
+                for i in range(4):
+                    for j in range(2):
+                        dcC[i][j] = (f[i][j] * self.LevelScale4x4[qPDc % 6][0][0] + int(pow(2, 5 - qPDc // 6))) >> (6 - qP // 6)
+
+
+        else:
+            raise('==')
+        
+        return dcC
+
+    def ChromaResidualProcess(self, chroma: ChromaType):
+        if self.bs.sps.ChromaArrayType in (0,3):
+            raise(self.bs.sps.ChromaArrayType)
+
+        if self.bs.sps.ChromaArrayType == 1: #  //420
+            c = [[0 for _ in range(2)] for _ in range(2)]
+            c[0][0] = self.ChromaDCLevel[chroma].get(0,0)
+            c[0][1] = self.ChromaDCLevel[chroma].get(1,0)
+            c[1][0] = self.ChromaDCLevel[chroma].get(2,0)
+            c[1][1] = self.ChromaDCLevel[chroma].get(3,0)
+        elif self.bs.sps.ChromaArrayType == 2: #  //422
+            c = [[0 for _ in range(2)] for _ in range(4)]
+            c[0][0] = self.ChromaDCLevel[chroma].get(0,0)
+            c[0][1] = self.ChromaDCLevel[chroma].get(1,0)
+            c[1][0] = self.ChromaDCLevel[chroma].get(2,0)
+            c[1][1] = self.ChromaDCLevel[chroma].get(3,0)
+            c[2][0] = self.ChromaDCLevel[chroma].get(4,0)
+            c[2][1] = self.ChromaDCLevel[chroma].get(5,0)
+            c[3][0] = self.ChromaDCLevel[chroma].get(6,0)
+            c[3][1] = self.ChromaDCLevel[chroma].get(7,0)
+        
+        dcC = self.ChromaDCProcess(c, 0, 0, chroma)
+
+        dcCToChroma = [
+            dcC[0][0], dcC[0][1],
+            dcC[1][0], dcC[1][1],
+            dcC[2][0], dcC[2][1],
+            dcC[3][0], dcC[3][1],
+        ]
+        
+        rMb = [[0 for _ in range(16)] for _ in range(8)]
+        numChroma4x4Blks = (self.bs.sps.MbWidthC // 4) * (self.bs.sps.MbHeightC // 4)
+        for chroma4x4BlkIdx in range(numChroma4x4Blks):
+            chromaList = {}
+            chromaList[0] = dcCToChroma[chroma4x4BlkIdx]
+            for k in range(1,16):
+                chromaList[k] = self.ChromaACLevel[chroma].get(chroma4x4BlkIdx,{}).get(k - 1,0)
+            c = MbPredMode.Block4x4ZigzagScan(chromaList)
+            r = self.scalingTransformProcess(c, False)
+            # print(r)
+	        # 对c进行变换
+            xO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 0)
+            yO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 1)
+            for i in range(4):
+                for j in range(4):
+                    rMb[xO + j][yO + i] = r[i][j]
+                    # print(i, j, r[i][j])
+        
+        chromaData = {}
+        self.ChromaPrediction(chroma)
+
+        for i in range(self.bs.sps.MbWidthC):
+            for j in range(self.bs.sps.MbHeightC):
+                chromaData[i * self.bs.sps.MbWidthC + j] = Clip3(0, (1 << self.bs.sps.BitDepthC) - 1, self.chromaPredSamples[j][i] + rMb[j][i])
+
+        # if self.CurrMbAddr < 20:
+        #     if self.CurrMbAddr == 11:
+        #         print(chromaData)
+        #         print("rMb", rMb)
+        #         print("self.chromaPredSamples", self.chromaPredSamples)
+        # else:
+        #     exit(0)
+
+        self.chromaDataMerge(chromaData, chroma)
+
+    def chromaDataMerge(self, luma4x4Data, chroma):
+        xP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
+        yP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 1)
+
+        xO = 0
+        yO = 0
+
+        MbWidthC = self.bs.sps.MbWidthC
+        MbHeightC = self.bs.sps.MbHeightC
+        if self.bs.sps.ChromaArrayType == 1 or self.bs.sps.ChromaArrayType == 2:
+            yO = 0
+            for i in range(MbWidthC):
+                for j in range(MbHeightC):
+                    if chroma == ChromaType.Blue:
+                        if (xP // self.bs.sps.SubWidthC + xO + j) not in self.slice.chromaCbData:
+                            self.slice.chromaCbData[xP // self.bs.sps.SubWidthC + xO + j] = {}
+                        self.slice.chromaCbData[xP // self.bs.sps.SubWidthC + xO + j][yP // self.bs.sps.SubHeightC + yO + i] = luma4x4Data[i * MbWidthC + j]
+                    else:
+                        if (xP // self.bs.sps.SubWidthC + xO + j) not in self.slice.chromaCrData:
+                            self.slice.chromaCrData[xP // self.bs.sps.SubWidthC + xO + j] = {}
+                        self.slice.chromaCrData[xP // self.bs.sps.SubWidthC + xO + j][yP // self.bs.sps.SubHeightC + yO + i] = luma4x4Data[i * MbWidthC + j]
+
     def lumaDataMerge(self, luma4x4Data, luma4x4BlkIdx, mode):
         xP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
         yP = InverseRasterScan(self.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 1)
@@ -959,6 +1152,101 @@ class MacroBlock():
                 # if xP + xO + j == 15 and yP + yO + i == 112:
                 #     raise BaseException(self.CurrMbAddr)
                 self.slice.lumaData[xP + xO + j][yP + yO + i] = luma4x4Data[i * nE + j]
+
+
+
+    # def Intra4x4pred(self, luma4x4BlkIdx, isLuam):
+    #     """
+    #     4x4亮度块预测过程
+    #     """
+    #     xO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
+    #     yO = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
+
+    #     # 13个预测样本
+    #     samplesPred4x4L = {
+    #         "x": (-1, -1, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7),
+    #         "y": (-1,  0,  1,  2,  3, -1, -1, -1, -1, -1, -1, -1, -1)
+    #     }
+
+    #     P = Matrix(-1)
+
+    #     maxW, maxH = (16, 16) if isLuam else (self.bs.sps.MbWidthC, self.bs.sps.MbHeightC)
+
+    #     for i in range(13):
+    #         x = samplesPred4x4L["x"][i]
+    #         y = samplesPred4x4L["y"][i]
+    #         xN = xO + x
+    #         yN = yO + y
+    #         mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(xN, yN, maxW, maxH)
+    #         if  mbAddrN == None or \
+    #             (mbAddrN.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+    #             (self.slice.header.slice_type == SliceType.SI and self.bs.pps.constrained_intra_pred_flag) or \
+    #             (x > 3 and (luma4x4BlkIdx == 3 or luma4x4BlkIdx == 11)):
+    #             pass
+    #         else:
+    #             xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 0)
+    #             yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInSamplesL, 1)
+    #             P[x, y] = self.slice.lumaData.get(xM + xW, {}).get(yM + yW,0)
+
+    #     self.Intra4x4predMode(luma4x4BlkIdx, isLuam, xO, yO, maxW, maxH)
+    #     print(self.Intra4x4PredMode)
+
+
+    # def Intra4x4predMode(self, luma4x4BlkIdx, isLuam:bool, x, y, maxW, maxH):
+    #     '''
+    #         4x4块预测模式推导
+    #     '''
+    #     mbAddrA, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x-1, y, maxW, maxH)
+    #     if mbAddrA != None:
+    #         luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+    #     mbAddrB, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x + 0, y + (-1), maxW, maxH)
+    #     if mbAddrB != None:
+    #         luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+
+    #     intraMxMPredModeA = None
+    #     intraMxMPredModeB = None
+
+    #     dcPredModePredictedFlag = 0
+    #     if  mbAddrA == None or mbAddrB == None or \
+    #         (mbAddrA != None and mbAddrA.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+    #         (mbAddrB != None and mbAddrB.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
+    #         dcPredModePredictedFlag = 1
+
+    #     if dcPredModePredictedFlag or \
+    #         (mbAddrA != None and mbAddrA.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")): 
+    #         intraMxMPredModeA = Intra4x4PredMode.Intra_4x4_DC
+    #     else:
+    #         # 根据左侧宏块的模式选择对应的预测模式
+    #         if mbAddrA.mb_type.MbPartPredMode == "Intra_4x4":
+    #             intraMxMPredModeA = mbAddrA.Intra4x4PredMode[luma4x4BlkIdxA]
+    #         else:  # Intra_8x8
+    #             intraMxMPredModeA = mbAddrA.Intra8x8PredMode[luma4x4BlkIdxA >> 2]
+
+    #     # 处理上方相邻宏块的预测模式
+    #     if dcPredModePredictedFlag or \
+    #         (mbAddrB != None and mbAddrB.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
+    #         intraMxMPredModeB = Intra4x4PredMode.Intra_4x4_DC
+    #     else:
+    #         # 根据上方宏块的模式选择对应的预测模式
+    #         if mbAddrB.mb_type.MbPartPredMode == "Intra_4x4":
+    #             intraMxMPredModeB = mbAddrB.Intra4x4PredMode[luma4x4BlkIdxB]
+    #         else:  # Intra_8x8
+    #             intraMxMPredModeB = mbAddrB.Intra8x8PredMode[luma4x4BlkIdxB >> 2]
+
+    #     # 从左侧和上方相邻块的预测模式中选取较小的一个作为预先定义模式
+    #     predIntra4x4PredMode = min(intraMxMPredModeA, intraMxMPredModeB)
+
+    #     # 判断当前块的预测模式
+    #     if self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
+    #         # 如果标志位为 1，则使用预定义模式
+    #         self.Intra4x4PredMode[luma4x4BlkIdx] = predIntra4x4PredMode
+    #     else:
+    #         # 根据 rem_intra4x4_pred_mode 决定预测模式
+    #         # print("predIntra4x4PredMode", predIntra4x4PredMode,intraMxMPredModeA, intraMxMPredModeB )
+    #         if self.rem_intra4x4_pred_mode[luma4x4BlkIdx] < predIntra4x4PredMode:
+    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx]
+    #         else:
+    #             self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
 
 
 

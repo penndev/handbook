@@ -2,6 +2,11 @@ from __future__ import annotations
 from typing import Self
 from enum import Enum, IntEnum
 
+class ChromaType(IntEnum):
+    Blue = 0
+    '''色度cb 蓝'''
+    Red = 1
+    '''色度cr 红'''
 
 class NalUnitType(Enum):
     '''
@@ -126,6 +131,9 @@ class MbPredMode(Enum):
         return c
 
 class Intra4x4PredMode(IntEnum):
+    '''
+        4x4 帧内预测的类型
+    '''
     Intra_4x4_Vertical = 0
     Intra_4x4_Horizontal = 1
     Intra_4x4_DC = 2
@@ -136,15 +144,4 @@ class Intra4x4PredMode(IntEnum):
     Intra_4x4_Vertical_Left = 7
     Intra_4x4_Horizontal_Up = 8
 
-class Matrix:
-    def __init__(self, default=0):
-        self.data = {}
-        self.default = default
-    def __getitem__(self, key):
-        x, y = key
-        return self.data.get((x, y), self.default)  # 默认值为 0
-
-    def __setitem__(self, key, value):
-        x, y = key
-        self.data[(x, y)] = value
 
