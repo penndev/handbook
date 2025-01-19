@@ -973,8 +973,9 @@ class MacroBlock():
             qPOffset = self.bs.pps.chroma_qp_index_offset
         else:
             qPOffset = self.bs.pps.second_chroma_qp_index_offset
+            # print("==->", qPOffset)
         qPI = Clip3(-self.bs.sps.QpBdOffsetC, 51, self.QPY + qPOffset)
-        self.QPC = 0
+   
         if qPI < 30:
             self.QPC = qPI
         else:
@@ -982,9 +983,11 @@ class MacroBlock():
             self.QPC = QPCs[qPI - 30]
         self.QP1C = self.QPC + self.bs.sps.QpBdOffsetC
 
-
         # getChromaQuantisationParameters(isChromaCb);
         qP = self.QP1C
+
+        
+
         dcC = [[0 for _ in range(2)] for _ in range(4)]
         if self.bs.sps.ChromaArrayType == 1:
             a = [
@@ -1005,6 +1008,7 @@ class MacroBlock():
             for i in range(2):
                 for j in range(2):
                     dcC[i][j] = ((f[i][j] * self.LevelScale4x4[qP % 6][0][0]) << (qP // 6)) >> 5
+        
         elif self.bs.sps.ChromaArrayType == 2:
             a = [
 				[1,1,1,1],
@@ -1033,7 +1037,6 @@ class MacroBlock():
                     for j in range(2):
                         dcC[i][j] = (f[i][j] * self.LevelScale4x4[qPDc % 6][0][0] + int(pow(2, 5 - qPDc // 6))) >> (6 - qP // 6)
 
-
         else:
             raise('==')
         
@@ -1061,6 +1064,7 @@ class MacroBlock():
             c[3][1] = self.ChromaDCLevel[chroma].get(7,0)
         
         dcC = self.ChromaDCProcess(c, 0, 0, chroma)
+        # print("dcC", dcC)
 
         dcCToChroma = [
             dcC[0][0], dcC[0][1],
@@ -1068,7 +1072,7 @@ class MacroBlock():
             dcC[2][0], dcC[2][1],
             dcC[3][0], dcC[3][1],
         ]
-        
+
         rMb = [[0 for _ in range(16)] for _ in range(8)]
         numChroma4x4Blks = (self.bs.sps.MbWidthC // 4) * (self.bs.sps.MbHeightC // 4)
         for chroma4x4BlkIdx in range(numChroma4x4Blks):
@@ -1078,7 +1082,7 @@ class MacroBlock():
                 chromaList[k] = self.ChromaACLevel[chroma].get(chroma4x4BlkIdx,{}).get(k - 1,0)
             c = MbPredMode.Block4x4ZigzagScan(chromaList)
             r = self.scalingTransformProcess(c, False)
-            # print(r)
+            # print(chromaList)
 	        # 对c进行变换
             xO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 0)
             yO = InverseRasterScan(chroma4x4BlkIdx, 4, 4, 8, 1)
@@ -1094,11 +1098,12 @@ class MacroBlock():
             for j in range(self.bs.sps.MbHeightC):
                 chromaData[i * self.bs.sps.MbWidthC + j] = Clip3(0, (1 << self.bs.sps.BitDepthC) - 1, self.chromaPredSamples[j][i] + rMb[j][i])
 
-        # if self.CurrMbAddr < 20:
-        #     if self.CurrMbAddr == 11:
-        #         print(chromaData)
-        #         print("rMb", rMb)
-        #         print("self.chromaPredSamples", self.chromaPredSamples)
+        # if self.CurrMbAddr < 2:
+        #     # if self.CurrMbAddr == 11 and
+        #     if chroma == ChromaType.Red:
+        #         print("chromaData", chromaData)
+        #         # print("rMb", rMb)
+        #         # print("self.chromaPredSamples", self.chromaPredSamples)
         # else:
         #     exit(0)
 
