@@ -1,7 +1,13 @@
 {
   "name": "book",
-  "description": "book",
+  "version": "0.0.1",
   "main": "./index.js",
+  "files": [
+    "index.js",
+    "_assets",
+    "_i18n",
+    "_layouts"
+  ],
   "engines": {
     "gitbook": ">=3.0.0"
   },

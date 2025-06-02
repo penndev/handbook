@@ -5,6 +5,6 @@
   },
   "dependencies": {
     "book": "file:@book",
-    "honkit": "^5.1.4"
+    "honkit": "^6.0.3"
   }
 }
