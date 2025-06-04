@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>TCP · 随记手册</title>
+        <title>名言 · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="@book 6.0.3">
@@ -48,10 +48,8 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="IP.html" />
     
-    
-    <link rel="prev" href="DNS.html" />
+    <link rel="prev" href="../" />
     
 
     </head>
@@ -93,9 +91,9 @@
             
         </li>
     
-        <li class="chapter " data-level="1.2" data-path="../Life/名言.html">
+        <li class="chapter active" data-level="1.2" data-path="名言.html">
             
-                <a href="../Life/名言.html">
+                <a href="名言.html">
             
                     
                     名言
@@ -295,9 +293,9 @@
         
         
     
-        <li class="chapter " data-level="5.1" data-path="./">
+        <li class="chapter " data-level="5.1" data-path="../Internet/">
             
-                <a href="./">
+                <a href="../Internet/">
             
                     
                     网络协议
@@ -309,9 +307,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="5.1.1" data-path="DNS.html">
+        <li class="chapter " data-level="5.1.1" data-path="../Internet/DNS.html">
             
-                <a href="DNS.html">
+                <a href="../Internet/DNS.html">
             
                     
                     DNS
@@ -322,9 +320,9 @@
             
         </li>
     
-        <li class="chapter active" data-level="5.1.2" data-path="TCP.html">
+        <li class="chapter " data-level="5.1.2" data-path="../Internet/TCP.html">
             
-                <a href="TCP.html">
+                <a href="../Internet/TCP.html">
             
                     
                     TCP
@@ -335,9 +333,9 @@
             
         </li>
     
-        <li class="chapter " data-level="5.1.3" data-path="IP.html">
+        <li class="chapter " data-level="5.1.3" data-path="../Internet/IP.html">
             
-                <a href="IP.html">
+                <a href="../Internet/IP.html">
             
                     
                     IP
@@ -348,9 +346,9 @@
             
         </li>
     
-        <li class="chapter " data-level="5.1.4" data-path="Ethernet.html">
+        <li class="chapter " data-level="5.1.4" data-path="../Internet/Ethernet.html">
             
-                <a href="Ethernet.html">
+                <a href="../Internet/Ethernet.html">
             
                     
                     Ethernet
@@ -533,7 +531,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >TCP</a>
+        <a href=".." >名言</a>
     </h1>
 </div>
 
@@ -548,115 +546,41 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><h2 id="tcp">TCP</h2>
-<h3 id="报文头">报文头</h3>
-<p><img src="asset/tcp.png" alt="TCP头部报文段"></img></p>
+                                <div class="markdown-it"><h2 id="经典短句">经典短句</h2>
 <ul>
-<li>源端口：
-<ul>
-<li>长度：16bit</li>
-<li>作用：用来确定是那个进程使用的tcp包，可以根据端口来确定发送进程。</li>
-</ul>
+<li>
+<p>人之患， 在好为人师。   - 孟子·离娄上</p>
 </li>
-<li>目标端口：目标端口与源端口功能类似，用来表示对端。</li>
-<li>序号：
-<ul>
-<li>长度：32bit</li>
-<li>作用：在不通的阶段有不通的作用
-<ul>
-<li>SYN握手阶段：初始化一个数字（通常为0）发送给对端，并逐次+=1</li>
-<li>PSH传输阶段：本包第一字节在所有数据中的序号。</li>
-</ul>
+<li>
+<p>未有知而不行者。知而不行，只是未知。   - 王阳明</p>
 </li>
 </ul>
-</li>
-<li>确认号：
+<h2 id="现代短句">现代短句</h2>
 <ul>
-<li>长度：32bit</li>
-<li>作用：仅ACK的标志位为1的时候确认号才有效。确认号为期望对端的发送的手字节序号。</li>
-</ul>
+<li>
+<p>知不足而奋进，望山远而力行。</p>
 </li>
-<li>数据偏移：tcp头长度，也表示数据开始位置
-<ul>
-<li>长度：4bit</li>
-<li>作用：结果需要乘4，则最小为固定长度20（tcp头固定长度），最大表示为|1111|*4=60(所以tcp头长度不能超过60)</li>
-</ul>
+<li>
+<p>山是地质年代及其缓慢的浪。</p>
 </li>
-<li>Flags：对应位为1则表示当前flag
-<ul>
-<li>ns （Explicit Congestion Notification）显式拥塞通知</li>
-<li>cwr (Congestion Window Reduced) 拥塞窗口减少</li>
-<li>ece ECN-Echo</li>
-<li>urg 高优先级数据包</li>
-<li>ACK 确认序号</li>
-<li>PSH 传输数据</li>
-<li>RST 出现严重差错，要求断开或重连</li>
-<li>SYN 表示连接请求或连接接受报文</li>
-<li>fin 要求释放连接</li>
-</ul>
-</li>
-<li>窗口：表示从确认号开始，本报文的发送方可以接收的字节数，即接收窗口大小。用于流量控制。</li>
-<li>校验和：</li>
-<li>紧急指针：</li>
-<li>可选项：一组和多组kind类数据
-<ul>
-<li>长度：数据偏移-20固定字节</li>
-<li>Kind
-<ul>
-<li>0x00: 结束选项列表</li>
-<li>0x01: 无操作</li>
-<li>0x02: Maximum segment size (最大分段大小)</li>
-<li>0x03: 窗口扩大因子</li>
-<li>0x04: 选择性确认(SACK)</li>
-<li>0x05: 时间戳</li>
-</ul>
+<li>
+<p>于暴雨中行走，伞是航行于天空上的船。</p>
 </li>
 </ul>
-</li>
-</ul>
-<h3 id="握手">握手</h3>
-<p><img src="asset/tcp-handshake.png" alt="TCP握手"></img></p>
-<ol>
-<li>首先客户端发送握手请求（一个SYN包）到服务器。</li>
-<li>服务器收到SYN包后会创建缓冲并将客户端发送SYN和ACK标志位的包表示同意连接。</li>
-<li>客户端则再次回复ACK包通知服务器，至此tcp握手完成。</li>
-</ol>
-<p>Q:</p>
-<ol>
-<li>如果客户端发送SYN 服务器除了应答还会怎么处理呢？
-<ul>
-<li>不应答 会触发连接超时 开启防火墙通常就是不应答。</li>
-<li>拒绝 直接回复RST包，直接进行拒绝 端口为监听。</li>
-</ul>
-</li>
-<li>如果客户端收到服务器的同意请求 如果不回复会怎么样？
-<ul>
-<li>这样会造成资源浪费，服务器会在回复同意后创建接收缓存。批量操作会造成 SYN泛洪攻击。</li>
-</ul>
-</li>
-<li>三次握手主要做了什么?
-<ul>
-<li>确定双全工通道通路正确，窗口初始化，MSS初始化。</li>
-</ul>
-</li>
-</ol>
-<h3 id="传输阶段">传输阶段</h3>
-<p><img src="asset/tcp-transport.png" alt="TCP数据传输"></img></p>
-<ol>
-<li>发送方发送PSH+ACK的Payload包发送到接收端。</li>
-<li>接受方收到后会回复一个ACK的包给发送方，告知已接收到数据。</li>
-<li>发送方收到确认，再次发送下一包数据。</li>
-</ol>
-<p><strong>窗口确认</strong>  每次发送端的消息都有标注发送大小 <strong>序号</strong> ，接收端收到后会回复 <strong>确认号</strong> 来确认收到。</p>
-<p><strong>重传策略</strong> 如果迟迟收不到接收端回复<strong>确认号</strong>，则会再次发送消息，来避免在复杂的环境丢包。</p>
-<h3 id="连接断开">连接断开</h3>
-<p><img src="asset/tcp-close.png" alt="TCP关闭传输"></img></p>
-<ol>
-<li>关闭端发FIN包给接收端。</li>
-<li>接收端回复应答FIN包。</li>
-<li>应答端处理完成发送FIN包。</li>
-<li>关闭端回复应答FIN包。</li>
-</ol>
+<h2 id="现代诗歌">现代诗歌</h2>
+<pre><code>妈妈  
+我的觉越来越少了，  
+梦却越来越长了。  
+妈妈，  
+岁月在我的心脏上  
+挂上了一口夜半的钟。  
+我从你那里获得的躯体和骨血  
+正在滚烫发出沸腾的声。  
+妈妈，我一想到你就醉了，  
+妈妈，我要睡了，  
+妈妈，我想你了。  
+               — 张伯翼
+</code></pre>
 </div>
                                 
                                 </section>
@@ -684,14 +608,10 @@
 
             
                 
-                <a href="DNS.html" class="navigation navigation-prev " aria-label="Previous page: DNS">
+                <a href="../" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Introduction">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="IP.html" class="navigation navigation-next " aria-label="Next page: IP">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -700,7 +620,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"TCP","level":"5.1.2","depth":2,"next":{"title":"IP","level":"5.1.3","depth":2,"path":"Internet/IP.md","ref":"Internet/IP.md","articles":[]},"previous":{"title":"DNS","level":"5.1.1","depth":2,"path":"Internet/DNS.md","ref":"Internet/DNS.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Internet/TCP.md","mtime":"2025-06-04T13:37:48.976Z","type":"markdown"},"gitbook":{"version":"6.0.3","time":"2025-06-04T13:37:58.490Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"名言","level":"1.2","depth":1,"next":{"title":"博客","level":"2.1","depth":1,"ref":"","articles":[{"title":"PWA(Progress Web Application)","level":"2.1.1","depth":2,"ref":"","articles":[]},{"title":"网站的离线访问和推送通知","level":"2.1.2","depth":2,"path":"Blog/Service-Worker.md","ref":"Blog/Service-Worker.md","articles":[]}]},"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Life/名言.md","mtime":"2025-06-04T13:37:48.977Z","type":"markdown"},"gitbook":{"version":"6.0.3","time":"2025-06-04T13:37:58.490Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
