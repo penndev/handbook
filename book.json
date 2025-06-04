@@ -2,6 +2,6 @@
     "title":"随记手册",
     "author": "Penn",
     "language": "zh-hans",
-    "plugins": ["-theme-default", "search", "book"],
+    "plugins": ["search", "book", "-theme-default"],
     "plugins备注": "search必须放到book前面否则不会生成搜索框"
 }
