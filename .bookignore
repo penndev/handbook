@@ -1,5 +1,6 @@
 .*
 _*
 @*
+*.drawio
 package-lock.json
 package.json

@@ -18,27 +18,27 @@
 > 人的眼睛对色彩敏感度低于亮度敏感度
 
 - 4:4:4
-    ![yuv444](./docs/yuv444.jpg)
+    ![yuv444](./asset/yuv444.jpg)
 
     字节流为`24`个字节`8`个像素各自展示自己颜色无压缩
 
 - 4:4:0
-    ![yuv444](./docs/yuv440.jpg)
+    ![yuv444](./asset/yuv440.jpg)
 
     字节流为`16`个字节
 
 - 4:2:2
-    ![yuv422](./docs/yuv422.jpg)
+    ![yuv422](./asset/yuv422.jpg)
 
     字节流为`16`个字节
 
 - 4:2:0
-    ![yuv422](./docs/yuv420.jpg)
+    ![yuv422](./asset/yuv420.jpg)
 
     图像字节数为`12`个字节
 
 - 4:1:1
-    ![yuv422](./docs/yuv411.jpg)
+    ![yuv422](./asset/yuv411.jpg)
 
     图像字节数为`12`个字节
 
