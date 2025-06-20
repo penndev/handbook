@@ -5,7 +5,6 @@
 
 -----
 * [博客]()
-    * PWA(Progress Web Application)
     * [网站的离线访问和推送通知](Blog/Service-Worker.md)
 
 -----
