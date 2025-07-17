@@ -40,6 +40,7 @@ nload
 nmcli device status 
 networkctl status 
 
+ethtool eno1 #查看网卡信息
 
 # 查看活跃的连接
 nmcli connection show 
