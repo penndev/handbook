@@ -1,5 +1,13 @@
+// ignore_for_file: unused_import, dead_code
+
+
 import 'dart:typed_data';
 import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:test/test.dart';
+
+final dio = Dio();
 
 /// 定义 DNS 消息类型的枚举。
 /// 1 - 主机地址
@@ -385,21 +393,35 @@ class DNSMessage {
   }) : question = question ?? [];
 }
 
+Future<List<DNSMessageResource>> resolveDOH(
+    String srv, String host, DNSMessageType type) async {
+  var query = DNSMessage(
+      headerID: 10010,
+      headerRD: 1,
+      headerQDCount: 1,
+      question: [DNSMessageQuestion(name: host, type: type)]);
+  var queryRow = query.toUint8List();
+  var queryUri = base64UrlEncode(queryRow).replaceAll('=', '');
+  var resp = await dio.get(
+    'https://$srv/dns-query?dns=$queryUri',
+    options: Options(
+      headers: {
+        Headers.acceptHeader: 'application/dns-message',
+      },
+      responseType: ResponseType.bytes,
+    ),
+  );
+  Uint8List respData = resp.data as Uint8List;
+  var respDNS = DNSMessage.parse(respData);
+  return respDNS.resource;
+}
+
 void main() async {
   var srv = 'dns.pub';
-  var host = 'baidu.com';
-  var type = DNSMessageType.A;
-
-  var question = DNSMessageQuestion(name: host, type: type);
-  var queryRaw = DNSMessage(
-    headerID: 10010,
-    headerRD: 1,
-    headerQDCount: 1,
-    question: [question],
-  ).toUint8List();
-  var queryBase64Uri = base64UrlEncode(queryRaw).replaceAll('=', '');
-  // http发起实际get请求accept='application/dns-message'
-  var response = 'https://$srv/dns-query?dns=$queryBase64Uri';
-  var respDNS = DNSMessage.parse(response as Uint8List);
-  print(respDNS.resource);
+  print("==================> aliyun.com A");
+  print(await resolveDOH(srv, 'aliyun.com', DNSMessageType.A));
+  print("==================> host.widgets.com TXT");
+  print(await resolveDOH(srv, 'host.widgets.com', DNSMessageType.TXT));
+  print("==================> www.youtube.com A");
+  print(await resolveDOH(srv, 'www.youtube.com', DNSMessageType.A));
 }
