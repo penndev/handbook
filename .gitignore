@@ -1,10 +1,7 @@
 _book
-runtime
 
 # Node
 node_modules
 
 # Python
 __pycache__
-
-_tmp
