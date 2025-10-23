@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>文件系统 · 随记手册</title>
+        <title>Nginx · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="@book 6.1.4">
@@ -48,10 +48,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Network.html" />
+    <link rel="next" href="MySQL.html" />
     
     
-    <link rel="prev" href="SystemProcess.html" />
+    <link rel="prev" href="./" />
     
 
     </head>
@@ -165,9 +165,9 @@
         
         
     
-        <li class="chapter " data-level="3.1" data-path="../Application/">
+        <li class="chapter " data-level="3.1" data-path="./">
             
-                <a href="../Application/">
+                <a href="./">
             
                     
                     开源组件
@@ -179,9 +179,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="3.1.1" data-path="../Application/Nginx.html">
+        <li class="chapter active" data-level="3.1.1" data-path="Nginx.html">
             
-                <a href="../Application/Nginx.html">
+                <a href="Nginx.html">
             
                     
                     Nginx
@@ -192,9 +192,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.2" data-path="../Application/MySQL.html">
+        <li class="chapter " data-level="3.1.2" data-path="MySQL.html">
             
-                <a href="../Application/MySQL.html">
+                <a href="MySQL.html">
             
                     
                     MySQL
@@ -205,9 +205,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.3" data-path="../Application/OpenSSL.html">
+        <li class="chapter " data-level="3.1.3" data-path="OpenSSL.html">
             
-                <a href="../Application/OpenSSL.html">
+                <a href="OpenSSL.html">
             
                     
                     OpenSSL
@@ -230,9 +230,9 @@
         
         
     
-        <li class="chapter " data-level="4.1" data-path="./">
+        <li class="chapter " data-level="4.1" data-path="../Linux/">
             
-                <a href="./">
+                <a href="../Linux/">
             
                     
                     Linux
@@ -244,9 +244,9 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="4.1.1" data-path="SystemProcess.html">
+        <li class="chapter " data-level="4.1.1" data-path="../Linux/SystemProcess.html">
             
-                <a href="SystemProcess.html">
+                <a href="../Linux/SystemProcess.html">
             
                     
                     进程
@@ -257,9 +257,9 @@
             
         </li>
     
-        <li class="chapter active" data-level="4.1.2" data-path="FileSystem.html">
+        <li class="chapter " data-level="4.1.2" data-path="../Linux/FileSystem.html">
             
-                <a href="FileSystem.html">
+                <a href="../Linux/FileSystem.html">
             
                     
                     文件系统
@@ -270,9 +270,9 @@
             
         </li>
     
-        <li class="chapter " data-level="4.1.3" data-path="Network.html">
+        <li class="chapter " data-level="4.1.3" data-path="../Linux/Network.html">
             
-                <a href="Network.html">
+                <a href="../Linux/Network.html">
             
                     
                     网络
@@ -546,7 +546,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >文件系统</a>
+        <a href=".." >Nginx</a>
     </h1>
 </div>
 
@@ -561,107 +561,54 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><ul>
-<li><a href="FileSystem.html#show">查看概况</a></li>
-<li><a href="FileSystem.html#mount">分区挂载</a></li>
-<li>LVM
+                                <div class="markdown-it"><h2 id="证书ssl配置">证书ssl配置</h2>
+<pre><code>    #SSL
+    ssl_certificate ssl/$ssl_server_name.crt;
+    ssl_certificate_key ssl/$ssl_server_name.key;
+    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    #SSL-END
+</code></pre>
+<h2 id="缓存相关配置">缓存相关配置</h2>
+<pre><code class="language-bash"><span class="hljs-comment"># proxy_cache_path $cachedir levels=1:2 keys_zone=rootcache:100m max_size=10g </span>
+<span class="hljs-comment"># ----</span>
+<span class="hljs-comment"># proxy_cache_path 配置缓存文件路径 </span>
+<span class="hljs-comment"># levels=${前缀名称长度}:${前缀名称长度} 缓存文件路径层级</span>
+<span class="hljs-comment"># keys_zone=${名称}:${初始内存} max_size=${最大限制} 配置缓存key配置内存大小和名称,</span>
+<span class="hljs-comment"># inactive=${有效时间}</span>
+proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
+</code></pre>
+<h2 id="反向代理">反向代理</h2>
+<pre><code>    proxy_pass $backend_url;
+    proxy_set_header HOST $backend_host;
+
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Client-Scheme $scheme;
+    proxy_set_header X-Forward-For $remote_addr ;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header REMOTE-HOST $remote_addr;
+</code></pre>
+<h2 id="静态文件服务器">静态文件服务器</h2>
 <ul>
-<li><a href="FileSystem.html#lvm_merge">LVM合并硬盘并分区</a></li>
-<li><a href="FileSystem.html#lvm_remove">LVM移除分区</a></li>
-</ul>
+<li>
+<p><code>alias</code> 静态文件路径，剔除location的文件路径。</p>
+</li>
+<li>
+<p><code>root</code> 静态文件路径，未剔除location的文件路径。</p>
 </li>
 </ul>
-<hr></hr>
-<h1 id="show">概况查看</h1>
-<p>** 查看已经挂载的文件系统 **</p>
-<pre><code class="language-bash"><span class="hljs-built_in">df</span> -hT
-</code></pre>
-<ul>
-<li><code>h</code> --human-readable</li>
-<li><code>T</code> --print-type</li>
-</ul>
-<p><strong>查看全部设备的文件系统</strong></p>
-<pre><code class="language-bash">lsblk
-lsblk -afp         
-</code></pre>
-<ul>
-<li><code>a</code> --all</li>
-<li><code>f</code> --fs</li>
-<li><code>p</code> --paths
-<strong>查看分区表</strong></li>
-<li><code>fdisk -l</code> 查看分区表</li>
-<li><code>parted -l</code> 查看分区表</li>
-</ul>
-<h2 id="mount">分区挂载</h2>
-<ul>
-<li><code>mount /dev/sda /home</code> 挂载做好文件系统的硬盘到目录</li>
-<li><code>umount /home</code>   取消挂载</li>
-<li><code>vim /etc/fstab</code> 编辑fstab使文件系统开机就挂载。</li>
-<li><code>mount -a</code>       进行fstab修改生效，可检查配置状态。</li>
-<li><code>df -hT</code> 查看挂在的情况</li>
-</ul>
-<h2 id="lvm逻辑卷">LVM逻辑卷</h2>
+<h2 id="internal">internal</h2>
 <blockquote>
-<p>LVM（Logical Volume Manager，逻辑卷管理器）是一种用于在Linux系统中管理磁盘存储空间的软件工具。</p>
+<p>当location包含 <code>internal;</code> 则表示本location只能nginx内部进行访问，如果通过uri访问则会返回404.</p>
 </blockquote>
-<h3 id="lvm_merge">LVM合并硬盘并分区</h3>
+<p>可通过 <code>error_page</code>、 <code>index</code>、 <code>internal_redirect</code>、 <code>random_index</code>和 <code>try_files</code>指令;和<code>rewrite</code>重定向、来自上游服务器的<code>X-Accel-Redirect</code>响应头字段重定向的请求。</p>
+<h2 id="openrestry">openrestry</h2>
 <blockquote>
-<p>目标 将新增的三块硬盘<code>/dev/nvme0n1</code>,<code>/dev/nvme1n1</code>,<code>/dev/nvme2n1</code> 每块8T的硬盘 组合一块挂载到<code>/home</code></p>
+<p>https://openresty.org/cn/linux-packages.html 官方预编译包</p>
 </blockquote>
-<ol>
-<li>初始化物理卷</li>
-</ol>
-<pre><code class="language-bash">pvcreate /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
-或
-pvcreate /dev/nvme0n1 
-pvcreate /dev/nvme1n1 
-pvcreate /dev/nvme2n1
-</code></pre>
-<ol start="2">
-<li>创建新卷组</li>
-</ol>
-<pre><code class="language-bash">vgcreate vg_home /dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1
-或
-vgcreate vg_home /dev/nvme0n1 
-vgextend vg_home /dev/nvme1n1 
-vgextend vg_home /dev/nvme2n1
-</code></pre>
-<ol start="3">
-<li>制作文件系统<pre><code class="language-bash">lvcreate -l 100%FREE -n lv_data vg_home
-
-mkfs.xfs /dev/vg_home/lv_data
-</code></pre>
-</li>
-<li>挂载文件系统<pre><code class="language-bash">mount /dev/vg_home/lv_data /home
-
-vi /etc/fstab
-
-/dev/vg_home/lv_data  /home  xfs  defaults  0  2
-
-mount -a
-</code></pre>
-</li>
-</ol>
-<h3 id="lvm_remove">LVM移除分区</h3>
-<blockquote>
-<p>如下，目标移除系统的lvm /dev/mapper/centos-root /home 分区</p>
-</blockquote>
-<pre><code class="language-bash">[root@localhost ~]# <span class="hljs-built_in">df</span> -h /home
-文件系统                 容量  已用  可用 已用% 挂载点
-/dev/mapper/centos-root   50G   21G   30G   41% /
-</code></pre>
-<ol>
-<li>首先移除挂在分区 <code>umount /home</code>, <code>vi /etc/fstab</code> 中的分区信息</li>
-<li><code>lvremove /dev/mapper/centos-home</code> 删除分区</li>
-</ol>
-<h3 id="lvm_remove">LVM拓展分区</h3>
-<ol>
-<li><code>lvextend -l +100%FREE /dev/mapper/centos-root</code> 将所有的剩余空间全部分配给指定的分区</li>
-<li>调整文件系统大小</li>
-</ol>
-<pre><code>  - `xfs_growfs /{DIR}` xfs文件系统
-  - `resize2fs {DEV}` ext文件系统 
-</code></pre>
 </div>
                                 
                                 </section>
@@ -689,12 +636,12 @@ mount -a
 
             
                 
-                <a href="SystemProcess.html" class="navigation navigation-prev " aria-label="Previous page: 进程">
+                <a href="./" class="navigation navigation-prev " aria-label="Previous page: 开源组件">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="Network.html" class="navigation navigation-next " aria-label="Next page: 网络">
+                <a href="MySQL.html" class="navigation navigation-next " aria-label="Next page: MySQL">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -705,7 +652,7 @@ mount -a
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"文件系统","level":"4.1.2","depth":2,"next":{"title":"网络","level":"4.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]},"previous":{"title":"进程","level":"4.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Linux/FileSystem.md","mtime":"2025-10-23T01:42:13.984Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2025-10-23T01:42:24.773Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Nginx","level":"3.1.1","depth":2,"next":{"title":"MySQL","level":"3.1.2","depth":2,"path":"Application/MySQL.md","ref":"Application/MySQL.md","articles":[]},"previous":{"title":"开源组件","level":"3.1","depth":1,"path":"Application/README.md","ref":"Application/README.md","articles":[{"title":"Nginx","level":"3.1.1","depth":2,"path":"Application/Nginx.md","ref":"Application/Nginx.md","articles":[]},{"title":"MySQL","level":"3.1.2","depth":2,"path":"Application/MySQL.md","ref":"Application/MySQL.md","articles":[]},{"title":"OpenSSL","level":"3.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Application/Nginx.md","mtime":"2025-10-23T01:42:13.978Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2025-10-23T01:42:24.773Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
