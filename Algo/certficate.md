@@ -41,3 +41,6 @@
     ```sh
     openssl x509 -req -in example.com.csr -CA certificate.crt -CAkey private.key -CAcreateserial -out example.com.crt -days 365 -sha256 -extfile cert.conf -extensions v3_req
     ``` 
+
+
+## 理解ssl证书交互流程
