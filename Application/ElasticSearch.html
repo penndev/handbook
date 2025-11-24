@@ -3,7 +3,7 @@
 <html lang="zh-hans" >
     <head>
         <meta charset="UTF-8">
-        <title>Nginx · 随记手册</title>
+        <title>ElasticSearch · 随记手册</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="@book 6.1.4">
@@ -48,10 +48,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="MySQL.html" />
+    <link rel="next" href="../Linux/" />
     
     
-    <link rel="prev" href="./" />
+    <link rel="prev" href="OpenSSL.html" />
     
 
     </head>
@@ -192,7 +192,7 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="3.1.1" data-path="Nginx.html">
+        <li class="chapter " data-level="3.1.1" data-path="Nginx.html">
             
                 <a href="Nginx.html">
             
@@ -231,7 +231,7 @@
             
         </li>
     
-        <li class="chapter " data-level="3.1.4" data-path="ElasticSearch.html">
+        <li class="chapter active" data-level="3.1.4" data-path="ElasticSearch.html">
             
                 <a href="ElasticSearch.html">
             
@@ -572,7 +572,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >Nginx</a>
+        <a href=".." >ElasticSearch</a>
     </h1>
 </div>
 
@@ -587,54 +587,30 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><h2 id="证书ssl配置">证书ssl配置</h2>
-<pre><code>    #SSL
-    ssl_certificate ssl/$ssl_server_name.crt;
-    ssl_certificate_key ssl/$ssl_server_name.key;
-    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    #SSL-END
-</code></pre>
-<h2 id="缓存相关配置">缓存相关配置</h2>
-<pre><code class="language-bash"><span class="hljs-comment"># proxy_cache_path $cachedir levels=1:2 keys_zone=rootcache:100m max_size=10g </span>
-<span class="hljs-comment"># ----</span>
-<span class="hljs-comment"># proxy_cache_path 配置缓存文件路径 </span>
-<span class="hljs-comment"># levels=${前缀名称长度}:${前缀名称长度} 缓存文件路径层级</span>
-<span class="hljs-comment"># keys_zone=${名称}:${初始内存} max_size=${最大限制} 配置缓存key配置内存大小和名称,</span>
-<span class="hljs-comment"># inactive=${有效时间}</span>
-proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
-</code></pre>
-<h2 id="反向代理">反向代理</h2>
-<pre><code>    proxy_pass $backend_url;
-    proxy_set_header HOST $backend_host;
+                                <div class="markdown-it"><h1 id="elasticsearch">elasticsearch</h1>
+<pre><code class="language-bash">docker run -d --name elasticsearch --network dev --restart always -p 9200:9200 \
+-e discovery.type=single-node  \
+-e ELASTIC_PASSWORD=123456  \
+-e xpack.security.enabled=<span class="hljs-literal">true</span>  \
+-e xpack.security.http.ssl.enabled=<span class="hljs-literal">false</span>  \
+-e xpack.security.transport.ssl.enabled=<span class="hljs-literal">false</span>  \
+-e ES_JAVA_OPTS=<span class="hljs-string">"-Xms1g -Xmx1g"</span>  \
+elasticsearch:9.2.0
 
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Client-Scheme $scheme;
-    proxy_set_header X-Forward-For $remote_addr ;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header REMOTE-HOST $remote_addr;
+<span class="hljs-comment"># 设置kibana_system用户密码，供kibana使用</span>
+elasticsearch-reset-password -u kibana_system -i
+&gt; 123456
 </code></pre>
-<h2 id="静态文件服务器">静态文件服务器</h2>
-<ul>
-<li>
-<p><code>alias</code> 静态文件路径，剔除location的文件路径。</p>
-</li>
-<li>
-<p><code>root</code> 静态文件路径，未剔除location的文件路径。</p>
-</li>
-</ul>
-<h2 id="internal">internal</h2>
 <blockquote>
-<p>当location包含 <code>internal;</code> 则表示本location只能nginx内部进行访问，如果通过uri访问则会返回404.</p>
+<p>容器环境必须配置elasticsearch用户才能启动kibana</p>
 </blockquote>
-<p>可通过 <code>error_page</code>、 <code>index</code>、 <code>internal_redirect</code>、 <code>random_index</code>和 <code>try_files</code>指令;和<code>rewrite</code>重定向、来自上游服务器的<code>X-Accel-Redirect</code>响应头字段重定向的请求。</p>
-<h2 id="openrestry">openrestry</h2>
-<blockquote>
-<p>https://openresty.org/cn/linux-packages.html 官方预编译包</p>
-</blockquote>
+<pre><code class="language-bash">docker run -d --name kibana --network dev --restart always -p 5601:5601 \
+-e ELASTICSEARCH_HOSTS=http://elasticsearch:9200 \
+-e ELASTICSEARCH_USERNAME=kibana_system \
+-e ELASTICSEARCH_PASSWORD=123456 \
+kibana:9.2.0
+</code></pre>
+<h2 id="使用示例">使用示例</h2>
 </div>
                                 
                                 </section>
@@ -662,12 +638,12 @@ proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: 开源组件">
+                <a href="OpenSSL.html" class="navigation navigation-prev " aria-label="Previous page: OpenSSL">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="MySQL.html" class="navigation navigation-next " aria-label="Next page: MySQL">
+                <a href="../Linux/" class="navigation navigation-next " aria-label="Next page: Linux">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -678,7 +654,7 @@ proxy_cache_path /tmp/ngcache levels=1:2 keys_zone=rootcache:100m;
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Nginx","level":"3.1.1","depth":2,"next":{"title":"MySQL","level":"3.1.2","depth":2,"path":"Application/MySQL.md","ref":"Application/MySQL.md","articles":[]},"previous":{"title":"开源组件","level":"3.1","depth":1,"path":"Application/README.md","ref":"Application/README.md","articles":[{"title":"Nginx","level":"3.1.1","depth":2,"path":"Application/Nginx.md","ref":"Application/Nginx.md","articles":[]},{"title":"MySQL","level":"3.1.2","depth":2,"path":"Application/MySQL.md","ref":"Application/MySQL.md","articles":[]},{"title":"OpenSSL","level":"3.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]},{"title":"ElasticSearch","level":"3.1.4","depth":2,"path":"Application/ElasticSearch.md","ref":"Application/ElasticSearch.md","articles":[]}]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Application/Nginx.md","mtime":"2025-11-24T12:50:13.884Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2025-11-24T12:50:19.614Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"ElasticSearch","level":"3.1.4","depth":2,"next":{"title":"Linux","level":"4.1","depth":1,"path":"Linux/README.md","ref":"Linux/README.md","articles":[{"title":"进程","level":"4.1.1","depth":2,"path":"Linux/SystemProcess.md","ref":"Linux/SystemProcess.md","articles":[]},{"title":"文件系统","level":"4.1.2","depth":2,"path":"Linux/FileSystem.md","ref":"Linux/FileSystem.md","articles":[]},{"title":"网络","level":"4.1.3","depth":2,"path":"Linux/Network.md","ref":"Linux/Network.md","articles":[]}]},"previous":{"title":"OpenSSL","level":"3.1.3","depth":2,"path":"Application/OpenSSL.md","ref":"Application/OpenSSL.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Application/ElasticSearch.md","mtime":"2025-11-24T12:50:13.884Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2025-11-24T12:50:19.614Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
