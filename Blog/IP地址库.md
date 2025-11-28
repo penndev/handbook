@@ -3,7 +3,7 @@
 ## [纯真IP地址库](https://www.cz88.net/)
 
 
-qqwry.dat ~~纯真IP库数据qqwry.dat数据（官方在 2024 年 10 月份已停止维护，官方已无发布dat格式文件。）~~
+qqwry.dat 纯真IP库数据qqwry.dat数据（官方在 2024 年 10 月份已停止维护，官方已无发布dat格式文件。）
 
 https://github.com/penndev/gopkg/tree/main/qqwry 这个库有对 qqwry.dat 数据格式的解析
 
@@ -39,7 +39,5 @@ https://github.com/penndev/gopkg/tree/main/test/czdb 对czdb的数据进行拆�
 
 用法参考:
 
-https://github.com/penndev/gopkg?tab=readme-ov-file#ip2region
+https://github.com/penndev/gopkg/blob/main/example/czdb/main.go 用来生成xdb的文件
 
-
-## GEO-Lite
