@@ -5,9 +5,10 @@
 
 -----
 * [博客]
-    * [网站的离线访问和推送通知](Blog/Service-Worker.md)
+    * [网站后台任务](Blog/网站后台任务.md)
     * [IP地址库](Blog/IP地址库.md)
     * [大陆开发代理](Blog/大陆开发代理.md)
+    * [TLS自签证书](Blog/TLS自签证书.md)
     
 -----
 * [开源组件](Application/README.md)
@@ -41,4 +42,3 @@
 * [密码与算法](Algo/README.md)
     * [哥伦布编码](Algo/Golomb-coding.md)
     * [算数编码](Algo/Arithmetic-coding.md)
-    * [TLS证书HTTPS](Algo/certficate.md)
