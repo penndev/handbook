@@ -9,6 +9,7 @@
     * [IP地址库](Blog/IP地址库.md)
     * [大陆开发代理](Blog/大陆开发代理.md)
     * [TLS自签证书](Blog/TLS自签证书.md)
+    * [纯真授权声明](Blog/纯真授权声明.md)
     
 -----
 * [开源组件](Application/README.md)

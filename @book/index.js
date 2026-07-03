@@ -1,4 +1,4 @@
-var md = require("markdown-it")(),
+var md = require("markdown-it")({ html: true }),
   katex = require("@vscode/markdown-it-katex").default,
   attrs = require("markdown-it-attrs");
 
