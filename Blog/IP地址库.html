@@ -600,30 +600,46 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <div class="markdown-it"><h1 id="ip地址库geoip">IP地址库GEOIP</h1>
-<h2 id="纯真ip地址库"><a href="https://www.cz88.net/" target="_blank">纯真IP地址库</a></h2>
-<p>qqwry.dat 纯真IP库数据qqwry.dat数据（官方在 2024 年 10 月份已停止维护，官方已无发布dat格式文件。）</p>
-<p>参考程序库  <a href="https://github.com/penndev/gopkg/tree/main/qqwry" target="_blank">qqwry</a> 这个库有对 qqwry.dat 数据格式的解析</p>
-<p>czdb 最新的纯真数据库文件，包含了IPv4和IPv6纯真的数据经过笔者对比，大陆的数据相对来说更新频率和全面会比其他的准确性，及时性强很多。</p>
-<p><strong>授权</strong></p>
-<p>社区版 https://www.cz88.net/geo-public 从这里只要推广纯真IP就可以获取免费授权，如果纯真IP为你带来了商业价值请购买商业版进行补票（XD）。</p>
-<p><strong>数据包拆解</strong></p>
-<blockquote>
-<p>czdb用B-tree索引，但是中间还有加密部分。</p>
-</blockquote>
-<p>https://github.com/penndev/gopkg/tree/main/test/czdb 对czdb的数据进行拆分为geoip列表的txt文件，然后用 https://github.com/lionsoul2014/ip2region/tree/master/maker 工具进行xdb的数据库文件封装</p>
+                                <div class="markdown-it"><h1 id="ip-地址库">IP 地址库</h1>
+<p>IP 地域识别在业务里越来越常见，常见场景包括：</p>
 <ul>
-<li>xdb授权 Apache-2.0 license</li>
-<li>纯真IP授权规定。 请用户自己重新生成自己的czdb与xdb文件，避免授权纠纷</li>
+<li><strong>商业区域化</strong>：按地区做内容、活动、合规分流</li>
+<li><strong>安全风控</strong>：识别危险 IP、代理/VPN、异常访问</li>
+<li><strong>地域封禁与准入</strong>：按国家/省市做策略控制</li>
 </ul>
-<pre><code>1.纯真社区版IP库离线版免费提供，并非商业数据库。我们不对该数据库承担任何除服务可用性外的责任。因该IP库的数据准确性等所造成问题，我们不承担任何责任。请您谨慎选择使用。
-
-2.纯真将定期查询您提交的展示纯真信息的网页或者APP页面。若发现相关页面已经失效或者修改为无关信息，我们有权停止您使用纯真社区版IP库更新服务。
-
-3.纯真社区版IP库仅授权给您使用，每个授权用户均有自己独特的下载链接，若发现您擅自公开、转让该链接给其他方使用，我们有权停止您使用纯真社区版IP库更新服务，并追究您的相关责任。
-</code></pre>
-<p>用法参考:</p>
-<p>https://github.com/penndev/gopkg/blob/main/example/czdb/main.go 用来生成xdb的文件</p>
+<p>数据格式虽多，核心需求始终是：<strong>可定期更新的 IP → 地域映射</strong>。业界常用两家维护方：</p>
+<p>| 厂商 | 侧重 | 社区版 | 优点
+|------|------|--------|
+| <a href="https://www.cz88.net/" target="_blank">纯真网络</a> | 国内 IP 更准、更新更勤 | 有（注意授权） | 境内详细准确
+| <a href="https://www.maxmind.com/" target="_blank">MaxMind</a> | 海外覆盖更全 | 有（注意授权） | 全球化</p>
+<h2 id="纯真（cz88）">纯真（CZ88）</h2>
+<p>官网：<a href="https://www.cz88.net/" target="_blank">https://www.cz88.net/</a></p>
+<h3 id="格式演进">格式演进</h3>
+<p>| 格式 | 状态 | 说明 | 项目地址
+|------|------|------|
+| <code>qqwry.dat</code> | 已停更 | 官方 2024 年 10 月起不再维护，也不再发布 dat |  (https://github.com/penndev/gopkg/tree/main/qqwry)
+| <code>czdb</code> | 现行 | 新格式；含 IPv4 / IPv6；源数据能力仍延续纯真体系 |  https://github.com/penndev/gopkg/tree/main/ip2region</p>
+<p>源数据czdb在qqwry的基础上进行了部分的授权收紧(技术上的)，官方库需要解密,根据官方库想让塔保证简单。所以按照下面的流程可以用ip2region的数据库，但是数据源仍然是czdb。</p>
+<p>| 解析旧版 <code>qqwry.dat</code> | [gopkg/qqwry] |
+| 拆解 <code>czdb</code> → geoip 文本 | <a href="https://github.com/penndev/gopkg/tree/main/test/czdb" target="_blank">gopkg/test/czdb</a> |
+| 封装为 <code>xdb</code> | <a href="https://github.com/lionsoul2014/ip2region/tree/master/maker" target="_blank">ip2region/maker</a> |
+| 生成 <code>xdb</code> 示例 | <a href="https://github.com/penndev/gopkg/blob/main/example/czdb/main.go" target="_blank">example/czdb/main.go</a> |</p>
+<blockquote>
+<p><strong>数据包要点</strong>：<code>czdb</code> 使用 B-tree 索引，且含加密段，不能当普通明文 IP 表直接读。</p>
+</blockquote>
+<h3 id="推荐自建路径">推荐自建路径</h3>
+<p>把官方 <code>czdb</code> 转成 <code>xdb</code>，再接入业务查询：</p>
+<ol>
+<li>用上述 <code>czdb</code> 拆解脚本，导出 geoip 列表（txt）</li>
+<li>用 ip2region 的 maker 打成 <code>xdb</code></li>
+<li><strong>请自行用自己的授权包重新生成</strong>，不要直接传播他人的官方下载包</li>
+</ol>
+<p>授权对照：</p>
+<ul>
+<li><code>xdb</code> / ip2region：<strong>Apache-2.0</strong></li>
+<li>纯真社区版：须遵守官方条款（见下）</li>
+</ul>
+<h3 id="纯真社区版授权要点">纯真社区版授权要点</h3>
 </div>
                                 
                                 </section>
@@ -667,7 +683,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"IP地址库","level":"2.1.2","depth":2,"next":{"title":"大陆开发代理","level":"2.1.3","depth":2,"path":"Blog/大陆开发代理.md","ref":"Blog/大陆开发代理.md","articles":[]},"previous":{"title":"网站后台任务","level":"2.1.1","depth":2,"path":"Blog/网站后台任务.md","ref":"Blog/网站后台任务.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Blog/IP地址库.md","mtime":"2026-07-03T02:55:43.135Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2026-07-03T02:55:51.945Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"IP地址库","level":"2.1.2","depth":2,"next":{"title":"大陆开发代理","level":"2.1.3","depth":2,"path":"Blog/大陆开发代理.md","ref":"Blog/大陆开发代理.md","articles":[]},"previous":{"title":"网站后台任务","level":"2.1.1","depth":2,"path":"Blog/网站后台任务.md","ref":"Blog/网站后台任务.md","articles":[]},"dir":"ltr"},"config":{"plugins":["search","book","-theme-default"],"plugins备注":"search必须放到book前面否则不会生成搜索框","pluginsConfig":{"search":{},"book":{},"highlight":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2}},"theme":"default","author":"Penn","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"随记手册","language":"zh-hans","gitbook":"*"},"file":{"path":"Blog/IP地址库.md","mtime":"2026-09-19T13:45:22.955Z","type":"markdown"},"gitbook":{"version":"6.1.4","time":"2026-09-19T13:45:30.412Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
