@@ -1,14 +1,18 @@
 > 视频 音频 图片分析
 
 - [YUV采样与编码](./yuv.md)
-
 - [rtmp与flv](./rtmp.md)
-
 
 **编解码文档**
 
 - **H264** https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.264
 - **H265** https://www.itu.int/itu-t/recommendations/rec.aspx?rec=H.265
+
+**分析脚本**
+
+- MPEG2-TS：`_code/media/ts.py`
+- FLV：`_code/media/flv.py`
+- H264：`_code/h26x/h264.py`
 
 **分析工具**
 
@@ -19,8 +23,6 @@
 - 面向开发者的视频调试工具 https://www.elecard.com/
 - MPEG-TS 分析工具 https://www.easyice.cn/
 
-
-
 **名词说明**
 
 - 时间冗余（帧间编码）
@@ -30,6 +32,8 @@
 - 空间冗余（帧内编码）：物体在图片上存在大量重复的元素,比如一个黑色的正方形，大部分区域在颜色表达上基本一致。
 
 - GOP (I->P->B-I)：Group of Pictures 动起来的图片就是视频。
-  - Intra-coded picture 帧内编码图片。
-  - Predictive-coded Picture 预测编码图片。
-  - Bidirectionally predicted picture 双向预测图片。
+  - I 帧（Intra-coded）：完整画面，不参考其他帧即可解码
+  - P 帧（Predictive-coded）：前向参考，需要参考前面的帧
+  - B 帧（Bidirectionally predicted）：双向参考，需要前后帧
+  - SP 帧（Switching P Picture）
+  - SI 帧（Switching I Picture）

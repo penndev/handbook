@@ -21,8 +21,194 @@ class MacroBlock():
             raise ('transform_size_8x8_flag != SliceType.I')
         pass
 
-    def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff):
-        raise ("residual_block_cabac")
+    def residual_block_cabac(self, coeffLevel, startIdx, endIdx, maxNumCoeff, residualLevel:str, bs:BitStream, slice:SliceData):
+        if not coeffLevel:
+            coeffLevel = {}
+
+        ctxBlockCat = {
+            "Intra16x16DCLevel": 0,
+            "Intra16x16ACLevel": 1,
+            "LumaLevel4x4": 2,
+            "ChromaDCLevel": 3,
+            "ChromaACLevel": 4,
+            "LumaLevel8x8": 5,
+        }[residualLevel]
+
+        if maxNumCoeff != 64 or bs.sps.ChromaArrayType == 3:
+            coded_block_flag = self.coded_block_flag(ctxBlockCat, residualLevel, bs, slice)
+        else:
+            coded_block_flag = 1
+        self.store_coded_block_flag(ctxBlockCat, coded_block_flag)
+
+        if not coded_block_flag:
+            self.store_total_coeff(residualLevel, 0)
+            return coeffLevel
+
+        sig_offset = (105, 120, 134, 149, 152, 402)[ctxBlockCat]
+        last_offset = (166, 181, 194, 209, 212, 417)[ctxBlockCat]
+        abs_offset = (227, 237, 247, 257, 266, 426)[ctxBlockCat]
+        sig_8x8 = (
+            0, 1, 2, 3, 4, 5, 5, 4, 4, 3, 3, 4, 4, 4, 5, 5,
+            4, 4, 4, 4, 3, 3, 6, 7, 7, 7, 8, 9, 10, 9, 8, 7,
+            7, 6, 11, 12, 13, 11, 6, 7, 8, 9, 14, 10, 9, 8, 6, 11,
+            12, 13, 11, 6, 9, 14, 10, 9, 11, 12, 13, 11, 14, 10, 12
+        )
+        last_8x8 = (
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+            5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8
+        )
+
+        significant = {}
+        numCoeff = endIdx + 1
+        i = startIdx
+        while i < numCoeff - 1:
+            sig_inc = sig_8x8[i] if ctxBlockCat == 5 else i
+            significant[i] = bs.cabac_decode(False, sig_offset + sig_inc)
+            if significant[i]:
+                last_inc = last_8x8[i] if ctxBlockCat == 5 else i
+                if bs.cabac_decode(False, last_offset + last_inc):
+                    numCoeff = i + 1
+            i += 1
+        significant[numCoeff - 1] = 1
+
+        numDecodAbsLevelEq1 = 0
+        numDecodAbsLevelGt1 = 0
+        total = 0
+        for i in range(numCoeff - 1, startIdx - 1, -1):
+            if not significant.get(i):
+                continue
+            if numDecodAbsLevelGt1 != 0:
+                ctx0 = 0
+            else:
+                ctx0 = min(4, 1 + numDecodAbsLevelEq1)
+            if bs.cabac_decode(False, abs_offset + ctx0) == 0:
+                abs_m1 = 0
+            else:
+                ctxGt = 5 + min(4, numDecodAbsLevelGt1)
+                abs_m1 = 1
+                for _ in range(1, 14):
+                    if bs.cabac_decode(False, abs_offset + ctxGt) == 0:
+                        break
+                    abs_m1 += 1
+                else:
+                    leading = 0
+                    while bs.cabac_decode(True, 0) == 1:
+                        leading += 1
+                    info = 0
+                    for _ in range(leading):
+                        info = (info << 1) | bs.cabac_decode(True, 0)
+                    abs_m1 = 14 + (1 << leading) - 1 + info
+            sign = bs.cabac_decode(True, 0)
+            coeffLevel[i] = (abs_m1 + 1) * (1 - 2 * sign)
+            total += 1
+            if abs_m1 == 0:
+                numDecodAbsLevelEq1 += 1
+            else:
+                numDecodAbsLevelGt1 += 1
+
+        self.store_total_coeff(residualLevel, total)
+        return coeffLevel
+
+    def store_coded_block_flag(self, ctxBlockCat, flag):
+        if ctxBlockCat == 0:
+            self.cbf_luma_dc = flag
+        elif ctxBlockCat in (1, 2):
+            self.cbf_luma[self.luma4x4BlkIdx] = flag
+        elif ctxBlockCat == 3:
+            self.cbf_chroma_dc[self.iCbCr] = flag
+        elif ctxBlockCat == 4:
+            self.cbf_chroma_ac[self.iCbCr][self.chroma4x4BlkIdx] = flag
+        elif ctxBlockCat == 5:
+            self.cbf_luma8x8[self.luma8x8BlkIdx] = flag
+
+    def store_total_coeff(self, residualLevel, total):
+        if residualLevel in ("Intra16x16DCLevel", "Intra16x16ACLevel", "LumaLevel4x4"):
+            self.luma4x4BlkIdxTotalCoeff[self.luma4x4BlkIdx] = total
+        elif residualLevel == "LumaLevel8x8":
+            base = self.luma8x8BlkIdx * 4
+            for k in range(4):
+                self.luma4x4BlkIdxTotalCoeff[base + k] = total
+                self.cbf_luma[base + k] = 1 if total else 0
+        if self.iCbCr is not None and residualLevel in ("ChromaDCLevel", "ChromaACLevel"):
+            if self.iCbCr not in self.chroma4x4BlkIdxTotalCoeff:
+                self.chroma4x4BlkIdxTotalCoeff[self.iCbCr] = {}
+            if residualLevel == "ChromaACLevel":
+                self.chroma4x4BlkIdxTotalCoeff[self.iCbCr][self.chroma4x4BlkIdx] = total
+
+    def neighbor_cbf(self, mbN, ctxBlockCat, blkIdxN):
+        if mbN is None:
+            return 0
+        if mbN.mb_type.name == "I_PCM":
+            return 1
+        if mbN.mb_type.name in ("P_Skip", "B_Skip"):
+            return 0
+        if ctxBlockCat == 0:
+            if mbN.mb_type.MbPartPredMode != "Intra_16x16":
+                return 0
+            return mbN.cbf_luma_dc
+        if ctxBlockCat in (1, 2):
+            if mbN.transform_size_8x8_flag:
+                return mbN.cbf_luma8x8[blkIdxN >> 2]
+            return mbN.cbf_luma[blkIdxN]
+        if ctxBlockCat == 3:
+            return mbN.cbf_chroma_dc[self.iCbCr]
+        if ctxBlockCat == 4:
+            return mbN.cbf_chroma_ac[self.iCbCr][blkIdxN]
+        if ctxBlockCat == 5:
+            if mbN.transform_size_8x8_flag:
+                return mbN.cbf_luma8x8[blkIdxN]
+            base = blkIdxN * 4
+            return 1 if any(mbN.cbf_luma[base + k] for k in range(4)) else 0
+        return 0
+
+    def coded_block_flag(self, ctxBlockCat, residualLevel, bs:BitStream, slice:SliceData):
+        # 9.3.3.1.1.9
+        mbAddrA = mbAddrB = None
+        idxA = idxB = 0
+        if ctxBlockCat == 0:
+            mbAddrA = slice.mbAddrN('A')
+            mbAddrB = slice.mbAddrN('B')
+        elif ctxBlockCat in (1, 2):
+            luma4x4BlkIdx = self.luma4x4BlkIdx
+            x = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 0) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 0)
+            y = InverseRasterScan(luma4x4BlkIdx // 4, 8, 8, 16, 1) + InverseRasterScan(luma4x4BlkIdx % 4, 4, 4, 8, 1)
+            mbAddrA, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x - 1, y, 16, 16)
+            if mbAddrA:
+                idxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+            mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y - 1, 16, 16)
+            if mbAddrB:
+                idxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+        elif ctxBlockCat == 3:
+            mbAddrA = slice.mbAddrN('A')
+            mbAddrB = slice.mbAddrN('B')
+        elif ctxBlockCat == 4:
+            x = InverseRasterScan(self.chroma4x4BlkIdx, 4, 4, 8, 0)
+            y = InverseRasterScan(self.chroma4x4BlkIdx, 4, 4, 8, 1)
+            maxW = bs.sps.MbWidthC
+            maxH = bs.sps.MbHeightC
+            mbAddrA, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x - 1, y, maxW, maxH)
+            if mbAddrA:
+                idxA = 2 * (yW // 4) + (xW // 4)
+            mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y - 1, maxW, maxH)
+            if mbAddrB:
+                idxB = 2 * (yW // 4) + (xW // 4)
+        elif ctxBlockCat == 5:
+            x = InverseRasterScan(self.luma8x8BlkIdx, 8, 8, 16, 0)
+            y = InverseRasterScan(self.luma8x8BlkIdx, 8, 8, 16, 1)
+            mbAddrA, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x - 1, y, 16, 16)
+            if mbAddrA:
+                idxA = 2 * (yW // 8) + (xW // 8)
+            mbAddrB, xW, yW = slice.getMbAddrNAndLuma4x4BlkIdxN(x, y - 1, 16, 16)
+            if mbAddrB:
+                idxB = 2 * (yW // 8) + (xW // 8)
+
+        condTermFlagA = self.neighbor_cbf(mbAddrA, ctxBlockCat, idxA)
+        condTermFlagB = self.neighbor_cbf(mbAddrB, ctxBlockCat, idxB)
+        ctxIdxOffset = (85, 89, 93, 97, 101, 1012)[ctxBlockCat]
+        ctxIdx = ctxIdxOffset + condTermFlagA + 2 * condTermFlagB
+        return bs.cabac_decode(False, ctxIdx)
 
     def __init__(self, bs: BitStream, slice: SliceData, ):
         '''
@@ -42,19 +228,39 @@ class MacroBlock():
         self.iCbCr = None
         self.chroma4x4BlkIdx = 0
         self.chroma4x4BlkIdxTotalCoeff = {}
+        self.luma8x8BlkIdx = 0
+        self.mb_qp_delta = 0
+        self.intra_chroma_pred_mode = 0
+        self.cbf_luma = [0] * 16
+        self.cbf_luma_dc = 0
+        self.cbf_luma8x8 = [0] * 4
+        self.cbf_chroma_dc = [0, 0]
+        self.cbf_chroma_ac = [[0] * 16, [0] * 16]
+        self.LumaLevel4x4 = {}
+        self.LumaLevel8x8 = {}
+        self.Intra16x16DCLevel = {}
+        self.Intra16x16ACLevel = {}
+        self.ChromaDCLevel = {0: {}, 1: {}}
+        self.ChromaACLevel = {0: {}, 1: {}}
 
 
         self.mb_type = bs.mb_type(slice)
         self.transform_size_8x8_flag = 0
         if self.mb_type.name == "I_PCM":
-            raise ("I_PCM 不经过预测，变换，量化, 直接解码")
+            while not bs.byte_aligned():
+                bs.read_bits(1)
+            self.pcm_sample_luma = [bs.read_bits(bs.sps.BitDepthY) for _ in range(256)]
+            nC = 2 * bs.sps.MbWidthC * bs.sps.MbHeightC
+            self.pcm_sample_chroma = [bs.read_bits(bs.sps.BitDepthC) for _ in range(nC)]
+            if bs.pps.entropy_coding_mode_flag:
+                bs.cabac_inti_arithmetic_decoding_engine()
         else:
             noSubMbPartSizeLessThan8x8Flag = 1
             if self.mb_type.name != "I_NxN" and self.mb_type.MbPartPredMode == 'Intra_16x16' and self.mb_type.NumMbPart == 4:
                 raise ("子宏块分割未实现")
             else:
                 if bs.pps.transform_8x8_mode_flag == 1 and  self.mb_type.name == "I_NxN":
-                    self.transform_size_8x8_flag = bs.transform_size_8x8_flag()
+                    self.transform_size_8x8_flag = bs.transform_size_8x8_flag(slice)
                     if self.transform_size_8x8_flag == 1:
                         self.mb_type.MbPartPredMode = "Intra_8x8"
                 self.mb_pred(bs, slice)
@@ -71,7 +277,7 @@ class MacroBlock():
                         self.mb_type.name != "I_NxN" and \
                         noSubMbPartSizeLessThan8x8Flag and \
                         (self.mb_type.name != "B_Direct_16x16" or bs.pps.direct_8x8_inference_flag):
-                    self.transform_size_8x8_flag = bs.transform_size_8x8_flag()
+                    self.transform_size_8x8_flag = bs.transform_size_8x8_flag(slice)
             if self.CodedBlockPatternLuma > 0 or self.CodedBlockPatternChroma > 0 or self.mb_type.MbPartPredMode == "Intra_16x16":
                 self.mb_qp_delta = bs.mb_qp_delta(slice)
                 self.residual(0, 15, bs, slice)
@@ -84,7 +290,13 @@ class MacroBlock():
                 for luma4x4BlkIdx in range(16):
                     self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx] = bs.cabac_decode(False, ctxIdx=68) if bs.pps.entropy_coding_mode_flag else bs.read_bits(1)
                     if not self.prev_intra4x4_pred_mode_flag[luma4x4BlkIdx]:
-                        self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else bs.read_bits(3)
+                        if bs.pps.entropy_coding_mode_flag:
+                            v = 0
+                            for b in range(3):
+                                v |= bs.cabac_decode(False, 69) << b
+                            self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = v
+                        else:
+                            self.rem_intra4x4_pred_mode[luma4x4BlkIdx] = bs.read_bits(3)
             if self.mb_type.MbPartPredMode == "Intra_8x8":
                 if slice.header.slice_type == SliceType.SI:
                     raise ("Table 9-11 mb_pred prev_intra8x8_pred_mode_flag no")
@@ -93,7 +305,13 @@ class MacroBlock():
                 for luma8x8BlkIdx in range(4):
                     self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx] = bs.cabac_decode(False, ctxIdx=68) if bs.pps.entropy_coding_mode_flag else  bs.read_bits(1)
                     if not self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
-                        self.rem_intra8x8_pred_mode[luma8x8BlkIdx] = bs.cabac_decode(False, ctxIdx=69) if bs.pps.entropy_coding_mode_flag else  bs.read_bits(3)
+                        if bs.pps.entropy_coding_mode_flag:
+                            v = 0
+                            for b in range(3):
+                                v |= bs.cabac_decode(False, 69) << b
+                            self.rem_intra8x8_pred_mode[luma8x8BlkIdx] = v
+                        else:
+                            self.rem_intra8x8_pred_mode[luma8x8BlkIdx] = bs.read_bits(3)
             if bs.sps.chroma_format_idc in (1, 2):
                 self.intra_chroma_pred_mode = bs.intra_chroma_pred_mode(slice)
         elif self.mb_type.MbPartPredMode != "Direct":
@@ -208,6 +426,7 @@ class MacroBlock():
         if bs.sps.chroma_format_idc in (1, 2):
             NumC8x8 = 4 // (bs.sps.SubWidthC * bs.sps.SubHeightC)
             for iCbCr in range(2):
+                self.iCbCr = iCbCr
                 if (self.CodedBlockPatternChroma & 3) and startIdx == 0:
                     ChromaDCLevel[iCbCr] = self.residual_block(
                                             ChromaDCLevel.get(iCbCr), 
@@ -264,12 +483,14 @@ class MacroBlock():
 
     def residual_luma(self, i16x16DClevel, i16x16AClevel, level4x4, level8x8, startIdx, endIdx, bs:BitStream, slice:SliceData):
         if startIdx == 0 and self.mb_type.MbPartPredMode == "Intra_16x16":
+            self.luma4x4BlkIdx = 0
             i16x16DClevel = self.residual_block(i16x16DClevel, 0, 15, 16, "Intra16x16DCLevel", bs, slice)
         for i8x8 in range(4):
             if not self.transform_size_8x8_flag or not bs.pps.entropy_coding_mode_flag:
                 for i4x4 in range(4):
                     if self.CodedBlockPatternLuma & (1 << i8x8):
                         if self.mb_type.MbPartPredMode == "Intra_16x16":
+                            self.luma4x4BlkIdx = i8x8 * 4 + i4x4
                             i16x16AClevel[i8x8 * 4 + i4x4] = self.residual_block(i16x16AClevel.get(i8x8 * 4 + i4x4), max(0, startIdx - 1), endIdx - 1, 15, "Intra16x16ACLevel", bs, slice)
                         else:
                             self.luma4x4BlkIdx = i8x8 * 4 + i4x4               
@@ -287,10 +508,12 @@ class MacroBlock():
                         for i in range(16):
                             level8x8[i8x8][4 * i + i4x4] = level4x4[i8x8 * 4 + i4x4][i]
             elif self.CodedBlockPatternLuma & (1 << i8x8):
-                level8x8[i8x8] = self.residual_block(level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64, bs, slice)
+                self.luma8x8BlkIdx = i8x8
+                level8x8[i8x8] = self.residual_block(level8x8.get(i8x8), 4 * startIdx, 4 * endIdx + 3, 64, "LumaLevel8x8", bs, slice)
             else:
-                for i in range(64):
-                    level8x8[i8x8][i] = 0
+                self.luma8x8BlkIdx = i8x8
+                self.cbf_luma8x8[i8x8] = 0
+                level8x8[i8x8] = {}
         return i16x16DClevel, i16x16AClevel, level4x4, level8x8
 
 
@@ -369,6 +592,37 @@ class MacroBlock():
             self.lumaDataMerge(luma16x16Data, 0, "16*16")
             self.ChromaResidualProcess(ChromaType.Blue)
             self.ChromaResidualProcess(ChromaType.Red)
+        elif self.mb_type.MbPartPredMode == "Intra_8x8":
+            self.scaling(0)
+            self.scaling8x8(0)
+            for luma8x8BlkIdx in range(4):
+                self.Intra8x8PredictionMode(luma8x8BlkIdx, True)
+                c = MbPredMode.Block8x8ZigzagScan(self.LumaLevel8x8.get(luma8x8BlkIdx, {}))
+                r = self.scalingTransformProcess8x8(c, True)
+                pred = self.Intra8x8Prediction(luma8x8BlkIdx, True)
+                luma8x8Data = {}
+                for i in range(8):
+                    for j in range(8):
+                        predv = pred[luma8x8BlkIdx].get(f"{j}_{i}", 0)
+                        luma8x8Data[i * 8 + j] = Clip3(0, (1 << self.bs.sps.BitDepthY) - 1, predv + r[i][j])
+                self.lumaDataMerge(luma8x8Data, luma8x8BlkIdx, "8*8")
+            self.ChromaResidualProcess(ChromaType.Blue)
+            self.ChromaResidualProcess(ChromaType.Red)
+        elif self.mb_type.name == "I_PCM":
+            lumaData = {}
+            for i in range(16):
+                for j in range(16):
+                    lumaData[i * 16 + j] = self.pcm_sample_luma[i * 16 + j]
+            self.lumaDataMerge(lumaData, 0, "16*16")
+            MbWidthC = self.bs.sps.MbWidthC
+            MbHeightC = self.bs.sps.MbHeightC
+            n = MbWidthC * MbHeightC
+            for chroma, offset in ((ChromaType.Blue, 0), (ChromaType.Red, n)):
+                chromaData = {}
+                for i in range(MbWidthC):
+                    for j in range(MbHeightC):
+                        chromaData[i * MbWidthC + j] = self.pcm_sample_chroma[offset + j * MbWidthC + i]
+                self.chromaDataMerge(chromaData, chroma)
         else :
             print("=============>",self.mb_type.MbPartPredMode)
     
@@ -512,6 +766,75 @@ class MacroBlock():
                     for j in range(4):
                         dcY[i][j] = (f[i][j] * self.LevelScale4x4[qP % 6][0][0] + (1 << (5 - qP // 6))) >> (6 - qP // 6)
             return dcY
+
+    def scaling8x8(self, iYCbCr:int):
+        mbIsInterFlag = self.mb_type.MbPartPredMode in ("Pred_L0", "Pred_L1", "BiPred_L0_L1")
+        sl = self.slice.header.ScalingList8x8
+        weight = sl.get(6 + (1 if mbIsInterFlag else 0) + iYCbCr * 2) or sl.get(int(mbIsInterFlag)) or {i: 16 for i in range(64)}
+        weightScale8x8 = MbPredMode.Block8x8ZigzagScan(weight)
+        v8x8 = [
+            [20, 18, 32, 19, 25, 24],
+            [22, 19, 35, 21, 28, 26],
+            [26, 23, 42, 24, 33, 31],
+            [28, 25, 45, 26, 35, 33],
+            [32, 28, 51, 30, 40, 38],
+            [36, 32, 58, 34, 46, 43],
+        ]
+        self.LevelScale8x8 = [[[0 for _ in range(8)] for _ in range(8)] for _ in range(6)]
+        for m in range(6):
+            for i in range(8):
+                for j in range(8):
+                    if i % 4 == 0 and j % 4 == 0:
+                        v = v8x8[m][0]
+                    elif i % 2 == 1 and j % 2 == 1:
+                        v = v8x8[m][1]
+                    elif (i % 4 == 2 and j % 2 == 0) or (i % 2 == 0 and j % 4 == 2):
+                        v = v8x8[m][2]
+                    elif (i % 4 == 0 and j % 2 == 1) or (i % 2 == 1 and j % 4 == 0):
+                        v = v8x8[m][3]
+                    elif (i % 4 == 2 and j % 2 == 1) or (i % 2 == 1 and j % 4 == 2):
+                        v = v8x8[m][4]
+                    else:
+                        v = v8x8[m][5]
+                    self.LevelScale8x8[m][i][j] = weightScale8x8[i][j] * v
+
+    def scalingTransformProcess8x8(self, c, isLuam):
+        qP = self.QP1Y if isLuam else self.QP1C
+        d = [[0 for _ in range(8)] for _ in range(8)]
+        for i in range(8):
+            for j in range(8):
+                cij = c.get(i, {}).get(j, 0)
+                if qP >= 36:
+                    d[i][j] = (cij * self.LevelScale8x8[qP % 6][i][j]) << (qP // 6 - 6)
+                else:
+                    d[i][j] = (cij * self.LevelScale8x8[qP % 6][i][j] + (1 << (5 - qP // 6))) >> (6 - qP // 6)
+
+        def t1d(src):
+            a0 = src[0] + src[4]
+            a2 = src[0] - src[4]
+            a4 = (src[2] >> 1) - src[6]
+            a6 = src[2] + (src[6] >> 1)
+            b0 = a0 + a6
+            b2 = a2 + a4
+            b4 = a2 - a4
+            b6 = a0 - a6
+            a1 = -src[3] + src[5] - src[7] - (src[7] >> 1)
+            a3 = src[1] + src[7] - src[3] - (src[3] >> 1)
+            a5 = -src[1] + src[7] + src[5] + (src[5] >> 1)
+            a7 = src[3] + src[5] + src[1] + (src[1] >> 1)
+            b1 = a1 + (a7 >> 2)
+            b7 = a7 - (a1 >> 2)
+            b3 = a3 + (a5 >> 2)
+            b5 = a5 - (a3 >> 2)
+            return [b0 + b7, b2 + b5, b4 + b3, b6 + b1, b6 - b1, b4 - b3, b2 - b5, b0 - b7]
+
+        tmp = [t1d(d[i]) for i in range(8)]
+        r = [[0 for _ in range(8)] for _ in range(8)]
+        for j in range(8):
+            col = t1d([tmp[i][j] for i in range(8)])
+            for i in range(8):
+                r[i][j] = (col[i] + 32) >> 6
+        return r
 
     def Intra4x4Prediction(self, luma4x4BlkIdx:int, isLuam:bool):
         '''
@@ -750,6 +1073,208 @@ class MacroBlock():
                 self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx]
             else:
                 self.Intra4x4PredMode[luma4x4BlkIdx] = self.rem_intra4x4_pred_mode[luma4x4BlkIdx] + 1
+
+    def Intra8x8PredictionMode(self, luma8x8BlkIdx, isLuam:bool):
+        x = InverseRasterScan(luma8x8BlkIdx, 8, 8, 16, 0)
+        y = InverseRasterScan(luma8x8BlkIdx, 8, 8, 16, 1)
+        maxW = maxH = 16
+        mbAddrA, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x - 1, y, maxW, maxH)
+        luma4x4BlkIdxA = luma8x8BlkIdxA = None
+        if mbAddrA != None:
+            luma4x4BlkIdxA = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+            luma8x8BlkIdxA = 2 * (yW // 8) + (xW // 8)
+        mbAddrB, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(x, y - 1, maxW, maxH)
+        luma4x4BlkIdxB = luma8x8BlkIdxB = None
+        if mbAddrB != None:
+            luma4x4BlkIdxB = 8 * (yW // 8) + 4 * (xW // 8) + 2 * ((yW % 8) // 4) + ((xW % 8) // 4)
+            luma8x8BlkIdxB = 2 * (yW // 8) + (xW // 8)
+
+        dcPredModePredictedFlag = 0
+        if mbAddrA == None or mbAddrB == None or \
+            (mbAddrA != None and mbAddrA.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag) or \
+            (mbAddrB != None and mbAddrB.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
+            dcPredModePredictedFlag = 1
+
+        if dcPredModePredictedFlag or \
+            (mbAddrA != None and mbAddrA.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
+            intraMxMPredModeA = 2
+        else:
+            if mbAddrA.mb_type.MbPartPredMode == "Intra_4x4":
+                intraMxMPredModeA = mbAddrA.Intra4x4PredMode[luma4x4BlkIdxA]
+            else:
+                intraMxMPredModeA = mbAddrA.Intra8x8PredMode[luma8x8BlkIdxA]
+
+        if dcPredModePredictedFlag or \
+            (mbAddrB != None and mbAddrB.mb_type.MbPartPredMode not in ("Intra_4x4", "Intra_8x8")):
+            intraMxMPredModeB = 2
+        else:
+            if mbAddrB.mb_type.MbPartPredMode == "Intra_4x4":
+                intraMxMPredModeB = mbAddrB.Intra4x4PredMode[luma4x4BlkIdxB]
+            else:
+                intraMxMPredModeB = mbAddrB.Intra8x8PredMode[luma8x8BlkIdxB]
+
+        predIntra8x8PredMode = min(intraMxMPredModeA, intraMxMPredModeB)
+        if self.prev_intra8x8_pred_mode_flag[luma8x8BlkIdx]:
+            self.Intra8x8PredMode[luma8x8BlkIdx] = predIntra8x8PredMode
+        else:
+            if self.rem_intra8x8_pred_mode[luma8x8BlkIdx] < predIntra8x8PredMode:
+                self.Intra8x8PredMode[luma8x8BlkIdx] = self.rem_intra8x8_pred_mode[luma8x8BlkIdx]
+            else:
+                self.Intra8x8PredMode[luma8x8BlkIdx] = self.rem_intra8x8_pred_mode[luma8x8BlkIdx] + 1
+
+    def Intra8x8Prediction(self, luma8x8BlkIdx:int, isLuam:bool):
+        xO = InverseRasterScan(luma8x8BlkIdx, 8, 8, 16, 0)
+        yO = InverseRasterScan(luma8x8BlkIdx, 8, 8, 16, 1)
+        samples = [-1] * (9 * 17)
+
+        def P(x, y):
+            return samples[(y + 1) * 17 + (x + 1)]
+
+        def set_P(x, y, value):
+            samples[(y + 1) * 17 + (x + 1)] = value
+
+        maxW = maxH = 16 if isLuam else (self.bs.sps.MbWidthC, self.bs.sps.MbHeightC)[0]
+        if not isLuam:
+            maxW = self.bs.sps.MbWidthC
+            maxH = self.bs.sps.MbHeightC
+
+        coords = [(-1, y) for y in range(-1, 8)] + [(x, -1) for x in range(16)]
+        for x, y in coords:
+            mbAddrN, xW, yW = self.slice.getMbAddrNAndLuma4x4BlkIdxN(xO + x, yO + y, maxW, maxH)
+            if mbAddrN == None or \
+                (mbAddrN.mb_type.isInterProd() and self.bs.pps.constrained_intra_pred_flag):
+                continue
+            xM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 0)
+            yM = InverseRasterScan(mbAddrN.CurrMbAddr, 16, 16, self.bs.sps.PicWidthInMbs * 16, 1)
+            set_P(x, y, self.slice.lumaData.get(xM + xW, {}).get(yM + yW, 0))
+
+        if P(8, -1) < 0 and P(7, -1) >= 0:
+            for x in range(8, 16):
+                set_P(x, -1, P(7, -1))
+
+        # 8.3.2.2.1 参考样本滤波
+        fp = list(samples)
+        def Pf(x, y):
+            return fp[(y + 1) * 17 + (x + 1)]
+        def set_Pf(x, y, value):
+            fp[(y + 1) * 17 + (x + 1)] = value
+
+        if all(P(x, -1) >= 0 for x in range(8)):
+            if P(-1, -1) >= 0:
+                set_Pf(0, -1, (P(-1, -1) + 2 * P(0, -1) + P(1, -1) + 2) >> 2)
+            else:
+                set_Pf(0, -1, (3 * P(0, -1) + P(1, -1) + 2) >> 2)
+            for x in range(1, 15):
+                if P(x - 1, -1) >= 0 and P(x, -1) >= 0 and P(x + 1, -1) >= 0:
+                    set_Pf(x, -1, (P(x - 1, -1) + 2 * P(x, -1) + P(x + 1, -1) + 2) >> 2)
+            if P(14, -1) >= 0 and P(15, -1) >= 0:
+                set_Pf(15, -1, (P(14, -1) + 3 * P(15, -1) + 2) >> 2)
+        if all(P(-1, y) >= 0 for y in range(8)):
+            if P(-1, -1) >= 0:
+                set_Pf(-1, 0, (P(-1, -1) + 2 * P(-1, 0) + P(-1, 1) + 2) >> 2)
+                set_Pf(-1, -1, (P(0, -1) + 2 * P(-1, -1) + P(-1, 0) + 2) >> 2)
+            else:
+                set_Pf(-1, 0, (3 * P(-1, 0) + P(-1, 1) + 2) >> 2)
+            for y in range(1, 7):
+                if P(-1, y - 1) >= 0 and P(-1, y) >= 0 and P(-1, y + 1) >= 0:
+                    set_Pf(-1, y, (P(-1, y - 1) + 2 * P(-1, y) + P(-1, y + 1) + 2) >> 2)
+            if P(-1, 6) >= 0 and P(-1, 7) >= 0:
+                set_Pf(-1, 7, (P(-1, 6) + 3 * P(-1, 7) + 2) >> 2)
+
+        samples = fp
+        mode = self.Intra8x8PredMode[luma8x8BlkIdx]
+        lumaPredSamples = {luma8x8BlkIdx: {}}
+        pred = lumaPredSamples[luma8x8BlkIdx]
+
+        if mode == Intra4x4PredMode.Intra_4x4_Vertical:
+            if all(P(x, -1) >= 0 for x in range(8)):
+                for y in range(8):
+                    for x in range(8):
+                        pred[f"{x}_{y}"] = P(x, -1)
+        elif mode == Intra4x4PredMode.Intra_4x4_Horizontal:
+            if all(P(-1, y) >= 0 for y in range(8)):
+                for y in range(8):
+                    for x in range(8):
+                        pred[f"{x}_{y}"] = P(-1, y)
+        elif mode == Intra4x4PredMode.Intra_4x4_DC:
+            if all(P(x, -1) >= 0 for x in range(8)) and all(P(-1, y) >= 0 for y in range(8)):
+                val = (sum(P(x, -1) for x in range(8)) + sum(P(-1, y) for y in range(8)) + 8) >> 4
+            elif any(P(x, -1) < 0 for x in range(8)) and all(P(-1, y) >= 0 for y in range(8)):
+                val = (sum(P(-1, y) for y in range(8)) + 4) >> 3
+            elif any(P(-1, y) < 0 for y in range(8)) and all(P(x, -1) >= 0 for x in range(8)):
+                val = (sum(P(x, -1) for x in range(8)) + 4) >> 3
+            else:
+                val = 1 << (self.bs.sps.BitDepthY - 1)
+            for y in range(8):
+                for x in range(8):
+                    pred[f"{x}_{y}"] = val
+        elif mode == Intra4x4PredMode.Intra_4x4_Diagonal_Down_Left:
+            if all(P(x, -1) >= 0 for x in range(16)):
+                for y in range(8):
+                    for x in range(8):
+                        if x == 7 and y == 7:
+                            pred[f"{x}_{y}"] = (P(14, -1) + 3 * P(15, -1) + 2) >> 2
+                        else:
+                            pred[f"{x}_{y}"] = (P(x + y, -1) + 2 * P(x + y + 1, -1) + P(x + y + 2, -1) + 2) >> 2
+        elif mode == Intra4x4PredMode.Intra_4x4_Diagonal_Down_Right:
+            if all(P(x, -1) >= 0 for x in range(8)) and all(P(-1, y) >= 0 for y in range(8)) and P(-1, -1) >= 0:
+                for y in range(8):
+                    for x in range(8):
+                        if x > y:
+                            pred[f"{x}_{y}"] = (P(x - y - 2, -1) + 2 * P(x - y - 1, -1) + P(x - y, -1) + 2) >> 2
+                        elif x < y:
+                            pred[f"{x}_{y}"] = (P(-1, y - x - 2) + 2 * P(-1, y - x - 1) + P(-1, y - x) + 2) >> 2
+                        else:
+                            pred[f"{x}_{y}"] = (P(0, -1) + 2 * P(-1, -1) + P(-1, 0) + 2) >> 2
+        elif mode == Intra4x4PredMode.Intra_4x4_Vertical_Right:
+            if all(P(x, -1) >= 0 for x in range(8)) and all(P(-1, y) >= 0 for y in range(8)) and P(-1, -1) >= 0:
+                for y in range(8):
+                    for x in range(8):
+                        zVR = 2 * x - y
+                        if zVR in {0, 2, 4, 6, 8, 10, 12, 14}:
+                            pred[f"{x}_{y}"] = (P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 1) >> 1
+                        elif zVR in {1, 3, 5, 7, 9, 11, 13}:
+                            pred[f"{x}_{y}"] = (P(x - (y >> 1) - 2, -1) + 2 * P(x - (y >> 1) - 1, -1) + P(x - (y >> 1), -1) + 2) >> 2
+                        elif zVR == -1:
+                            pred[f"{x}_{y}"] = (P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
+                        else:
+                            pred[f"{x}_{y}"] = (P(-1, y - 2 * x - 1) + 2 * P(-1, y - 2 * x - 2) + P(-1, y - 2 * x - 3) + 2) >> 2
+        elif mode == Intra4x4PredMode.Intra_4x4_Horizontal_Down:
+            if all(P(x, -1) >= 0 for x in range(8)) and all(P(-1, y) >= 0 for y in range(8)) and P(-1, -1) >= 0:
+                for y in range(8):
+                    for x in range(8):
+                        zHD = 2 * y - x
+                        if zHD in {0, 2, 4, 6, 8, 10, 12, 14}:
+                            pred[f"{x}_{y}"] = (P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 1) >> 1
+                        elif zHD in {1, 3, 5, 7, 9, 11, 13}:
+                            pred[f"{x}_{y}"] = (P(-1, y - (x >> 1) - 2) + 2 * P(-1, y - (x >> 1) - 1) + P(-1, y - (x >> 1)) + 2) >> 2
+                        elif zHD == -1:
+                            pred[f"{x}_{y}"] = (P(-1, 0) + 2 * P(-1, -1) + P(0, -1) + 2) >> 2
+                        else:
+                            pred[f"{x}_{y}"] = (P(x - 2 * y - 1, -1) + 2 * P(x - 2 * y - 2, -1) + P(x - 2 * y - 3, -1) + 2) >> 2
+        elif mode == Intra4x4PredMode.Intra_4x4_Vertical_Left:
+            if all(P(x, -1) >= 0 for x in range(16)):
+                for y in range(8):
+                    for x in range(8):
+                        if y % 2 == 0:
+                            pred[f"{x}_{y}"] = (P(x + (y >> 1), -1) + P(x + (y >> 1) + 1, -1) + 1) >> 1
+                        else:
+                            pred[f"{x}_{y}"] = (P(x + (y >> 1), -1) + 2 * P(x + (y >> 1) + 1, -1) + P(x + (y >> 1) + 2, -1) + 2) >> 2
+        elif mode == Intra4x4PredMode.Intra_4x4_Horizontal_Up:
+            if all(P(-1, y) >= 0 for y in range(8)):
+                for y in range(8):
+                    for x in range(8):
+                        zHU = x + 2 * y
+                        if zHU < 13:
+                            if zHU % 2 == 0:
+                                pred[f"{x}_{y}"] = (P(-1, y + (x >> 1)) + P(-1, y + (x >> 1) + 1) + 1) >> 1
+                            else:
+                                pred[f"{x}_{y}"] = (P(-1, y + (x >> 1)) + 2 * P(-1, y + (x >> 1) + 1) + P(-1, y + (x >> 1) + 2) + 2) >> 2
+                        elif zHU == 13:
+                            pred[f"{x}_{y}"] = (P(-1, 6) + 3 * P(-1, 7) + 2) >> 2
+                        else:
+                            pred[f"{x}_{y}"] = P(-1, 7)
+        return lumaPredSamples
 
     def Intra16x16Prediction(self, isLuam:bool = True):
         # Relative coordinates to the top-left corner

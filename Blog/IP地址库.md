@@ -1,34 +1,53 @@
-# IP地址库GEOIP
+# IP 地址库
 
-## [纯真IP地址库](https://www.cz88.net/)
+IP 地域识别在业务里越来越常见，常见场景包括：
 
-qqwry.dat 纯真IP库数据qqwry.dat数据（官方在 2024 年 10 月份已停止维护，官方已无发布dat格式文件。）
+- **商业区域化**：按地区做内容、活动、合规分流
+- **安全风控**：识别危险 IP、代理/VPN、异常访问
+- **地域封禁与准入**：按国家/省市做策略控制
 
-参考程序库  [qqwry](https://github.com/penndev/gopkg/tree/main/qqwry) 这个库有对 qqwry.dat 数据格式的解析
+数据格式虽多，核心需求始终是：**可定期更新的 IP → 地域映射**。业界常用两家维护方：
 
-czdb 最新的纯真数据库文件，包含了IPv4和IPv6纯真的数据经过笔者对比，大陆的数据相对来说更新频率和全面会比其他的准确性，及时性强很多。
+| 厂商 | 侧重 | 社区版 | 优点
+|------|------|--------|
+| [纯真网络](https://www.cz88.net/) | 国内 IP 更准、更新更勤 | 有（注意授权） | 境内详细准确
+| [MaxMind](https://www.maxmind.com/) | 海外覆盖更全 | 有（注意授权） | 全球化
 
-**授权**
+## 纯真（CZ88）
 
-社区版 https://www.cz88.net/geo-public 从这里只要推广纯真IP就可以获取免费授权，如果纯真IP为你带来了商业价值请购买商业版进行补票（XD）。
+官网：[https://www.cz88.net/](https://www.cz88.net/)
+
+### 格式演进
+
+| 格式 | 状态 | 说明 | 项目地址
+|------|------|------|
+| `qqwry.dat` | 已停更 | 官方 2024 年 10 月起不再维护，也不再发布 dat |  (https://github.com/penndev/gopkg/tree/main/qqwry)
+| `czdb` | 现行 | 新格式；含 IPv4 / IPv6；源数据能力仍延续纯真体系 |  https://github.com/penndev/gopkg/tree/main/ip2region
+
+源数据czdb在qqwry的基础上进行了部分的授权收紧(技术上的)，官方库需要解密,根据官方库想让塔保证简单。所以按照下面的流程可以用ip2region的数据库，但是数据源仍然是czdb。
 
 
-**数据包拆解**
+ 
+| 解析旧版 `qqwry.dat` | [gopkg/qqwry] |
+| 拆解 `czdb` → geoip 文本 | [gopkg/test/czdb](https://github.com/penndev/gopkg/tree/main/test/czdb) |
+| 封装为 `xdb` | [ip2region/maker](https://github.com/lionsoul2014/ip2region/tree/master/maker) |
+| 生成 `xdb` 示例 | [example/czdb/main.go](https://github.com/penndev/gopkg/blob/main/example/czdb/main.go) | 
 
-> czdb用B-tree索引，但是中间还有加密部分。
+> **数据包要点**：`czdb` 使用 B-tree 索引，且含加密段，不能当普通明文 IP 表直接读。
 
-https://github.com/penndev/gopkg/tree/main/test/czdb 对czdb的数据进行拆分为geoip列表的txt文件，然后用 https://github.com/lionsoul2014/ip2region/tree/master/maker 工具进行xdb的数据库文件封装
-- xdb授权 Apache-2.0 license 
-- 纯真IP授权规定。 请用户自己重新生成自己的czdb与xdb文件，避免授权纠纷
-```
-1.纯真社区版IP库离线版免费提供，并非商业数据库。我们不对该数据库承担任何除服务可用性外的责任。因该IP库的数据准确性等所造成问题，我们不承担任何责任。请您谨慎选择使用。
+### 推荐自建路径
 
-2.纯真将定期查询您提交的展示纯真信息的网页或者APP页面。若发现相关页面已经失效或者修改为无关信息，我们有权停止您使用纯真社区版IP库更新服务。
+把官方 `czdb` 转成 `xdb`，再接入业务查询：
 
-3.纯真社区版IP库仅授权给您使用，每个授权用户均有自己独特的下载链接，若发现您擅自公开、转让该链接给其他方使用，我们有权停止您使用纯真社区版IP库更新服务，并追究您的相关责任。
-```
+1. 用上述 `czdb` 拆解脚本，导出 geoip 列表（txt）
+2. 用 ip2region 的 maker 打成 `xdb`
+3. **请自行用自己的授权包重新生成**，不要直接传播他人的官方下载包
 
-用法参考:
+授权对照：
 
-https://github.com/penndev/gopkg/blob/main/example/czdb/main.go 用来生成xdb的文件
+- `xdb` / ip2region：**Apache-2.0**
+- 纯真社区版：须遵守官方条款（见下）
+
+### 纯真社区版授权要点
+
 

@@ -140,6 +140,7 @@ class SliceHeader:
             self.pred_weight_table(bs)
         if nal_ref_idc != 0:  # dec_ref_pic_marking
             self.dec_ref_pic_marking(bs)
+        self.cabac_init_idc = 0
         if pps.entropy_coding_mode_flag and self.slice_type not in [SliceType.I, SliceType.SI]:
             self.cabac_init_idc = bs.read_ue()
             '这个属性表示的是 CABAC 初始化的上下文模型'

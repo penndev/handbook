@@ -5,3 +5,8 @@ node_modules
 
 # Python
 __pycache__
+
+_tmp
+*.exe
+_code/h26x/book/
+_code/media/tools/

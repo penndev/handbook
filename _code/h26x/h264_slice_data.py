@@ -7,8 +7,6 @@ from h264_bs import BitStream
 
 
 
-
-
 class SliceData:
 
     def prevMbAddr(self) -> None|MacroBlock:
@@ -46,14 +44,33 @@ class SliceData:
     def mbAddrN(self, N:str) -> None|MacroBlock:
         '''
         @param N: 用于判断当前宏块是否为N宏块
-            - A 用于判断当前宏块是否为左侧宏块
-            - B 用于判断当前宏块是否为上侧宏块
-            - C 用于判断当前宏块是否为左上侧宏块
-            - D 用于判断当前宏块是否为右上侧宏块
+            - A 左侧宏块
+            - B 上侧宏块
+            - C 右上侧宏块
+            - D 左上侧宏块
         '''
-        if self.CurrMbAddr != 0:
-            raise ("mbAddrN")
-        return None
+        picWidthInMbs = self.bs.sps.PicWidthInMbs
+        addr = self.CurrMbAddr
+        col = addr % picWidthInMbs
+        if N == 'A':
+            if col == 0:
+                return None
+            n = addr - 1
+        elif N == 'B':
+            n = addr - picWidthInMbs
+        elif N == 'C':
+            if (addr + 1) % picWidthInMbs == 0:
+                return None
+            n = addr - picWidthInMbs + 1
+        elif N == 'D':
+            if col == 0:
+                return None
+            n = addr - picWidthInMbs - 1
+        else:
+            raise ValueError("mbAddrN")
+        if n < 0:
+            return None
+        return self.macroblock.get(n, None)
     
     def NextMbAddress(self, n:int) -> int:
         i = n + 1

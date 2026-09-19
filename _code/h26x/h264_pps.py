@@ -1,11 +1,7 @@
-
 from h264_sps import SPS
 from h264_bs import BitStream
 
-
 class PPS():
-
-
     @staticmethod
     def scaling_list(bs: BitStream, size_of_scaling_list):
         use_default_scaling_matrix_flag = False
@@ -96,6 +92,4 @@ class PPS():
                         else:
                             self.ScalingList8x8[i] = SPS.Default_8x8_Intra if i in (6,8,10) else \
                                                            SPS.Default_8x8_Inter
-                    self.second_chroma_qp_index_offset = bs.read_se()
-
-        
+            self.second_chroma_qp_index_offset = bs.read_se()

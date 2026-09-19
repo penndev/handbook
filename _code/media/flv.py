@@ -1,3 +1,7 @@
+'''
+官方flv标准介绍  https://www.adobe.com/content/dam/acom/en/devnet/flv/video_file_format_spec_v10.pdf
+'''
+
 class TAG:
     ' flv tag 详细分析 '
     NALU_HEAD = bytearray([0,0,0,1])
@@ -61,6 +65,7 @@ class TAG:
         else:
             raise NameError("未知的tag type:" + str(self.tagType))
 
+
 class FLV:
     '''flv 封包器 与 解包器  {目前只完成解包，封包效果类似。}'''
     TAG_HEAD_LEN = 11
@@ -86,7 +91,7 @@ if __name__ == "__main__":
     import ts
     H264DefaultHZ = 90
     flv = FLV()
-    flv.setFile("copy.flv")
+    flv.setFile("testcopy.flv")
     
     tsFile = open("peng1.ts",'wb')
     tsFile.write(ts.SDT())

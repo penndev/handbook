@@ -1,6 +1,5 @@
 'CODE logic from <T-REC-H.264-202408-I!!PDF-E.pdf>'
 
-
 from typing import Generator
 from h264_bs import BitStream
 from h264_sps import SPS
@@ -11,31 +10,8 @@ from h264_define import NalUnitType
 
 class H264():
     '''
-    从h264中拆分出nalu数据，并进行数据预处理
+    从h264中拆分出nalu数据,并进行数据预处理
     '''
-    def nal_unit(self, hex):
-        # self.hex += hex # 调试nalu对比字节用 
-        bs = BitStream(hex, self.sps, self.pps)
-        forbidden_zero_bit = bs.read_bits(1)
-        if forbidden_zero_bit != 0 :
-            raise("forbidden_zero_bit must zero")
-        # 当前unit重要程序表示，表示是否可丢弃当前数据。
-        nal_ref_idc = bs.read_bits(2)
-        nal_unit_type = bs.read_bits(5)
-        match nal_unit_type:
-            case NalUnitType.IDR:
-                slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
-                # print(slice_header.__dict__)
-                SliceData(bs, slice_header)
-            case NalUnitType.SPS:
-                self.sps = SPS(bs)
-                # print(self.sps.__dict__)
-            case NalUnitType.PPS:
-                self.pps = PPS(bs, self.sps)
-                # print(self.pps.__dict__)
-            # case _:
-                # print(f'not support nal_unit_type: {nal_unit_type}')
-
     def open(self, size) -> Generator[bytearray, None, None]:
         '''
         - size
@@ -56,19 +32,39 @@ class H264():
                 # 每次读取一块并返回
                 yield bytearray(tmp)
 
+    def nal_unit(self, hex):
+        # self.hex += hex # 调试nalu对比字节用 
+        bs = BitStream(hex, self.sps, self.pps)
+        forbidden_zero_bit = bs.read_bits(1)
+        if forbidden_zero_bit != 0 :
+            raise("forbidden_zero_bit must zero")
+        # 当前unit重要程序表示，表示是否可丢弃当前数据。
+        nal_ref_idc = bs.read_bits(2)
+        nal_unit_type = bs.read_bits(5)
+        match nal_unit_type:
+            case NalUnitType.IDR:
+                slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
+                # print(slice_header.__dict__)
+                SliceData(bs, slice_header)
+            case NalUnitType.SPS:
+                self.sps = SPS(bs)
+                # print(self.sps.__dict__)
+            case NalUnitType.PPS:
+                self.pps = PPS(bs, self.sps)
+                # print(self.pps.__dict__)
+            case _:
+                print(f'not support nal_unit_type: {nal_unit_type}')
+
     def __init__(self, filename):
         'filename 输入文件必须是h264文件路径'
-        self.filename = filename
-
-        # --------->
-        self.hex = bytearray()
+        self.filename = filename 
+        self.hex = bytearray() # 初始化读取字节数组
         self.sps:SPS = None
         self.pps:PPS = None
-        # --------->
-        
-        current_hex = bytearray() # 当前nalu的数据
-        # 掐头移除StartCode [000001|00000001]放置open中
-        for hex in self.open(1024):
+
+        # 循环读取一直到读取到完整nalu数据 已经移除了起始码
+        current_hex = bytearray()
+        for hex in self.open(10240):
             # - 1 是因为长度对比下标
             hex_len = len(hex) - 1
             # 当前hex读取字节位
@@ -118,10 +114,9 @@ class H264():
                     hex_position += 3
         if len(current_hex):
             self.nal_unit(current_hex)
-        # 去尾
 
 
 if __name__ == "__main__":
-    nal = H264("_tmp/baseline.h264")
+    nal = H264("_tmp/output.h264")
     # FILE_OUT = open(nal.filename + 'rbsp', "wb")
     # FILE_OUT.write(nal.hex)

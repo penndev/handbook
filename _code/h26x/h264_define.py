@@ -63,18 +63,15 @@ class MbType():
         '''
         if mb_type == 0:
             return MbType(mb_type, "I_NxN", "Intra_4x4")
-        elif mb_type == 5:
-            return MbType(mb_type, "I_16x16_0_1_0", "Intra_16x16", None, 0, 1, 0)
-        elif mb_type == 7:
-            return MbType(mb_type, "I_16x16_2_1_0", "Intra_16x16", None, 2, 1, 0)
-        elif mb_type == 8:
-            return MbType(mb_type, "I_16x16_3_1_0", "Intra_16x16", None, 3, 1, 0)
-        elif mb_type == 13:
-            return MbType(mb_type, "I_16x16_0_0_1", "Intra_16x16", None, 0, 0, 15)
-        elif mb_type == 17:
-            return MbType(mb_type, "I_16x16_0_1_1", "Intra_16x16", None, 0, 1, 15)
-        else:
-            raise Exception("MbType i mb_type" + str(mb_type))
+        if mb_type == 25:
+            return MbType(mb_type, "I_PCM", "NA")
+        if 1 <= mb_type <= 24:
+            pred = (mb_type - 1) % 4
+            chroma = ((mb_type - 1) // 4) % 3
+            luma = 15 if mb_type >= 13 else 0
+            name = f"I_16x16_{pred}_{chroma}_{1 if luma else 0}"
+            return MbType(mb_type, name, "Intra_16x16", None, pred, chroma, luma)
+        raise ValueError("MbType i mb_type" + str(mb_type))
 
 class MbPredMode(Enum):
     '''宏块预测模型'''
