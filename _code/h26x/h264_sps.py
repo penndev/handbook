@@ -6,25 +6,25 @@ from h264_bs import BitStream
 class SPS():
     # Table 7-3 – Specification of default scaling lists Default_4x4_Intra and Default_4x4_Inter
     # Default_4x4_Intra[ idx ]
-    Default_4x4_Intra = {6, 13, 13, 20, 20, 20, 28, 28, 28, 28, 32, 32, 32, 37, 37, 42}
+    Default_4x4_Intra = {i: v for i, v in enumerate([6, 13, 13, 20, 20, 20, 28, 28, 28, 28, 32, 32, 32, 37, 37, 42])}
     # Default_4x4_Inter[ idx ]
-    Default_4x4_Inter = {10, 14, 14, 20, 20, 20, 24, 24, 24, 24, 27, 27, 27, 30, 30, 34}
+    Default_4x4_Inter = {i: v for i, v in enumerate([10, 14, 14, 20, 20, 20, 24, 24, 24, 24, 27, 27, 27, 30, 30, 34])}
 
     # Table 7-4 – Specification of default scaling lists Default_8x8_Intra and Default_8x8_Inter
     # Default_8x8_Intra[ idx ]
-    Default_8x8_Intra = {
+    Default_8x8_Intra = {i: v for i, v in enumerate([
         6, 10, 10, 13, 11, 13, 16, 16, 16, 16, 18, 18, 18, 18, 18, 23,
         23, 23, 23, 23, 23, 25, 25, 25, 25, 25, 25, 25, 27, 27, 27, 27,
         27, 27, 27, 27, 29, 29, 29, 29, 29, 29, 29, 31, 31, 31, 31, 31,
         31, 33, 33, 33, 33, 33, 36, 36, 36, 36, 38, 38, 38, 40, 40, 42
-    }
+    ])}
     # Default_8x8_Inter[ idx ] 
-    Default_8x8_Inter = {
+    Default_8x8_Inter = {i: v for i, v in enumerate([
         9, 13, 13, 15, 13, 15, 17, 17, 17, 17, 19, 19, 19, 19, 19, 21,
         21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 24, 24, 24, 24,
         24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 27, 27, 27, 27, 27,
         27, 28, 28, 28, 28, 28, 30, 30, 30, 30, 32, 32, 32, 33, 33, 35
-    }
+    ])}
 
     @staticmethod
     def scaling_list(bs: BitStream, size_of_scaling_list):

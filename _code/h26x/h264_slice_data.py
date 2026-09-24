@@ -85,22 +85,20 @@ class SliceData:
     def __init__(self, bs:BitStream, slice_header:SliceHeader):
         self.bs = bs
         self.header = slice_header
-
         self.QPY_prev = slice_header.SliceQPY # 逻辑计算
 
-        self.lumaData = {}
-        self.chromaCbData = {}
-        self.chromaCrData = {}
+        self.lumaData = {} # 亮度数据 
+        self.chromaCbData = {} # 色度Cb数据
+        self.chromaCrData = {} # 色度Cr数据
 
-
-        if bs.pps.entropy_coding_mode_flag:
+        if bs.pps.entropy_coding_mode_flag == 1:
             while not bs.byte_aligned():
-                if 1 != bs.read_bits(1):
+                if bs.read_bits(1) != 1:
                     raise ('slice_data cabac_alignment_one_bit')
             bs.cabac_init_context_variables(
                     slice_header.slice_type,   
                     slice_header.cabac_init_idc,
-                    slice_header.SliceQPY 
+                    slice_header.SliceQPY
             )
             bs.cabac_inti_arithmetic_decoding_engine()
 
@@ -117,7 +115,6 @@ class SliceData:
                     raise ("mb_field_decoding_flag")
                 # 这样会在当前获取当前的 index为null
                 # self.macroblock[self.CurrMbAddr] = MacroBlock(bs, self)
-                print("self.CurrMbAddr", self.CurrMbAddr)
                 MacroBlock(bs, self)
                 self.macroblock[self.CurrMbAddr].Parse()
 
@@ -134,17 +131,5 @@ class SliceData:
             self.CurrMbAddr = self.NextMbAddress( self.CurrMbAddr )
             if not moreDataFlag:
                 break
-        # print("====================>", len(self.lumaData[0]))
-        with open("_tmp/dev.yuv", "wb") as file:  # 打开文件以二进制写入模式
-            width = self.bs.sps.PicWidthInSamplesL
-            height = self.header.PicHeightInSamplesL
-            for y in range(int(height)):  # 遍历行
-                for x in range(int(width)):  # 遍历列
-                    file.write(bytes([self.lumaData.get(x,{}).get(y,0)]))  # 将字节写入文件
-            for y in range(int(height/2)):  # 遍历行
-                for x in range(int(width/2)):  # 遍历列
-                    file.write(bytes([self.chromaCbData.get(x,{}).get(y,0)]))  # 将字节写入文件
-            # for y in range(int(height/2)):  # 遍历行
-            #     for x in range(int(width/2)):  # 遍历列
-            #         file.write(bytes([self.chromaCrData.get(x,{}).get(y,0)]))  # 将字节写入文件
-            
+        
+        return self 

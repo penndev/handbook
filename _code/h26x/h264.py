@@ -1,4 +1,4 @@
-'CODE logic from <T-REC-H.264-202408-I!!PDF-E.pdf>'
+'CODE logic from <T-REC-H.264-202108-I!!PDF-E.pdf>'
 
 from typing import Generator
 from h264_bs import BitStream
@@ -8,9 +8,12 @@ from h264_slice_header import SliceHeader
 from h264_slice_data import SliceData
 from h264_define import NalUnitType
 
+counter = 0
+
 class H264():
     '''
     从h264中拆分出nalu数据,并进行数据预处理
+    B.1 Byte stream NAL unit syntax and semantics
     '''
     def open(self, size) -> Generator[bytearray, None, None]:
         '''
@@ -33,7 +36,10 @@ class H264():
                 yield bytearray(tmp)
 
     def nal_unit(self, hex):
-        # self.hex += hex # 调试nalu对比字节用 
+        ''' 
+        7.3.1 NAL unit syntax
+        按照这个标签进行拆分nalu数据
+        '''
         bs = BitStream(hex, self.sps, self.pps)
         forbidden_zero_bit = bs.read_bits(1)
         if forbidden_zero_bit != 0 :
@@ -45,7 +51,22 @@ class H264():
             case NalUnitType.IDR:
                 slice_header = SliceHeader(bs, self.sps, self.pps, nal_unit_type, nal_ref_idc)
                 # print(slice_header.__dict__)
-                SliceData(bs, slice_header)
+                slice = SliceData(bs, slice_header)
+                counter += 1
+                with open("_tmp/dev-" + str(counter) + ".yuv", "wb") as file:  # 打开文件以二进制写入模式
+                    width = slice.bs.sps.PicWidthInSamplesL
+                    height = slice.header.PicHeightInSamplesL
+                    print(f"write _tmp/dev.yuv {width}x{height} yuv420p")
+                    for y in range(int(height)):  # 遍历行
+                        for x in range(int(width)):  # 遍历列
+                            file.write(bytes([slice.lumaData.get(x,{}).get(y,0)]))  # 将字节写入文件
+                    for y in range(int(height/2)):  # 遍历行
+                        for x in range(int(width/2)):  # 遍历列
+                            file.write(bytes([slice.chromaCbData.get(x,{}).get(y,0)]))  # 将字节写入文件
+                    for y in range(int(height/2)):  # 遍历行
+                        for x in range(int(width/2)):  # 遍历列
+                            file.write(bytes([slice.chromaCrData.get(x,{}).get(y,0)]))  # 将字节写入文件
+
             case NalUnitType.SPS:
                 self.sps = SPS(bs)
                 # print(self.sps.__dict__)

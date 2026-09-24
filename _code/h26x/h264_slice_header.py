@@ -6,6 +6,9 @@ from h264_pps import PPS
 from h264_sps import SPS
 
 class SliceHeader:
+    '''
+    7.3.3 Slice header syntax
+    '''
 
     def dec_ref_pic_marking(self, bs):
         if self.idr_pic_flag:
@@ -83,10 +86,8 @@ class SliceHeader:
                     elif modification_of_pic_nums_idc == 3:
                         break  # 退出循环
 
-
     def __init__(self, bs:BitStream, sps:SPS, pps:PPS, nal_unit_type:int, nal_ref_idc:int):
         self.idr_pic_flag = 1 if nal_unit_type == NalUnitType.IDR else 0
-
         self.first_mb_in_slice = bs.read_ue()
         '这个属性表示的是在这个 Slice 中第一个宏块的序号'
         self.slice_type = bs.read_ue() % 5
@@ -100,9 +101,6 @@ class SliceHeader:
         self.frame_num = bs.read_bits(sps.log2_max_frame_num_minus4 + 4)
         '这个属性表示的是当前 Slice 的帧号'
         self.field_pic_flag = 0
-
-
-
         if not sps.frame_mbs_only_flag:
             self.field_pic_flag = bs.read_bits(1)
             '这个属性表示的是当前 Slice 是否是场帧'
@@ -167,7 +165,7 @@ class SliceHeader:
         # 逻辑变量
         self.MbaffFrameFlag = 1 if sps.mb_adaptive_frame_field_flag and not self.field_pic_flag else 0
 
-        self.PicHeightInMbs = bs.sps.FrameHeightInMbs / ( 1 + self.field_pic_flag ) 
+        self.PicHeightInMbs = bs.sps.FrameHeightInMbs // ( 1 + self.field_pic_flag )
         self.PicSizeInMbs = bs.sps.PicWidthInMbs * self.PicHeightInMbs
 
         self.PicHeightInSamplesL = self.PicHeightInMbs * 16

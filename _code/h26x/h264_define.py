@@ -11,7 +11,7 @@ class ChromaType(IntEnum):
 class NalUnitType(Enum):
     '''
     NAL unit type 类型说明。
-    Table 7-1  文档进行了详细说明。
+    Table 7-1 – NAL unit type codes, syntax element categories, and NAL unit type classes
     '''
     
     IDR = 5
@@ -140,5 +140,3 @@ class Intra4x4PredMode(IntEnum):
     Intra_4x4_Horizontal_Down = 6
     Intra_4x4_Vertical_Left = 7
     Intra_4x4_Horizontal_Up = 8
-
-

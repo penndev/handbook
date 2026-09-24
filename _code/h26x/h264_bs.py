@@ -110,7 +110,6 @@ class BitStream():
             (46,  38,   38),
             (47,  41,   41)
         )
-
         ChromaArrayType0_3 = (
             (0,  15,   0),
             (1,  0,   1),
@@ -129,21 +128,16 @@ class BitStream():
             (14,  6,   6),
             (15,  9,   9),
         )
-
-
         uev = self.read_ue()
         if self.sps.chroma_format_idc in [1, 2]:
             return ChromaArrayType1_2[uev]
         elif self.sps.chroma_format_idc in [0, 3]:
             return ChromaArrayType0_3[uev]
 
-    # 
     def read_ae(self):
         ''' CABAC解析过程 \n
             sps. entropy_coding_mode_flag = 1 才会调用本过程
         '''
-        # pStateIdx
-        # valMPS1
         raise ('not support ae(v)')
 
     def read_te(self):
@@ -1354,9 +1348,7 @@ class BitStream():
 
     def cabac_init_context_variables(self, slice_type, cabac_init_idc, SliceQPY):
         '''
-        **9.3.1.1 初始化变量**
-        - pStateIdx 状态ID
-        - valMPS 最大值可能性
+        9.3.1.1 Initialization process for context variables
         '''
         self.stateIdx = {}
         self.MPSValue = {}
@@ -1475,6 +1467,8 @@ class BitStream():
             binVal = 1 - valMPS
             self.codIOffset = self.codIOffset - self.codIRange
             self.codIRange = codIRangeLPS
+            if pStateIdx == 0:
+                self.MPSValue[ctxIdx] = 1 - valMPS
             self.stateIdx[ctxIdx] = transIdxLPS[pStateIdx]
         else:
             binVal = valMPS
@@ -1585,7 +1579,6 @@ class BitStream():
                 return self.cabac_decode(False, ctxIdx)
             case _:
                 raise 'transform_size_8x8_flag'
-
     
     def mb_qp_delta(self,slice:SliceData) -> int:
         if self.pps.entropy_coding_mode_flag != 1:
@@ -1718,8 +1711,6 @@ class BitStream():
         return CodedBlockPatternLuma + CodedBlockPatternChroma * 16
 
     #----------- CAVLC ----------------
-
-
     def get_coeff(self, residualLevel:dict, mb:MacroBlock, slice:SliceData) -> tuple[int,int,int]:
         nC = 0
         if residualLevel == "ChromaDCLevel":
@@ -3037,7 +3028,6 @@ class BitStream():
         return ret
 
     def get_total_zeros(self, TotalCoeff, maxNumCoeff):
-
         total_zeros_table_chroma_dc_length_420 = [
             [1, 2, 3, 3],
             [1, 2, 2],
