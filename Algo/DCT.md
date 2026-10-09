@@ -1,1 +1,0 @@
-# 离散余弦变换 Discrete Cosine Transform 
