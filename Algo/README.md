@@ -18,5 +18,7 @@
 
 ## 编码
 
-  * [算数编码](Algo/Arithmetic-coding.md)
-  * [指数哥伦布编码](Algo/Exp-Golomb-coding.md)
+  * [算术编码](./Arithmetic-coding.md)
+  * [指数哥伦布编码](./Golomb-coding.md)  
+  * [离散余弦变换](./DCT.md)
+  * [加密](./encrypt.md)
